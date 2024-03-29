@@ -1,0 +1,37 @@
+[package]
+name = "mgo-surfer"
+version.workspace = true
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+mgo-core.workspace = true
+mgo-swarm-config.workspace = true
+mgo-json-rpc-types.workspace = true
+mgo-move-build.workspace = true
+mgo-protocol-config.workspace = true
+mgo-types.workspace = true
+test-cluster.workspace = true
+
+async-trait.workspace = true
+bcs.workspace = true
+clap.workspace = true
+futures.workspace = true
+indexmap.workspace = true
+rand.workspace = true
+tokio = { workspace = true, features = ["full", "tracing", "test-util"] }
+tracing.workspace = true
+
+move-binary-format.workspace = true
+move-core-types.workspace = true
+telemetry-subscribers.workspace = true
+workspace-hack.workspace = true
+
+[dev-dependencies]
+prometheus.workspace = true
+mgo-macros.workspace = true
+mgo-simulator.workspace = true
+
+move-package.workspace = true

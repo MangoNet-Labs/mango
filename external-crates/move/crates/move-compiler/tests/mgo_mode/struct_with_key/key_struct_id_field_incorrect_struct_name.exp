@@ -1,0 +1,10 @@
+error[Mgo E02007]: invalid object declaration
+  ┌─ tests/mgo_mode/struct_with_key/key_struct_id_field_incorrect_struct_name.move:5:9
+  │
+4 │     struct S has key {
+  │                  --- The 'key' ability is used to declare objects in Mgo
+5 │         id: object::ID
+  │         ^^  ---------- But found type: 'mgo::object::ID'
+  │         │    
+  │         Invalid object 'S'. Structs with the 'key' ability must have 'id: mgo::object::UID' as their first field
+

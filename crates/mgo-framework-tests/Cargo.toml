@@ -1,0 +1,27 @@
+[package]
+name = "mgo-framework-tests"
+version = "0.1.0"
+edition = "2021"
+description = "Runs Move tests for mgo-framework"
+license = "Apache-2.0"
+publish = false
+
+[dev-dependencies]
+prometheus.workspace = true
+
+mgo-framework.workspace = true
+mgo-move = { workspace = true, features = ["unit_test"] }
+mgo-move-build.workspace = true
+mgo-protocol-config.workspace = true
+mgo-types.workspace = true
+
+move-bytecode-verifier = { path = "../../external-crates/move/crates/move-bytecode-verifier" }
+mgo-adapter = { path = "../../mgo-execution/latest/mgo-adapter", package = "mgo-adapter-latest" }
+mgo-verifier = { path = "../../mgo-execution/latest/mgo-verifier", package = "mgo-verifier-latest" }
+
+move-cli.workspace = true
+move-package.workspace = true
+move-unit-test.workspace = true
+
+[dependencies]
+workspace-hack.workspace = true

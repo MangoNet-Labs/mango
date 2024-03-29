@@ -1,0 +1,11 @@
+query CoinMetadata {
+  coinMetadata(coinType: "0x2::mgo::MGO") {
+    decimals
+    name
+    symbol
+    description
+    iconUrl
+    supply
+    hasPublicTransfer
+  }
+}

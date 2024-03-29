@@ -1,0 +1,14 @@
+[package]
+name = "mgo-macros"
+version = "0.7.0"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+mgo-proc-macros.workspace = true
+once_cell.workspace = true
+futures.workspace = true
+tracing.workspace = true
+workspace-hack.workspace = true

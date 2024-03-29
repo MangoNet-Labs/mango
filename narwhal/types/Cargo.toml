@@ -1,0 +1,71 @@
+[package]
+name = "narwhal-types"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+publish = false
+
+[dependencies]
+base64.workspace = true
+bcs.workspace = true
+bytes.workspace = true
+derive_builder.workspace = true
+enum_dispatch.workspace = true
+futures.workspace = true
+indexmap.workspace = true
+mockall.workspace = true
+prometheus.workspace = true
+proptest.workspace = true
+proptest-derive.workspace = true
+prost.workspace = true
+rand.workspace = true
+roaring.workspace = true
+serde.workspace = true
+serde_with.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["sync", "rt", "macros"] }
+tonic.workspace = true
+tracing.workspace = true
+
+anyhow.workspace = true
+config = { path = "../config", package = "narwhal-config" }
+fastcrypto.workspace = true
+fastcrypto-tbls.workspace = true
+crypto = { path = "../crypto", package = "narwhal-crypto" }
+anemo.workspace = true
+mgo-protocol-config.workspace = true
+once_cell.workspace = true
+
+store = { path = "../../crates/typed-store", package = "typed-store" }
+mango-metrics.workspace = true
+mango-common.workspace = true
+mango-network.workspace = true
+mango-util-mem.workspace = true
+workspace-hack.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+serde_test.workspace = true
+test-utils = { path = "../test-utils", package = "narwhal-test-utils" }
+
+[target.'cfg(not(target_env = "msvc"))'.build-dependencies]
+protobuf-src.workspace = true
+
+[build-dependencies]
+prost-build.workspace = true
+rustversion.workspace = true
+tonic-build.workspace = true
+anemo-build.workspace = true
+
+[features]
+default = []
+test = []
+
+[[bench]]
+name = "batch_digest"
+harness = false
+
+[[bench]]
+name = "verify_certificate"
+harness = false

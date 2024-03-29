@@ -1,0 +1,746 @@
+// Copyright (c) MangoNet Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
+extern crate move_ir_types;
+
+use std::{
+    collections::{BTreeMap, BTreeSet, HashSet},
+    io::Write,
+    path::{Path, PathBuf},
+    str::FromStr,
+};
+
+use fastcrypto::encoding::Base64;
+use move_binary_format::{
+    access::ModuleAccess,
+    normalized::{self, Type},
+    CompiledModule,
+};
+use move_bytecode_utils::{layout::SerdeLayoutBuilder, module_cache::GetModule};
+use move_compiler::{
+    compiled_unit::AnnotatedCompiledModule,
+    diagnostics::{
+        report_diagnostics_to_color_buffer, report_warnings, Diagnostics, FilesSourceText,
+    },
+    mgo_mode::linters::LINT_WARNING_PREFIX,
+};
+use move_core_types::{
+    account_address::AccountAddress,
+    language_storage::{ModuleId, StructTag, TypeTag},
+};
+use move_package::{
+    compilation::{
+        build_plan::BuildPlan, compiled_package::CompiledPackage as MoveCompiledPackage,
+    },
+    package_hooks::{PackageHooks, PackageIdentifier},
+    resolution::resolution_graph::ResolvedGraph,
+    BuildConfig as MoveBuildConfig,
+};
+use move_package::{
+    resolution::resolution_graph::Package, source_package::parsed_manifest::CustomDepInfo,
+    source_package::parsed_manifest::SourceManifest,
+};
+use move_symbol_pool::Symbol;
+use serde_reflection::Registry;
+use mgo_protocol_config::{Chain, ProtocolConfig, ProtocolVersion};
+use mgo_types::{
+    base_types::ObjectID,
+    error::{MgoError, MgoResult},
+    is_system_package,
+    move_package::{FnInfo, FnInfoKey, FnInfoMap, MovePackage},
+    MOVE_STDLIB_ADDRESS, MGO_FRAMEWORK_ADDRESS, MGO_SYSTEM_ADDRESS,
+};
+use mgo_verifier::{default_verifier_config, verifier as mgo_bytecode_verifier};
+
+#[cfg(test)]
+#[path = "unit_tests/build_tests.rs"]
+mod build_tests;
+
+/// Wrapper around the core Move `CompiledPackage` with some Mgo-specific traits and info
+#[derive(Debug, Clone)]
+pub struct CompiledPackage {
+    pub package: MoveCompiledPackage,
+    /// Address the package is recorded as being published at.
+    pub published_at: Result<ObjectID, PublishedAtError>,
+    /// The dependency IDs of this package
+    pub dependency_ids: PackageDependencies,
+    /// Path to the Move package (i.e., where the Move.toml file is)
+    pub path: PathBuf,
+}
+
+/// Wrapper around the core Move `BuildConfig` with some Mgo-specific info
+#[derive(Clone)]
+pub struct BuildConfig {
+    pub config: MoveBuildConfig,
+    /// If true, run the Move bytecode verifier on the bytecode from a successful build
+    pub run_bytecode_verifier: bool,
+    /// If true, print build diagnostics to stderr--no printing if false
+    pub print_diags_to_stderr: bool,
+}
+
+impl BuildConfig {
+    pub fn new_for_testing() -> Self {
+        move_package::package_hooks::register_package_hooks(Box::new(MgoPackageHooks));
+        let mut build_config: Self = Default::default();
+        let install_dir = tempfile::tempdir().unwrap().into_path();
+        let lock_file = install_dir.join("Move.lock");
+        build_config.config.install_dir = Some(install_dir);
+        build_config.config.lock_file = Some(lock_file);
+        build_config.config.no_lint = true;
+        build_config
+    }
+
+    pub fn new_for_testing_replace_addresses<I, S>(dep_original_addresses: I) -> Self
+    where
+        I: IntoIterator<Item = (S, ObjectID)>,
+        S: Into<String>,
+    {
+        let mut build_config = Self::new_for_testing();
+        for (addr_name, obj_id) in dep_original_addresses {
+            build_config
+                .config
+                .additional_named_addresses
+                .insert(addr_name.into(), AccountAddress::from(obj_id));
+        }
+        build_config
+    }
+
+    fn fn_info(units: &[AnnotatedCompiledModule]) -> FnInfoMap {
+        let mut fn_info_map = BTreeMap::new();
+        for u in units {
+            let mod_addr = u.named_module.address.into_inner();
+            let mod_is_test = u.attributes.is_test_or_test_only();
+            for (_, s, info) in &u.function_infos {
+                let fn_name = s.as_str().to_string();
+                let is_test = mod_is_test || info.attributes.is_test_or_test_only();
+                fn_info_map.insert(FnInfoKey { fn_name, mod_addr }, FnInfo { is_test });
+            }
+        }
+
+        fn_info_map
+    }
+
+    fn compile_package<W: Write>(
+        resolution_graph: ResolvedGraph,
+        writer: &mut W,
+    ) -> anyhow::Result<(MoveCompiledPackage, FnInfoMap)> {
+        let build_plan = BuildPlan::create(resolution_graph)?;
+        let mut fn_info = None;
+        let compiled_pkg = build_plan.compile_with_driver(writer, |compiler| {
+            let (files, units_res) = compiler.build()?;
+            match units_res {
+                Ok((units, warning_diags)) => {
+                    decorate_warnings(warning_diags, Some(&files));
+                    fn_info = Some(Self::fn_info(&units));
+                    Ok((files, units))
+                }
+                Err(error_diags) => {
+                    // with errors present don't even try decorating warnings output to avoid
+                    // clutter
+                    assert!(!error_diags.is_empty());
+                    let diags_buf = report_diagnostics_to_color_buffer(&files, error_diags);
+                    if let Err(err) = std::io::stderr().write_all(&diags_buf) {
+                        anyhow::bail!("Cannot output compiler diagnostics: {}", err);
+                    }
+                    anyhow::bail!("Compilation error");
+                }
+            }
+        })?;
+        Ok((compiled_pkg, fn_info.unwrap()))
+    }
+
+    /// Given a `path` and a `build_config`, build the package in that path, including its dependencies.
+    /// If we are building the Mgo framework, we skip the check that the addresses should be 0
+    pub fn build(self, path: PathBuf) -> MgoResult<CompiledPackage> {
+        let print_diags_to_stderr = self.print_diags_to_stderr;
+        let run_bytecode_verifier = self.run_bytecode_verifier;
+        let resolution_graph = self.resolution_graph(&path)?;
+        let result = build_from_resolution_graph(
+            path.clone(),
+            resolution_graph,
+            run_bytecode_verifier,
+            print_diags_to_stderr,
+        );
+        if let Ok(ref compiled) = result {
+            compiled
+                .package
+                .compiled_package_info
+                .build_flags
+                .update_lock_file_toolchain_version(&path, env!("CARGO_PKG_VERSION").into())
+                .map_err(|e| MgoError::ModuleBuildFailure {
+                    error: format!("Failed to update Move.lock toolchain version: {e}"),
+                })?;
+        }
+        result
+    }
+
+    pub fn resolution_graph(mut self, path: &Path) -> MgoResult<ResolvedGraph> {
+        if let Some(err_msg) = set_mgo_flavor(&mut self.config) {
+            return Err(MgoError::ModuleBuildFailure { error: err_msg });
+        }
+
+        if self.print_diags_to_stderr {
+            self.config
+                .resolution_graph_for_package(path, &mut std::io::stderr())
+        } else {
+            self.config
+                .resolution_graph_for_package(path, &mut std::io::sink())
+        }
+        .map_err(|err| MgoError::ModuleBuildFailure {
+            error: format!("{:?}", err),
+        })
+    }
+}
+
+/// There may be additional information that needs to be displayed after diagnostics are reported
+/// (optionally report diagnostics themselves if files argument is provided).
+pub fn decorate_warnings(warning_diags: Diagnostics, files: Option<&FilesSourceText>) {
+    let any_linter_warnings = warning_diags.any_with_prefix(LINT_WARNING_PREFIX);
+    let (filtered_diags_num, filtered_categories) =
+        warning_diags.filtered_source_diags_with_prefix(LINT_WARNING_PREFIX);
+    if let Some(f) = files {
+        report_warnings(f, warning_diags);
+    }
+    if any_linter_warnings {
+        eprintln!("Please report feedback on the linter warnings at https://forums.mangonetwork.io\n");
+    }
+    if filtered_diags_num > 0 {
+        eprintln!("Total number of linter warnings suppressed: {filtered_diags_num} (filtered categories: {filtered_categories})");
+    }
+}
+
+/// Sets build config's default flavor to `Flavor::Mgo`. Returns error message if the flavor was
+/// previously set to something else than `Flavor::Mgo`.
+pub fn set_mgo_flavor(build_config: &mut MoveBuildConfig) -> Option<String> {
+    use move_compiler::editions::Flavor;
+
+    let flavor = build_config.default_flavor.get_or_insert(Flavor::Mgo);
+    if flavor != &Flavor::Mgo {
+        return Some(format!(
+            "The flavor of the Move compiler cannot be overridden with anything but \
+                 \"{}\", but the default override was set to: \"{flavor}\"",
+            Flavor::Mgo,
+        ));
+    }
+    None
+}
+
+pub fn build_from_resolution_graph(
+    path: PathBuf,
+    resolution_graph: ResolvedGraph,
+    run_bytecode_verifier: bool,
+    print_diags_to_stderr: bool,
+) -> MgoResult<CompiledPackage> {
+    let (published_at, dependency_ids) = gather_published_ids(&resolution_graph);
+
+    let result = if print_diags_to_stderr {
+        BuildConfig::compile_package(resolution_graph, &mut std::io::stderr())
+    } else {
+        BuildConfig::compile_package(resolution_graph, &mut std::io::sink())
+    };
+    // write build failure diagnostics to stderr, convert `error` to `String` using `Debug`
+    // format to include anyhow's error context chain.
+    let (package, fn_info) = match result {
+        Err(error) => {
+            return Err(MgoError::ModuleBuildFailure {
+                error: format!("{:?}", error),
+            })
+        }
+        Ok((package, fn_info)) => (package, fn_info),
+    };
+    let compiled_modules = package.root_modules_map();
+    if run_bytecode_verifier {
+        for m in compiled_modules.iter_modules() {
+            move_bytecode_verifier::verify_module_unmetered(m).map_err(|err| {
+                MgoError::ModuleVerificationFailure {
+                    error: err.to_string(),
+                }
+            })?;
+            mgo_bytecode_verifier::mgo_verify_module_unmetered(
+                m,
+                &fn_info,
+                &default_verifier_config(
+                    &ProtocolConfig::get_for_version(ProtocolVersion::MAX, Chain::Unknown),
+                    false,
+                ),
+            )?;
+        }
+        // TODO(https://github.com/MangoNetworkOs/Mango/issues/69): Run Move linker
+    }
+    Ok(CompiledPackage {
+        package,
+        published_at,
+        dependency_ids,
+        path,
+    })
+}
+
+impl CompiledPackage {
+    /// Return all of the bytecode modules in this package (not including direct or transitive deps)
+    /// Note: these are not topologically sorted by dependency--use `get_dependency_sorted_modules` to produce a list of modules suitable
+    /// for publishing or static analysis
+    pub fn get_modules(&self) -> impl Iterator<Item = &CompiledModule> {
+        self.package.root_modules().map(|m| &m.unit.module)
+    }
+
+    /// Return all of the bytecode modules in this package (not including direct or transitive deps)
+    /// Note: these are not topologically sorted by dependency--use `get_dependency_sorted_modules` to produce a list of modules suitable
+    /// for publishing or static analysis
+    pub fn into_modules(self) -> Vec<CompiledModule> {
+        self.package
+            .root_compiled_units
+            .into_iter()
+            .map(|m| m.unit.module)
+            .collect()
+    }
+
+    /// Return all of the bytecode modules that this package depends on (both directly and transitively)
+    /// Note: these are not topologically sorted by dependency.
+    pub fn get_dependent_modules(&self) -> impl Iterator<Item = &CompiledModule> {
+        self.package
+            .deps_compiled_units
+            .iter()
+            .map(|(_, m)| &m.unit.module)
+    }
+
+    /// Return all of the bytecode modules in this package and the modules of its direct and transitive dependencies.
+    /// Note: these are not topologically sorted by dependency.
+    pub fn get_modules_and_deps(&self) -> impl Iterator<Item = &CompiledModule> {
+        self.package.all_modules().map(|m| &m.unit.module)
+    }
+
+    /// Return the bytecode modules in this package, topologically sorted in dependency order.
+    /// Optionally include dependencies that have not been published (are at address 0x0), if
+    /// `with_unpublished_deps` is true. This is the function to call if you would like to publish
+    /// or statically analyze the modules.
+    pub fn get_dependency_sorted_modules(
+        &self,
+        with_unpublished_deps: bool,
+    ) -> Vec<CompiledModule> {
+        let all_modules = self.package.all_modules_map();
+        let graph = all_modules.compute_dependency_graph();
+
+        // SAFETY: package built successfully
+        let modules = graph.compute_topological_order().unwrap();
+
+        if with_unpublished_deps {
+            // For each transitive dependent module, if they are not to be published, they must have
+            // a non-zero address (meaning they are already published on-chain).
+            modules
+                .filter(|module| module.address() == &AccountAddress::ZERO)
+                .cloned()
+                .collect()
+        } else {
+            // Collect all module IDs from the current package to be published (module names are not
+            // sufficient as we may have modules with the same names in user code and in Mgo
+            // framework which would result in the latter being pulled into a set of modules to be
+            // published).
+            let self_modules: HashSet<_> = self
+                .package
+                .root_modules_map()
+                .iter_modules()
+                .iter()
+                .map(|m| m.self_id())
+                .collect();
+
+            modules
+                .filter(|module| self_modules.contains(&module.self_id()))
+                .cloned()
+                .collect()
+        }
+    }
+
+    /// Return the set of Object IDs corresponding to this package's transitive dependencies'
+    /// original package IDs.
+    pub fn get_dependency_original_package_ids(&self) -> Vec<ObjectID> {
+        let mut ids: BTreeSet<_> = self
+            .package
+            .deps_compiled_units
+            .iter()
+            .map(|(_, m)| ObjectID::from(*m.unit.module.address()))
+            .collect();
+
+        // `0x0` is not a real dependency ID -- it means that the package has unpublished
+        // dependencies.
+        ids.remove(&ObjectID::ZERO);
+        ids.into_iter().collect()
+    }
+
+    pub fn get_package_digest(&self, with_unpublished_deps: bool) -> [u8; 32] {
+        let hash_modules = true;
+        MovePackage::compute_digest_for_modules_and_deps(
+            &self.get_package_bytes(with_unpublished_deps),
+            self.dependency_ids.published.values(),
+            hash_modules,
+        )
+    }
+
+    /// Return a serialized representation of the bytecode modules in this package, topologically sorted in dependency order
+    pub fn get_package_bytes(&self, with_unpublished_deps: bool) -> Vec<Vec<u8>> {
+        self.get_dependency_sorted_modules(with_unpublished_deps)
+            .iter()
+            .map(|m| {
+                let mut bytes = Vec::new();
+                m.serialize(&mut bytes).unwrap(); // safe because package built successfully
+                bytes
+            })
+            .collect()
+    }
+
+    /// Return the base64-encoded representation of the bytecode modules in this package, topologically sorted in dependency order
+    pub fn get_package_base64(&self, with_unpublished_deps: bool) -> Vec<Base64> {
+        self.get_package_bytes(with_unpublished_deps)
+            .iter()
+            .map(|b| Base64::from_bytes(b))
+            .collect()
+    }
+
+    pub fn get_package_dependencies_hex(&self) -> Vec<String> {
+        self.dependency_ids
+            .published
+            .values()
+            .map(|object_id| object_id.to_hex_uncompressed())
+            .collect()
+    }
+
+    /// Get bytecode modules from the Mgo System that are used by this package
+    pub fn get_mgo_system_modules(&self) -> impl Iterator<Item = &CompiledModule> {
+        self.get_modules_and_deps()
+            .filter(|m| *m.self_id().address() == MGO_SYSTEM_ADDRESS)
+    }
+
+    /// Get bytecode modules from the Mgo Framework that are used by this package
+    pub fn get_mgo_framework_modules(&self) -> impl Iterator<Item = &CompiledModule> {
+        self.get_modules_and_deps()
+            .filter(|m| *m.self_id().address() == MGO_FRAMEWORK_ADDRESS)
+    }
+
+    /// Get bytecode modules from the Move stdlib that are used by this package
+    pub fn get_stdlib_modules(&self) -> impl Iterator<Item = &CompiledModule> {
+        self.get_modules_and_deps()
+            .filter(|m| *m.self_id().address() == MOVE_STDLIB_ADDRESS)
+    }
+
+    /// Generate layout schemas for all types declared by this package, as well as
+    /// all struct types passed into `entry` functions declared by modules in this package
+    /// (either directly or by reference).
+    /// These layout schemas can be consumed by clients (e.g., the TypeScript SDK) to enable
+    /// BCS serialization/deserialization of the package's objects, tx arguments, and events.
+    pub fn generate_struct_layouts(&self) -> Registry {
+        let mut package_types = BTreeSet::new();
+        for m in self.get_modules() {
+            let normalized_m = normalized::Module::new(m);
+            // 1. generate struct layouts for all declared types
+            'structs: for (name, s) in normalized_m.structs {
+                let mut dummy_type_parameters = Vec::new();
+                for t in &s.type_parameters {
+                    if t.is_phantom {
+                        // if all of t's type parameters are phantom, we can generate a type layout
+                        // we make this happen by creating a StructTag with dummy `type_params`, since the layout generator won't look at them.
+                        // we need to do this because SerdeLayoutBuilder will refuse to generate a layout for any open StructTag, but phantom types
+                        // cannot affect the layout of a struct, so we just use dummy values
+                        dummy_type_parameters.push(TypeTag::Signer)
+                    } else {
+                        // open type--do not attempt to generate a layout
+                        // TODO: handle generating layouts for open types?
+                        continue 'structs;
+                    }
+                }
+                debug_assert!(dummy_type_parameters.len() == s.type_parameters.len());
+                package_types.insert(StructTag {
+                    address: *m.address(),
+                    module: m.name().to_owned(),
+                    name,
+                    type_params: dummy_type_parameters,
+                });
+            }
+            // 2. generate struct layouts for all parameters of `entry` funs
+            for (_name, f) in normalized_m.functions {
+                if f.is_entry {
+                    for t in f.parameters {
+                        let tag_opt = match t.clone() {
+                            Type::Address
+                            | Type::Bool
+                            | Type::Signer
+                            | Type::TypeParameter(_)
+                            | Type::U8
+                            | Type::U16
+                            | Type::U32
+                            | Type::U64
+                            | Type::U128
+                            | Type::U256
+                            | Type::Vector(_) => continue,
+                            Type::Reference(t) | Type::MutableReference(t) => t.into_struct_tag(),
+                            s @ Type::Struct { .. } => s.into_struct_tag(),
+                        };
+                        if let Some(tag) = tag_opt {
+                            package_types.insert(tag);
+                        }
+                    }
+                }
+            }
+        }
+        let mut layout_builder = SerdeLayoutBuilder::new(self);
+        for typ in &package_types {
+            layout_builder.build_struct_layout(typ).unwrap();
+        }
+        layout_builder.into_registry()
+    }
+
+    /// Checks whether this package corresponds to a built-in framework
+    pub fn is_system_package(&self) -> bool {
+        // System packages always have "published-at" addresses
+        let Ok(published_at) = self.published_at else {
+            return false;
+        };
+
+        is_system_package(published_at)
+    }
+
+    /// Checks for root modules with non-zero package addresses.  Returns an arbitrary one, if one
+    /// can can be found, otherwise returns `None`.
+    pub fn published_root_module(&self) -> Option<&CompiledModule> {
+        self.package.root_compiled_units.iter().find_map(|unit| {
+            if unit.unit.module.self_id().address() != &AccountAddress::ZERO {
+                Some(&unit.unit.module)
+            } else {
+                None
+            }
+        })
+    }
+
+    pub fn verify_unpublished_dependencies(
+        &self,
+        unpublished_deps: &BTreeSet<Symbol>,
+    ) -> MgoResult<()> {
+        if unpublished_deps.is_empty() {
+            return Ok(());
+        }
+
+        let errors = self
+            .package
+            .deps_compiled_units
+            .iter()
+            .filter_map(|(p, m)| {
+                if !unpublished_deps.contains(p) || m.unit.module.address() == &AccountAddress::ZERO
+                {
+                    return None;
+                }
+                Some(format!(
+                    " - {}::{} in dependency {}",
+                    m.unit.module.address(),
+                    m.unit.name,
+                    p
+                ))
+            })
+            .collect::<Vec<String>>();
+
+        if errors.is_empty() {
+            return Ok(());
+        }
+
+        let mut error_message = vec![];
+        error_message.push(
+            "The following modules in package dependencies set a non-zero self-address:".into(),
+        );
+        error_message.extend(errors);
+        error_message.push(
+            "If these packages really are unpublished, their self-addresses should be set \
+	     to \"0x0\" in the [addresses] section of the manifest when publishing. If they \
+	     are already published, ensure they specify the address in the `published-at` of \
+	     their Move.toml manifest."
+                .into(),
+        );
+
+        Err(MgoError::ModulePublishFailure {
+            error: error_message.join("\n"),
+        })
+    }
+
+    pub fn published_dependency_ids(&self) -> Vec<ObjectID> {
+        self.dependency_ids.published.values().cloned().collect()
+    }
+}
+
+impl Default for BuildConfig {
+    fn default() -> Self {
+        let config = MoveBuildConfig {
+            default_flavor: Some(move_compiler::editions::Flavor::Mgo),
+            ..MoveBuildConfig::default()
+        };
+        BuildConfig {
+            config,
+            run_bytecode_verifier: true,
+            print_diags_to_stderr: false,
+        }
+    }
+}
+
+impl GetModule for CompiledPackage {
+    type Error = anyhow::Error;
+    // TODO: return ref here for better efficiency? Borrow checker + all_modules_map() make it hard to do this
+    type Item = CompiledModule;
+
+    fn get_module_by_id(&self, id: &ModuleId) -> Result<Option<Self::Item>, Self::Error> {
+        Ok(self.package.all_modules_map().get_module(id).ok().cloned())
+    }
+}
+
+pub const PUBLISHED_AT_MANIFEST_FIELD: &str = "published-at";
+
+pub struct MgoPackageHooks;
+
+impl PackageHooks for MgoPackageHooks {
+    fn custom_package_info_fields(&self) -> Vec<String> {
+        vec![
+            PUBLISHED_AT_MANIFEST_FIELD.to_string(),
+            // TODO: remove this once version fields are removed from all manifests
+            "version".to_string(),
+        ]
+    }
+
+    fn custom_dependency_key(&self) -> Option<String> {
+        None
+    }
+
+    fn resolve_custom_dependency(
+        &self,
+        _dep_name: move_symbol_pool::Symbol,
+        _info: &CustomDepInfo,
+    ) -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    fn custom_resolve_pkg_id(
+        &self,
+        manifest: &SourceManifest,
+    ) -> anyhow::Result<PackageIdentifier> {
+        Ok(manifest.package.name)
+    }
+
+    fn resolve_version(&self, _: &SourceManifest) -> anyhow::Result<Option<Symbol>> {
+        Ok(None)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct PackageDependencies {
+    /// Set of published dependencies (name and address).
+    pub published: BTreeMap<Symbol, ObjectID>,
+    /// Set of unpublished dependencies (name).
+    pub unpublished: BTreeSet<Symbol>,
+    /// Set of dependencies with invalid `published-at` addresses.
+    pub invalid: BTreeMap<Symbol, String>,
+}
+
+#[derive(Debug, Clone)]
+pub enum PublishedAtError {
+    Invalid(String),
+    NotPresent,
+}
+
+/// Partition packages in `resolution_graph` into one of four groups:
+/// - The ID that the package itself is published at (if it is published)
+/// - The IDs of dependencies that have been published
+/// - The names of packages that have not been published on chain.
+/// - The names of packages that have a `published-at` field that isn't filled with a valid address.
+pub fn gather_published_ids(
+    resolution_graph: &ResolvedGraph,
+) -> (Result<ObjectID, PublishedAtError>, PackageDependencies) {
+    let root = resolution_graph.root_package();
+
+    let mut published = BTreeMap::new();
+    let mut unpublished = BTreeSet::new();
+    let mut invalid = BTreeMap::new();
+    let mut published_at = Err(PublishedAtError::NotPresent);
+
+    for (name, package) in &resolution_graph.package_table {
+        let property = published_at_property(package);
+        if name == &root {
+            // Separate out the root package as a special case
+            published_at = property;
+            continue;
+        }
+
+        match property {
+            Ok(id) => {
+                published.insert(*name, id);
+            }
+            Err(PublishedAtError::NotPresent) => {
+                unpublished.insert(*name);
+            }
+            Err(PublishedAtError::Invalid(value)) => {
+                invalid.insert(*name, value);
+            }
+        };
+    }
+
+    (
+        published_at,
+        PackageDependencies {
+            published,
+            unpublished,
+            invalid,
+        },
+    )
+}
+
+pub fn published_at_property(package: &Package) -> Result<ObjectID, PublishedAtError> {
+    let Some(value) = package
+        .source_package
+        .package
+        .custom_properties
+        .get(&Symbol::from(PUBLISHED_AT_MANIFEST_FIELD))
+    else {
+        return Err(PublishedAtError::NotPresent);
+    };
+
+    ObjectID::from_str(value.as_str()).map_err(|_| PublishedAtError::Invalid(value.to_owned()))
+}
+
+pub fn check_unpublished_dependencies(unpublished: &BTreeSet<Symbol>) -> Result<(), MgoError> {
+    if unpublished.is_empty() {
+        return Ok(());
+    };
+
+    let mut error_messages = unpublished
+        .iter()
+        .map(|name| {
+            format!(
+                "Package dependency \"{name}\" does not specify a published address \
+		 (the Move.toml manifest for \"{name}\" does not contain a published-at field).",
+            )
+        })
+        .collect::<Vec<_>>();
+
+    error_messages.push(
+        "If this is intentional, you may use the --with-unpublished-dependencies flag to \
+             continue publishing these dependencies as part of your package (they won't be \
+             linked against existing packages on-chain)."
+            .into(),
+    );
+
+    Err(MgoError::ModulePublishFailure {
+        error: error_messages.join("\n"),
+    })
+}
+
+pub fn check_invalid_dependencies(invalid: &BTreeMap<Symbol, String>) -> Result<(), MgoError> {
+    if invalid.is_empty() {
+        return Ok(());
+    }
+
+    let error_messages = invalid
+        .iter()
+        .map(|(name, value)| {
+            format!(
+                "Package dependency \"{name}\" does not specify a valid published \
+		 address: could not parse value \"{value}\" for published-at field."
+            )
+        })
+        .collect::<Vec<_>>();
+
+    Err(MgoError::ModulePublishFailure {
+        error: error_messages.join("\n"),
+    })
+}

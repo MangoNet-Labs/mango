@@ -1,0 +1,12 @@
+# Use Move syntax highlighter for Move IR code
+*.mvir linguist-language=Move
+
+# These files are used in "porcelain" file comparison,
+# we don't want an equality to fail because of line endings.
+crates/mgo-core/tests/staged/mgo.yaml text eol=lf
+crates/mgo-open-rpc/spec/openrpc.json text eol=lf
+mgo_core/tests/staged/mgo.yaml text eol=lf
+
+# These files is auto generated
+sdk/typescript/src/index.guard.ts linguist-generated=true
+sdk/typescript/src/rpc/client.guard.ts linguist-generated=true

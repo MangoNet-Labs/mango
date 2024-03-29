@@ -1,0 +1,13 @@
+processed 3 tasks
+
+init:
+A: object(0,0), B: object(0,1)
+
+task 1 'programmable'. lines 8-9:
+mutated: object(0,0)
+gas summary: computation_cost: 1000000, storage_cost: 988000,  storage_rebate: 0, non_refundable_storage_fee: 0
+
+task 2 'view-object'. lines 11-11:
+Owner: Account Address ( B )
+Version: 2
+Contents: mgo::coin::Coin<mgo::mgo::MGO> {id: mgo::object::UID {id: mgo::object::ID {bytes: fake(0,0)}}, balance: mgo::balance::Balance<mgo::mgo::MGO> {value: 299999998012000u64}}

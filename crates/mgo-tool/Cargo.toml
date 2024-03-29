@@ -1,0 +1,56 @@
+[package]
+name = "mgo-tool"
+version.workspace = true
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+anyhow.workspace = true
+num_cpus.workspace = true
+bcs.workspace = true
+clap = { version = "4.1.4", features = ["derive"] }
+colored.workspace = true
+comfy-table.workspace = true
+diesel.workspace = true
+eyre.workspace = true
+futures.workspace = true
+hex.workspace = true
+move-core-types.workspace = true
+itertools.workspace = true
+rocksdb.workspace = true
+ron.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+strum.workspace = true
+strum_macros.workspace = true
+tempfile.workspace = true
+tracing.workspace = true
+prometheus.workspace = true
+object_store.workspace = true
+indicatif.workspace = true
+
+anemo-cli.workspace = true
+anemo.workspace = true
+telemetry-subscribers.workspace = true
+tokio = { workspace = true, features = ["full"] }
+typed-store.workspace = true
+fastcrypto.workspace = true
+
+narwhal-storage.workspace = true
+narwhal-types.workspace = true
+mgo-config.workspace = true
+mgo-core.workspace = true
+mgo-indexer.workspace = true
+mgo-network.workspace = true
+mgo-snapshot.workspace = true
+mgo-protocol-config.workspace = true
+mgo-replay.workspace = true
+mgo-sdk.workspace = true
+mgo-storage.workspace = true
+mgo-types.workspace = true
+mgo-archival.workspace = true
+workspace-hack.workspace = true
+git-version.workspace = true
+const-str = "0.5.6"

@@ -1,0 +1,10 @@
+[package]
+name = "MgoSystemDeepUpgrade"
+version = "0.0.1"
+
+[dependencies]
+Mgo = { local = "../../../../../mgo-framework/packages/mgo-framework" }
+MoveStdlib = { local = "../../../../../mgo-framework/packages/move-stdlib" }
+
+[addresses]
+mgo_system = "0x3"

@@ -1,0 +1,59 @@
+processed 12 tasks
+
+init:
+A: object(0,0), B: object(0,1)
+
+task 1 'publish'. lines 8-35:
+created: object(1,0)
+mutated: object(0,2)
+gas summary: computation_cost: 1000000, storage_cost: 6004000,  storage_rebate: 0, non_refundable_storage_fee: 0
+
+task 2 'programmable'. lines 36-38:
+created: object(2,0)
+mutated: object(0,0)
+gas summary: computation_cost: 1000000, storage_cost: 2280000,  storage_rebate: 0, non_refundable_storage_fee: 0
+
+task 3 'view-object'. lines 40-42:
+Owner: Account Address ( A )
+Version: 2
+Contents: mgo::coin::Coin<mgo::mgo::MGO> {id: mgo::object::UID {id: mgo::object::ID {bytes: fake(0,0)}}, balance: mgo::balance::Balance<mgo::mgo::MGO> {value: 299999996720000u64}}
+
+task 4 'programmable'. lines 43-46:
+created: object(4,0)
+mutated: object(0,0)
+gas summary: computation_cost: 1000000, storage_cost: 2280000,  storage_rebate: 978120, non_refundable_storage_fee: 9880
+
+task 5 'view-object'. lines 48-50:
+Owner: Account Address ( _ )
+Version: 3
+Contents: test::m1::Pub {id: mgo::object::UID {id: mgo::object::ID {bytes: fake(4,0)}}, value: 112u64}
+
+task 6 'programmable'. lines 51-56:
+created: object(6,0)
+mutated: object(0,0)
+gas summary: computation_cost: 1000000, storage_cost: 2280000,  storage_rebate: 978120, non_refundable_storage_fee: 9880
+
+task 7 'view-object'. lines 58-60:
+Owner: Account Address ( B )
+Version: 4
+Contents: test::m1::Pub {id: mgo::object::UID {id: mgo::object::ID {bytes: fake(6,0)}}, value: 112u64}
+
+task 8 'programmable'. lines 61-68:
+created: object(8,0), object(8,1), object(8,2)
+mutated: object(0,0)
+gas summary: computation_cost: 1000000, storage_cost: 5388400,  storage_rebate: 978120, non_refundable_storage_fee: 9880
+
+task 9 'view-object'. lines 70-70:
+Owner: Account Address ( B )
+Version: 5
+Contents: test::m1::Cup<mgo::object::ID> {id: mgo::object::UID {id: mgo::object::ID {bytes: fake(8,0)}}}
+
+task 10 'view-object'. lines 72-72:
+Owner: Account Address ( B )
+Version: 5
+Contents: test::m1::Cup<test::m1::Pub> {id: mgo::object::UID {id: mgo::object::ID {bytes: fake(8,1)}}}
+
+task 11 'view-object'. lines 74-74:
+Owner: Account Address ( B )
+Version: 5
+Contents: test::m1::Pub {id: mgo::object::UID {id: mgo::object::ID {bytes: fake(8,2)}}, value: 112u64}

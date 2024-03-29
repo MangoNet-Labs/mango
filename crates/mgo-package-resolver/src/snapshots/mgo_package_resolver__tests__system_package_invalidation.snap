@@ -1,0 +1,7 @@
+---
+source: crates/mgo-package-resolver/src/lib.rs
+expression: "format!(\"{layout:#}\")"
+---
+struct 0x1::m::T1 {
+    x: u256,
+}

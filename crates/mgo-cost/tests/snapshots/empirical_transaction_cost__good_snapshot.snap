@@ -1,0 +1,60 @@
+---
+source: crates/mgo-cost/tests/empirical_transaction_cost.rs
+expression: common_costs_actual
+---
+{
+  "MergeCoin": {
+    "computationCost": "1000000",
+    "storageCost": "1976000",
+    "storageRebate": "0",
+    "nonRefundableStorageFee": "0"
+  },
+  "Publish": {
+    "computationCost": "1000000",
+    "storageCost": "13505200",
+    "storageRebate": "0",
+    "nonRefundableStorageFee": "0"
+  },
+  "SharedCounterAssertValue": {
+    "computationCost": "1000000",
+    "storageCost": "2591600",
+    "storageRebate": "1587564",
+    "nonRefundableStorageFee": "16036"
+  },
+  "SharedCounterCreate": {
+    "computationCost": "1000000",
+    "storageCost": "2591600",
+    "storageRebate": "0",
+    "nonRefundableStorageFee": "0"
+  },
+  "SharedCounterIncrement": {
+    "computationCost": "1000000",
+    "storageCost": "2591600",
+    "storageRebate": "1587564",
+    "nonRefundableStorageFee": "16036"
+  },
+  "SplitCoin": {
+    "computationCost": "1000000",
+    "storageCost": "4940000",
+    "storageRebate": "0",
+    "nonRefundableStorageFee": "0"
+  },
+  "TransferPortionMgoCoin": {
+    "computationCost": "1000000",
+    "storageCost": "1976000",
+    "storageRebate": "0",
+    "nonRefundableStorageFee": "0"
+  },
+  "TransferWholeCoin": {
+    "computationCost": "1000000",
+    "storageCost": "1976000",
+    "storageRebate": "0",
+    "nonRefundableStorageFee": "0"
+  },
+  "TransferWholeMgoCoin": {
+    "computationCost": "1000000",
+    "storageCost": "988000",
+    "storageRebate": "0",
+    "nonRefundableStorageFee": "0"
+  }
+}

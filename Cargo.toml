@@ -1,0 +1,677 @@
+[workspace]
+resolver = "2"
+
+exclude = [
+  "external-crates/move/crates/bytecode-interpreter-crypto",
+  "external-crates/move/crates/bytecode-verifier-libfuzzer",
+  "external-crates/move/crates/bytecode-verifier-tests",
+  "external-crates/move/crates/bytecode-verifier-transactional-tests",
+  "external-crates/move/crates/enum-compat-util",
+  "external-crates/move/crates/invalid-mutations",
+  "external-crates/move/crates/language-benchmarks",
+  "external-crates/move/crates/module-generation",
+  "external-crates/move/crates/move-abstract-stack",
+  "external-crates/move/crates/move-analyzer",
+  "external-crates/move/crates/move-binary-format",
+  "external-crates/move/crates/move-borrow-graph",
+  "external-crates/move/crates/move-bytecode-source-map",
+  "external-crates/move/crates/move-bytecode-utils",
+  "external-crates/move/crates/move-bytecode-verifier",
+  "external-crates/move/crates/move-bytecode-viewer",
+  "external-crates/move/crates/move-cli",
+  "external-crates/move/crates/move-command-line-common",
+  "external-crates/move/crates/move-compiler",
+  "external-crates/move/crates/move-compiler-transactional-tests",
+  "external-crates/move/crates/move-core-types",
+  "external-crates/move/crates/move-coverage",
+  "external-crates/move/crates/move-disassembler",
+  "external-crates/move/crates/move-docgen",
+  "external-crates/move/crates/move-errmapgen",
+  "external-crates/move/crates/move-explain",
+  "external-crates/move/crates/move-ir-compiler",
+  "external-crates/move/crates/move-ir-compiler-transactional-tests",
+  "external-crates/move/crates/move-ir-to-bytecode",
+  "external-crates/move/crates/move-ir-to-bytecode-syntax",
+  "external-crates/move/crates/move-ir-types",
+  "external-crates/move/crates/move-model",
+  "external-crates/move/crates/move-package",
+  "external-crates/move/crates/move-proc-macros",
+  "external-crates/move/crates/move-prover",
+  "external-crates/move/crates/move-prover-test-utils",
+  "external-crates/move/crates/move-read-write-set-types",
+  "external-crates/move/crates/move-stackless-bytecode",
+  "external-crates/move/crates/move-stackless-bytecode-interpreter",
+  "external-crates/move/crates/move-stdlib",
+  "external-crates/move/crates/move-symbol-pool",
+  "external-crates/move/crates/move-transactional-test-runner",
+  "external-crates/move/crates/move-unit-test",
+  "external-crates/move/crates/move-vm-config",
+  "external-crates/move/crates/move-vm-integration-tests",
+  "external-crates/move/crates/move-vm-profiler",
+  "external-crates/move/crates/move-vm-runtime",
+  "external-crates/move/crates/move-vm-test-utils",
+  "external-crates/move/crates/move-vm-transactional-tests",
+  "external-crates/move/crates/move-vm-types",
+  "external-crates/move/crates/serializer-tests",
+  "external-crates/move/crates/test-generation",
+  "external-crates/move/move-execution/next-vm/crates/move-bytecode-verifier",
+  "external-crates/move/move-execution/next-vm/crates/move-stdlib",
+  "external-crates/move/move-execution/next-vm/crates/move-vm-runtime",
+  "external-crates/move/move-execution/v0/move-bytecode-verifier",
+  "external-crates/move/move-execution/v0/move-stdlib",
+  "external-crates/move/move-execution/v0/move-vm/runtime",
+  "external-crates/move/move-execution/v1/crates/move-bytecode-verifier",
+  "external-crates/move/move-execution/v1/crates/move-stdlib",
+  "external-crates/move/move-execution/v1/crates/move-vm-runtime"
+]
+
+members = [
+  "consensus/config",
+  "consensus/core",
+  "crates/anemo-benchmark",
+  "crates/data-transform",
+  "crates/mango-common",
+  "crates/mango-metrics",
+  "crates/mango-network",
+  "crates/mango-service",
+  "crates/mango-service-boilerplate",
+  "crates/mango-util-mem",
+  "crates/mango-util-mem-derive",
+  "crates/prometheus-closure-metric",
+  "crates/shared-crypto",
+  "crates/simulacrum",
+  "crates/mgo",
+  "crates/mgo-adapter-transactional-tests",
+  "crates/mgo-analytics-indexer",
+  "crates/mgo-analytics-indexer-derive",
+  "crates/mgo-archival",
+  "crates/mgo-authority-aggregation",
+  "crates/mgo-aws-orchestrator",
+  "crates/mgo-benchmark",
+  "crates/mgo-bridge",
+  "crates/mgo-cluster-test",
+  "crates/mgo-common",
+  "crates/mgo-config",
+  "crates/mgo-core",
+  "crates/mgo-cost",
+  "crates/mgo-data-ingestion",
+  "crates/mgo-e2e-tests",
+  "crates/mgo-enum-compat-util",
+  "crates/mgo-faucet",
+  "crates/mgo-framework",
+  "crates/mgo-framework-snapshot",
+  "crates/mgo-framework-tests",
+  "crates/mgo-genesis-builder",
+  "crates/mgo-graphql-rpc",
+  "crates/mgo-graphql-rpc-client",
+  "crates/mgo-graphql-rpc-headers",
+  "crates/mgo-indexer",
+  "crates/mgo-json",
+  "crates/mgo-json-rpc",
+  "crates/mgo-json-rpc-api",
+  "crates/mgo-json-rpc-tests",
+  "crates/mgo-json-rpc-types",
+  "crates/mgo-keys",
+  "crates/mgo-light-client",
+  "crates/mgo-macros",
+  "crates/mgo-metric-checker",
+  "crates/mgo-move",
+  "crates/mgo-move-build",
+  "crates/mgo-network",
+  "crates/mgo-node",
+  "crates/mgo-open-rpc",
+  "crates/mgo-open-rpc-macros",
+  "crates/mgo-oracle",
+  "crates/mgo-package-resolver",
+  "crates/mgo-proc-macros",
+  "crates/mgo-protocol-config",
+  "crates/mgo-protocol-config-macros",
+  "crates/mgo-proxy",
+  "crates/mgo-replay",
+  "crates/mgo-rest-api",
+  "crates/mgo-rosetta",
+  "crates/mgo-rpc-loadgen",
+  "crates/mgo-sdk",
+  "crates/mgo-simulator",
+  "crates/mgo-single-node-benchmark",
+  "crates/mgo-snapshot",
+  "crates/mgo-source-validation",
+  "crates/mgo-source-validation-service",
+  "crates/mgo-storage",
+  "crates/mgo-surfer",
+  "crates/mgo-swarm",
+  "crates/mgo-swarm-config",
+  "crates/mgo-telemetry",
+  "crates/mgo-test-transaction-builder",
+  "crates/mgo-test-validator",
+  "crates/mgo-tls",
+  "crates/mgo-tool",
+  "crates/mgo-transaction-builder",
+  "crates/mgo-transaction-checks",
+  "crates/mgo-transactional-test-runner",
+  "crates/mgo-types",
+  "crates/mgo-upgrade-compatibility-transactional-tests",
+  "crates/mgo-verifier-transactional-tests",
+  "crates/mgoop-cli",
+  "crates/telemetry-subscribers",
+  "crates/test-cluster",
+  "crates/transaction-fuzzer",
+  "crates/typed-store",
+  "crates/typed-store-derive",
+  "crates/typed-store-error",
+  "crates/workspace-hack",
+  "crates/x",
+  "narwhal/config",
+  "narwhal/crypto",
+  "narwhal/executor",
+  "narwhal/network",
+  "narwhal/node",
+  "narwhal/primary",
+  "narwhal/storage",
+  "narwhal/test-utils",
+  "narwhal/types",
+  "narwhal/worker",
+  "mgo-execution",
+  "mgo-execution/cut",
+  "mgo-execution/latest/mgo-adapter",
+  "mgo-execution/latest/mgo-move-natives",
+  "mgo-execution/latest/mgo-verifier",
+  "mgo-execution/next-vm/mgo-adapter",
+  "mgo-execution/next-vm/mgo-move-natives",
+  "mgo-execution/next-vm/mgo-verifier",
+  "mgo-execution/v0/mgo-adapter",
+  "mgo-execution/v0/mgo-move-natives",
+  "mgo-execution/v0/mgo-verifier",
+  "mgo-execution/v1/mgo-adapter",
+  "mgo-execution/v1/mgo-move-natives",
+  "mgo-execution/v1/mgo-verifier",
+]
+
+[workspace.package]
+# This version string will be inherited by mgo-core, mgo-faucet, mgo-node, mgo-tools, mgo-sdk, mgo-move-build, and mgo crates.
+version = "1.0.0"
+
+[profile.release]
+# debug = 1 means line charts only, which is minimum needed for good stack traces
+debug = 1
+# Write debug info into a separate file.
+split-debuginfo = 'packed'
+# Without stripping, mgo binary size would be > 1GB.
+strip = 'debuginfo'
+# Exit process with SIGABRT when any thread panics
+panic = 'abort'
+
+# Same as release, but build binary with debug symbols (binary size will be ~ 1GB).
+[profile.release-dbgsym]
+inherits = "release"
+split-debuginfo = 'off'
+strip = 'none'
+
+# Inherits from the release profile above.
+[profile.bench]
+# For convenience.
+strip = 'none'
+
+[profile.test.package.move-compiler]
+# opt-level 2 for move-compiler reduces the size of some of its
+# (recursive) stack frames by up to 10x, avoiding stack overflows.
+opt-level = 2
+
+[profile.simulator]
+inherits = "test"
+debug = true
+debug-assertions = true
+overflow-checks = true
+# opt-level 1 gives >5x speedup for simulator tests without slowing down build times very much.
+opt-level = 1
+
+# Dependencies that should be kept in sync through the whole workspace
+[workspace.dependencies]
+anyhow = "1.0.71"
+arrow-array = "50.0.0"
+arc-swap = { version = "1.5.1", features = ["serde"] }
+assert_cmd = "2.0.6"
+async-graphql = "6.0.7"
+async-graphql-axum = "6.0.7"
+async-graphql-value = "6.0.7"
+async-recursion = "1.0.4"
+async-trait = "0.1.61"
+atomic_float = "0.1"
+aws-config = "0.56"
+aws-sdk-ec2 = "0.29.0"
+aws-sdk-dynamodb = "0.29.0"
+aws-sdk-s3 = "0.29.0"
+aws-smithy-http = "0.56"
+aws-smithy-runtime-api = "0.56"
+axum = { version = "0.6.6", default-features = false, features = [
+  "headers",
+  "tokio",
+  "http1",
+  "http2",
+  "json",
+  "matched-path",
+  "original-uri",
+  "form",
+  "query",
+  "ws",
+] }
+axum-extra = "0.4.2"
+axum-server = { version = "0.5.1", default-features = false, features = [
+  "tls-rustls",
+] }
+backoff = { version = "0.4.0", features = [
+  "futures",
+  "futures-core",
+  "pin-project-lite",
+  "tokio",
+  "tokio_1",
+] }
+base64 = "0.21.2"
+base64-url = "2"
+bcs = "0.1.4"
+better_any = "0.1.1"
+bimap = "0.6.2"
+bincode = "1.3.3"
+bip32 = "0.4.0"
+byteorder = "1.4.3"
+bytes = { version = "1.5.0", features = ["serde"] }
+cached = "0.43.0"
+camino = "1.1.1"
+cfg-if = "1.0.0"
+chrono = { version = "0.4.26", features = ["clock", "serde"] }
+clap = { version = "4.4", features = ["derive", "wrap_help"] }
+collectable = "0.0.2"
+colored = "2.0.0"
+color-eyre = "0.6.2"
+comfy-table = "6.1.3"
+console-subscriber = "0.2"
+const-str = "0.5.3"
+criterion = { version = "0.5.0", features = [
+  "async",
+  "async_tokio",
+  "html_reports",
+] }
+crossterm = "0.25.0"
+csv = "1.2.1"
+dashmap = "5.4.0"
+# datatest-stable = "0.1.2"
+datatest-stable = { git = "https://github.com/nextest-rs/datatest-stable.git", rev = "72db7f6d1bbe36a5407e96b9488a581f763e106f" }
+derivative = "2.2.0"
+derive-syn-parse = "0.1.5"
+derive_builder = "0.12.0"
+derive_more = "0.99.17"
+diesel = { version = "2.1.0", features = [
+  "chrono",
+  "postgres",
+  "r2d2",
+  "serde_json",
+  "64-column-tables",
+  "i-implement-a-third-party-backend-and-opt-into-breaking-changes",
+  "postgres_backend",
+] }
+diesel-derive-enum = { version = "2.0.1", features = ["postgres"] }
+diesel_migrations = { version = "2.0.0" }
+dirs = "4.0.0"
+duration-str = "0.5.0"
+ed25519 = { version = "1.5.0", features = ["pkcs8", "alloc", "zeroize"] }
+ed25519-consensus = { version = "2.0.1", features = ["serde"] }
+either = "1.8.0"
+petgraph = "0.5.1"
+enum_dispatch = "^0.3"
+expect-test = "1.4.0"
+eyre = "0.6.8"
+fdlimit = "0.2.1"
+flate2 = "1.0.28"
+fs_extra = "1.3.0"
+futures = "0.3.28"
+futures-core = "0.3.21"
+git-version = "0.3.5"
+glob = "0.3.1"
+governor = "0.6.0"
+hashbrown = "0.12"
+hdrhistogram = "7.5.1"
+hex = "0.4.3"
+hex-literal = "0.3.4"
+highlight = "all"
+http = "0.2.8"
+http-body = "0.4.5"
+humantime = "2.1.0"
+hyper = "0.14.20"
+hyper-rustls = { version = "0.24", features = ["rustls-native-certs", "http2"] }
+im = "15"
+impl-trait-for-tuples = "0.2.0"
+indexmap = { version = "2.1.0", features = ["serde"] }
+indicatif = "0.17.2"
+inquire = "0.6.0"
+insta = { version = "1.21.1", features = ["redactions", "yaml", "json"] }
+integer-encoding = "3.0.1"
+itertools = "0.10.5"
+jemalloc-ctl = "^0.5"
+jsonrpsee = { git = "https://github.com/mango-developer/jsonrpsee.git", rev = "ca981bf092d26e9296e628189bf8264c7b3bbe3d", features = [
+  "server",
+  "macros",
+  "ws-client",
+  "http-client",
+  "jsonrpsee-core",
+] }
+json_to_table = { git = "https://github.com/zhiburt/tabled/", rev = "e449317a1c02eb6b29e409ad6617e5d9eb7b3bd4" }
+leb128 = "0.2.5"
+lru = "0.10"
+markdown-gen = "1.2.1"
+match_opt = "0.1.2"
+mime = "0.3"
+mockall = "0.11.4"
+more-asserts = "0.3.1"
+msim = { git = "https://github.com/mango-developer/mango-sim.git", rev = "aadb7a4f0d05a7607efdd1bfb9921b26080591b7", package = "msim" }
+msim-macros = { git = "https://github.com/mango-developer/mango-sim.git", rev = "aadb7a4f0d05a7607efdd1bfb9921b26080591b7", package = "msim-macros" }
+multiaddr = "0.17.0"
+nexlint = { git = "https://github.com/nextest-rs/nexlint.git", rev = "94da5c787636dad779c340affa65219134d127f5" }
+nexlint-lints = { git = "https://github.com/nextest-rs/nexlint.git", rev = "94da5c787636dad779c340affa65219134d127f5" }
+nonempty = "0.9.0"
+notify = "6.1.1"
+ntest = "0.9.0"
+num-bigint = "0.4.4"
+num_cpus = "1.15.0"
+num_enum = "0.6.1"
+object_store = { version = "0.7", features = ["aws", "gcp", "azure", "http"] }
+once_cell = "1.18.0"
+ouroboros = "0.17"
+parking_lot = "0.12.1"
+parquet = "50.0.0"
+pkcs8 = { version = "0.9.0", features = ["std"] }
+pprof = { version = "0.11.0", features = ["cpp", "frame-pointer"] }
+pretty_assertions = "1.3.0"
+prettytable-rs = "0.10.0"
+proc-macro2 = "1.0.47"
+prometheus = "0.13.3"
+prometheus-http-query = { version = "0.6.6", default_features = false, features = [
+  "rustls-tls",
+] }
+prometheus-parse = { git = "https://github.com/mango-developer/prometheus-parse.git", rev = "80dbc854da8282f892f333377b4b4faa8c231c19" }
+proptest = "1.1.0"
+proptest-derive = "0.3.0"
+prost = "0.12.1"
+prost-build = "0.12.1"
+protobuf = { version = "2.28", features = ["with-bytes"] }
+protobuf-src = "1.1.0"
+quinn-proto = "^0.10.5"
+quote = "1.0.23"
+rand = "0.8.5"
+rayon = "1.5.3"
+rcgen = "0.9.2"
+regex = "1.7.1"
+reqwest = { version = "0.11.20", default_features = false, features = [
+  "blocking",
+  "json",
+  "rustls-tls",
+] }
+roaring = "0.10.1"
+rocksdb = { version = "0.21.0", features = [
+  "snappy",
+  "lz4",
+  "zstd",
+  "zlib",
+  "multi-threaded-cf",
+], default-features = false }
+ron = "0.8.0"
+rstest = "0.16.0"
+rusoto_core = { version = "0.48.0", default_features = false, features = [
+  "rustls",
+] }
+rusoto_kms = { version = "0.48.0", default_features = false, features = [
+  "rustls",
+] }
+russh = "0.38.0"
+russh-keys = "0.38.0"
+rust-version = "1.56.1"
+rustls = { version = "0.21.6", features = ["dangerous_configuration"] }
+rustls-pemfile = "1.0.2"
+rustversion = "1.0.9"
+rustyline = "9.1.2"
+rustyline-derive = "0.7.0"
+schemars = { version = "0.8.10", features = ["either"] }
+scopeguard = "1.1"
+serial_test = "2.0.0"
+serde = { version = "1.0.144", features = ["derive", "rc"] }
+serde-name = "0.2.1"
+serde-reflection = "0.3.6"
+serde_json = { version = "1.0.95", features = [
+  "preserve_order",
+  "arbitrary_precision",
+] }
+serde_repr = "0.1"
+serde_test = "1.0.147"
+serde_with = { version = "2.1.0", features = ["hex"] }
+# serde_yaml = "0.9.21"
+serde_yaml = "0.8.26"
+shell-words = "1.1.0"
+shellexpand = "3.1.0"
+signature = "1.6.0"
+similar = "2.2.0"
+slip10_ed25519 = "0.1.3"
+smallvec = "1.10.0"
+snap = "1.1.0"
+static_assertions = "1.1.0"
+strum = { version = "0.24", features = ["derive"] }
+strum_macros = "0.24.3"
+syn = { version = "1.0.104", features = ["full", "derive", "extra-traits"] }
+# syn = { version = "2", features = ["full", "fold", "extra-traits"] }
+synstructure = "0.12"
+sysinfo = "0.27.5"
+tabled = { version = "0.12" }
+tap = "1.0.1"
+tar = "0.4.40"
+tempfile = "3.3.0"
+test-fuzz = "3.0.4"
+thiserror = "1.0.40"
+tiny-bip39 = "1.0.0"
+tokio = "1.28.1"
+tokio-retry = "0.3"
+tokio-rustls = "0.24"
+tokio-stream = { version = "0.1.14", features = ["sync", "net"] }
+tokio-util = "0.7.4"
+toml = { version = "0.7.4", features = ["preserve_order"] }
+toml_edit = { version = "0.19.10" }
+tonic = { version = "0.10", features = ["transport", "tls"] }
+tonic-build = { version = "0.10", features = ["prost", "transport"] }
+tonic-health = "0.10"
+tower = { version = "0.4.12", features = [
+  "full",
+  "util",
+  "timeout",
+  "load-shed",
+  "limit",
+] }
+tower-http = { version = "0.3.4", features = [
+  "cors",
+  "full",
+  "trace",
+  "set-header",
+  "propagate-header",
+] }
+# tower-http = { version="0.4", features = ["trace"] }
+tower-layer = "0.3.2"
+tracing = "0.1.37"
+tracing-appender = "0.2.2"
+tracing-subscriber = { version = "0.3.15", default-features = false, features = [
+  "std",
+  "smallvec",
+  "fmt",
+  "ansi",
+  "time",
+  "json",
+  "registry",
+  "env-filter",
+] }
+ttl_cache = "0.5.1"
+uint = "0.9.4"
+unescape = "0.1.0"
+ureq = "2.9.1"
+url = "2.3.1"
+uuid = { version = "1.1.2", features = ["v4", "fast-rng"] }
+webpki = { version = "0.101.0", package = "rustls-webpki", features = [
+  "alloc",
+  "std",
+] }
+x509-parser = "0.14.0"
+zstd = "0.12.3"
+zeroize = "1.6.0"
+versions = "4.1.0"
+
+# Move dependencies
+move-binary-format = { path = "external-crates/move/crates/move-binary-format" }
+move-bytecode-utils = { path = "external-crates/move/crates/move-bytecode-utils" }
+move-bytecode-source-map = { path = "external-crates/move/crates/move-bytecode-source-map" }
+move-cli = { path = "external-crates/move/crates/move-cli" }
+move-compiler = { path = "external-crates/move/crates/move-compiler" }
+move-core-types = { path = "external-crates/move/crates/move-core-types" }
+move-disassembler = { path = "external-crates/move/crates/move-disassembler" }
+move-package = { path = "external-crates/move/crates/move-package" }
+move-unit-test = { path = "external-crates/move/crates/move-unit-test" }
+move-vm-config = { path = "external-crates/move/crates/move-vm-config" }
+move-vm-test-utils = { path = "external-crates/move/crates/move-vm-test-utils/", features = [
+  "tiered-gas",
+] }
+move-vm-types = { path = "external-crates/move/crates/move-vm-types" }
+move-vm-profiler = { path = "external-crates/move/crates/move-vm-profiler" }
+move-command-line-common = { path = "external-crates/move/crates/move-command-line-common" }
+move-transactional-test-runner = { path = "external-crates/move/crates/move-transactional-test-runner" }
+move-ir-types = { path = "external-crates/move/crates/move-ir-types" }
+move-prover = { path = "external-crates/move/crates/move-prover" }
+move-stackless-bytecode = { path = "external-crates/move/crates/move-stackless-bytecode" }
+move-symbol-pool = { path = "external-crates/move/crates/move-symbol-pool" }
+move-abstract-stack = { path = "external-crates/move/crates/move-abstract-stack" }
+
+fastcrypto = { git = "https://github.com/mango-developer/fastcrypto.git", rev = "5ba65d7797d87e528a21867b9e799c19c8e7fa22" }
+fastcrypto-tbls = { git = "https://github.com/mango-developer/fastcrypto.git", rev = "5ba65d7797d87e528a21867b9e799c19c8e7fa22" }
+fastcrypto-zkp = { git = "https://github.com/mango-developer/fastcrypto.git", rev = "5ba65d7797d87e528a21867b9e799c19c8e7fa22", package = "fastcrypto-zkp" }
+
+# anemo dependencies
+anemo = { git = "https://github.com/mango-developer/anemo.git", rev = "a4558f2b50148b346788f6a71526a0f819b05a65" }
+anemo-build = { git = "https://github.com/mango-developer/anemo.git", rev = "a4558f2b50148b346788f6a71526a0f819b05a65" }
+anemo-cli = { git = "https://github.com/mango-developer/anemo.git", rev = "a4558f2b50148b346788f6a71526a0f819b05a65" }
+anemo-tower = { git = "https://github.com/mango-developer/anemo.git", rev = "a4558f2b50148b346788f6a71526a0f819b05a65" }
+
+### Workspace Members ###
+anemo-benchmark = { path = "crates/anemo-benchmark" }
+mango-common = { path = "crates/mango-common" }
+mango-metrics = { path = "crates/mango-metrics" }
+mango-network = { path = "crates/mango-network" }
+mango-service = { path = "crates/mango-service" }
+mango-service-boilerplate = { path = "crates/mango-service-boilerplate" }
+mango-util-mem = { path = "crates/mango-util-mem" }
+mango-util-mem-derive = { path = "crates/mango-util-mem-derive" }
+prometheus-closure-metric = { path = "crates/prometheus-closure-metric" }
+shared-crypto = { path = "crates/shared-crypto" }
+simulacrum = { path = "crates/simulacrum" }
+mgo = { path = "crates/mgo" }
+mgo-adapter-transactional-tests = { path = "crates/mgo-adapter-transactional-tests" }
+mgo-analytics-indexer = { path = "crates/mgo-analytics-indexer" }
+mgo-analytics-indexer-derive = { path = "crates/mgo-analytics-indexer-derive" }
+mgo-archival = { path = "crates/mgo-archival" }
+mgo-authority-aggregation = { path = "crates/mgo-authority-aggregation" }
+mgo-benchmark = { path = "crates/mgo-benchmark" }
+mgo-cluster-test = { path = "crates/mgo-cluster-test" }
+mgo-common = { path = "crates/mgo-common" }
+mgo-config = { path = "crates/mgo-config" }
+mgo-core = { path = "crates/mgo-core" }
+mgo-cost = { path = "crates/mgo-cost" }
+mgo-data-ingestion = { path = "crates/mgo-data-ingestion" }
+mgo-e2e-tests = { path = "crates/mgo-e2e-tests" }
+mgo-enum-compat-util = { path = "crates/mgo-enum-compat-util" }
+mgo-faucet = { path = "crates/mgo-faucet" }
+mgo-framework = { path = "crates/mgo-framework" }
+mgo-framework-snapshot = { path = "crates/mgo-framework-snapshot" }
+mgo-framework-tests = { path = "crates/mgo-framework-tests" }
+mgo-graphql-rpc = { path = "crates/mgo-graphql-rpc" }
+mgo-graphql-rpc-client = { path = "crates/mgo-graphql-rpc-client" }
+mgo-graphql-rpc-headers = { path = "crates/mgo-graphql-rpc-headers" }
+mgo-genesis-builder = { path = "crates/mgo-genesis-builder" }
+mgo-indexer = { path = "crates/mgo-indexer" }
+mgo-json = { path = "crates/mgo-json" }
+mgo-json-rpc = { path = "crates/mgo-json-rpc" }
+mgo-json-rpc-api = { path = "crates/mgo-json-rpc-api" }
+mgo-json-rpc-types = { path = "crates/mgo-json-rpc-types" }
+mgo-keys = { path = "crates/mgo-keys" }
+mgo-macros = { path = "crates/mgo-macros" }
+mgo-metric-checker = { path = "crates/mgo-metric-checker" }
+mgo-move = { path = "crates/mgo-move" }
+mgo-move-build = { path = "crates/mgo-move-build" }
+mgo-network = { path = "crates/mgo-network" }
+mgo-node = { path = "crates/mgo-node" }
+mgo-open-rpc = { path = "crates/mgo-open-rpc" }
+mgo-open-rpc-macros = { path = "crates/mgo-open-rpc-macros" }
+mgo-package-resolver = { path = "crates/mgo-package-resolver" }
+mgo-proc-macros = { path = "crates/mgo-proc-macros" }
+mgo-protocol-config = { path = "crates/mgo-protocol-config" }
+mgo-protocol-config-macros = { path = "crates/mgo-protocol-config-macros" }
+mgo-proxy = { path = "crates/mgo-proxy" }
+mgo-replay = { path = "crates/mgo-replay" }
+mgo-rosetta = { path = "crates/mgo-rosetta" }
+mgo-rpc-loadgen = { path = "crates/mgo-rpc-loadgen" }
+mgo-sdk = { path = "crates/mgo-sdk" }
+mgo-simulator = { path = "crates/mgo-simulator" }
+mgo-snapshot = { path = "crates/mgo-snapshot" }
+mgo-source-validation = { path = "crates/mgo-source-validation" }
+mgo-source-validation-service = { path = "crates/mgo-source-validation-service" }
+mgo-storage = { path = "crates/mgo-storage" }
+mgo-surfer = { path = "crates/mgo-surfer" }
+mgo-swarm = { path = "crates/mgo-swarm" }
+mgo-swarm-config = { path = "crates/mgo-swarm-config" }
+mgo-telemetry = { path = "crates/mgo-telemetry" }
+mgo-test-transaction-builder = { path = "crates/mgo-test-transaction-builder" }
+mgo-test-validator = { path = "crates/mgo-test-validator" }
+mgo-tls = { path = "crates/mgo-tls" }
+mgo-rest-api = { path = "crates/mgo-rest-api" }
+mgo-tool = { path = "crates/mgo-tool" }
+mgo-transaction-builder = { path = "crates/mgo-transaction-builder" }
+mgo-transaction-checks = { path = "crates/mgo-transaction-checks" }
+mgo-transactional-test-runner = { path = "crates/mgo-transactional-test-runner" }
+mgo-types = { path = "crates/mgo-types" }
+mgo-upgrade-compatibility-transactional-tests = { path = "crates/mgo-upgrade-compatibility-transactional-tests" }
+mgo-verifier-transactional-tests = { path = "crates/mgo-verifier-transactional-tests" }
+telemetry-subscribers = { path = "crates/telemetry-subscribers" }
+test-cluster = { path = "crates/test-cluster" }
+transaction-fuzzer = { path = "crates/transaction-fuzzer" }
+typed-store = { path = "crates/typed-store" }
+typed-store-derive = { path = "crates/typed-store-derive" }
+typed-store-error = { path = "crates/typed-store-error" }
+workspace-hack = "0.1.0"
+x = { path = "crates/x" }
+
+consensus-config = { path = "consensus/config" }
+consensus-core = { path = "consensus/core" }
+
+narwhal-config = { path = "narwhal/config" }
+narwhal-crypto = { path = "narwhal/crypto" }
+narwhal-executor = { path = "narwhal/executor" }
+narwhal-network = { path = "narwhal/network" }
+narwhal-node = { path = "narwhal/node" }
+narwhal-primary = { path = "narwhal/primary" }
+narwhal-storage = { path = "narwhal/storage" }
+narwhal-test-utils = { path = "narwhal/test-utils" }
+narwhal-types = { path = "narwhal/types" }
+narwhal-worker = { path = "narwhal/worker" }
+
+mgo-execution = { path = "mgo-execution" }
+# mgo-move-natives = { path = "mgo-execution/latest/mgo-move-natives", package = "mgo-move-natives-latest" }
+# mgo-adapter = { path = "mgo-execution/latest/mgo-adapter", package = "mgo-adapter-latest" }
+# mgo-verifier = { path = "mgo-execution/latest/mgo-verifier", package = "mgo-verifier-latest" }
+# move-stdlib = { path = "external-crates/move/move-stdlib" }
+# move-vm-runtime = { path = "external-crates/move/move-vm/runtime" }
+# move-bytecode-verifier = { path = "external-crates/move/move-bytecode-verifier" }
+
+# mgoop dependencies
+docker-api = "0.12.2"
+field_names = "0.2.0"
+semver = "1.0.16"
+spinners = "4.1.0"
+include_dir = "0.7.3"
+
+
+# Using the workspace-hack via this patch directive means that it only applies
+# while building within this workspace. If another workspace imports a crate
+# from here via a git dependency, it will not have the workspace-hack applied
+# to it.
+[patch.crates-io.workspace-hack]
+path = "crates/workspace-hack"

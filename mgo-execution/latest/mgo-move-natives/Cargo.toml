@@ -1,0 +1,26 @@
+[package]
+name = "mgo-move-natives-latest"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+better_any.workspace = true
+bcs.workspace = true
+indexmap.workspace = true
+smallvec.workspace = true
+
+fastcrypto-zkp.workspace = true
+fastcrypto.workspace = true
+move-binary-format.workspace = true
+move-core-types.workspace = true
+move-vm-types.workspace = true
+
+move-stdlib = { path = "../../../external-crates/move/crates/move-stdlib" }
+move-vm-runtime = { path = "../../../external-crates/move/crates/move-vm-runtime" }
+
+mgo-protocol-config.workspace = true
+mgo-types.workspace = true
+workspace-hack.workspace = true
+tracing.workspace = true

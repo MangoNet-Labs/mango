@@ -1,0 +1,42 @@
+[package]
+name = "mgo-aws-orchestrator"
+version = "0.0.1"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+aws-sdk-ec2.workspace = true
+aws-smithy-http.workspace = true
+aws-smithy-runtime-api.workspace = true
+russh.workspace = true
+russh-keys.workspace = true
+aws-config.workspace = true
+color-eyre.workspace = true
+clap.workspace = true
+eyre.workspace = true
+prettytable-rs.workspace = true
+serde_json.workspace = true
+futures.workspace = true
+thiserror.workspace = true
+reqwest.workspace = true
+async-trait.workspace = true
+crossterm.workspace = true
+serde.workspace = true
+tokio = { workspace = true, features = ["full"] }
+prometheus-parse.workspace = true
+
+mango-metrics.workspace = true
+mgo-config = { path = "../mgo-config" }
+narwhal-config.workspace = true
+mgo-types = { path = "../mgo-types" }
+mgo-swarm-config = { path = "../mgo-swarm-config" }
+workspace-hack.workspace = true
+
+[dev-dependencies]
+tempfile = "3.6.0"
+
+[[bin]]
+name = "mgo-aws-orchestrator"
+path = "src/main.rs"

@@ -1,0 +1,1797 @@
+// Copyright (c) MangoNet Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
+use std::cmp::Ordering;
+use std::ops::Not;
+use std::sync::Arc;
+use std::{iter, mem, thread};
+
+use crate::authority::authority_per_epoch_store::AuthorityPerEpochStore;
+use crate::authority::authority_store_types::{
+    get_store_object_pair, ObjectContentDigest, StoreObject, StoreObjectPair, StoreObjectWrapper,
+};
+use crate::authority::epoch_start_configuration::{EpochFlag, EpochStartConfiguration};
+use crate::transaction_outputs::TransactionOutputs;
+use either::Either;
+use fastcrypto::hash::{HashFunction, MultisetHash, Sha3_256};
+use futures::stream::FuturesUnordered;
+use move_core_types::resolver::ModuleResolver;
+use serde::{Deserialize, Serialize};
+use mgo_storage::mutex_table::{MutexGuard, MutexTable, RwLockGuard, RwLockTable};
+use mgo_types::accumulator::Accumulator;
+use mgo_types::digests::TransactionEventsDigest;
+use mgo_types::error::UserInputError;
+use mgo_types::message_envelope::Message;
+use mgo_types::messages_checkpoint::ECMHLiveObjectSetDigest;
+use mgo_types::storage::{
+    get_module, BackingPackageStore, MarkerValue, ObjectKey, ObjectOrTombstone, ObjectStore,
+};
+use mgo_types::mgo_system_state::get_mgo_system_state;
+use mgo_types::{base_types::SequenceNumber, fp_bail, fp_ensure};
+use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
+use tokio::time::Instant;
+use tracing::{debug, info, trace};
+use typed_store::traits::Map;
+use typed_store::{
+    rocks::{DBBatch, DBMap},
+    TypedStoreError,
+};
+
+use super::authority_store_tables::LiveObject;
+use super::{authority_store_tables::AuthorityPerpetualTables, *};
+use mango_common::sync::notify_read::NotifyRead;
+use mgo_types::effects::{TransactionEffects, TransactionEvents};
+use mgo_types::gas_coin::TOTAL_SUPPLY_MIST;
+use typed_store::rocks::util::is_ref_count_value;
+
+const NUM_SHARDS: usize = 4096;
+
+struct AuthorityStoreMetrics {
+    mgo_conservation_check_latency: IntGauge,
+    mgo_conservation_live_object_count: IntGauge,
+    mgo_conservation_live_object_size: IntGauge,
+    mgo_conservation_imbalance: IntGauge,
+    mgo_conservation_storage_fund: IntGauge,
+    mgo_conservation_storage_fund_imbalance: IntGauge,
+    epoch_flags: IntGaugeVec,
+}
+
+impl AuthorityStoreMetrics {
+    pub fn new(registry: &Registry) -> Self {
+        Self {
+            mgo_conservation_check_latency: register_int_gauge_with_registry!(
+                "mgo_conservation_check_latency",
+                "Number of seconds took to scan all live objects in the store for MGO conservation check",
+                registry,
+            ).unwrap(),
+            mgo_conservation_live_object_count: register_int_gauge_with_registry!(
+                "mgo_conservation_live_object_count",
+                "Number of live objects in the store",
+                registry,
+            ).unwrap(),
+            mgo_conservation_live_object_size: register_int_gauge_with_registry!(
+                "mgo_conservation_live_object_size",
+                "Size in bytes of live objects in the store",
+                registry,
+            ).unwrap(),
+            mgo_conservation_imbalance: register_int_gauge_with_registry!(
+                "mgo_conservation_imbalance",
+                "Total amount of MGO in the network - 10B * 10^9. This delta shows the amount of imbalance",
+                registry,
+            ).unwrap(),
+            mgo_conservation_storage_fund: register_int_gauge_with_registry!(
+                "mgo_conservation_storage_fund",
+                "Storage Fund pool balance (only includes the storage fund proper that represents object storage)",
+                registry,
+            ).unwrap(),
+            mgo_conservation_storage_fund_imbalance: register_int_gauge_with_registry!(
+                "mgo_conservation_storage_fund_imbalance",
+                "Imbalance of storage fund, computed with storage_fund_balance - total_object_storage_rebates",
+                registry,
+            ).unwrap(),
+            epoch_flags: register_int_gauge_vec_with_registry!(
+                "epoch_flags",
+                "Local flags of the currently running epoch",
+                &["flag"],
+                registry,
+            ).unwrap(),
+        }
+    }
+}
+
+/// ALL_OBJ_VER determines whether we want to store all past
+/// versions of every object in the store. Authority doesn't store
+/// them, but other entities such as replicas will.
+/// S is a template on Authority signature state. This allows MgoDataStore to be used on either
+/// authorities or non-authorities. Specifically, when storing transactions and effects,
+/// S allows MgoDataStore to either store the authority signed version or unsigned version.
+pub struct AuthorityStore {
+    /// Internal vector of locks to manage concurrent writes to the database
+    mutex_table: MutexTable<ObjectDigest>,
+
+    pub(crate) perpetual_tables: Arc<AuthorityPerpetualTables>,
+
+    pub(crate) root_state_notify_read: NotifyRead<EpochId, (CheckpointSequenceNumber, Accumulator)>,
+
+    /// Guards reference count updates to `indirect_move_objects` table
+    pub(crate) objects_lock_table: Arc<RwLockTable<ObjectContentDigest>>,
+
+    indirect_objects_threshold: usize,
+
+    /// Whether to enable expensive MGO conservation check at epoch boundaries.
+    enable_epoch_mgo_conservation_check: bool,
+
+    metrics: AuthorityStoreMetrics,
+}
+
+pub type ExecutionLockReadGuard<'a> = RwLockReadGuard<'a, EpochId>;
+pub type ExecutionLockWriteGuard<'a> = RwLockWriteGuard<'a, EpochId>;
+
+impl AuthorityStore {
+    /// Open an authority store by directory path.
+    /// If the store is empty, initialize it using genesis.
+    pub async fn open(
+        perpetual_tables: Arc<AuthorityPerpetualTables>,
+        genesis: &Genesis,
+        indirect_objects_threshold: usize,
+        enable_epoch_mgo_conservation_check: bool,
+        registry: &Registry,
+    ) -> MgoResult<Arc<Self>> {
+        let epoch_start_configuration = if perpetual_tables.database_is_empty()? {
+            info!("Creating new epoch start config from genesis");
+
+            let epoch_start_configuration = EpochStartConfiguration::new(
+                genesis.mgo_system_object().into_epoch_start_state(),
+                *genesis.checkpoint().digest(),
+                &genesis.objects(),
+            )?;
+            perpetual_tables
+                .set_epoch_start_configuration(&epoch_start_configuration)
+                .await?;
+            epoch_start_configuration
+        } else {
+            info!("Loading epoch start config from DB");
+            perpetual_tables
+                .epoch_start_configuration
+                .get(&())?
+                .expect("Epoch start configuration must be set in non-empty DB")
+        };
+        let cur_epoch = perpetual_tables.get_recovery_epoch_at_restart()?;
+        info!("Epoch start config: {:?}", epoch_start_configuration);
+        info!("Cur epoch: {:?}", cur_epoch);
+        let this = Self::open_inner(
+            genesis,
+            perpetual_tables,
+            indirect_objects_threshold,
+            enable_epoch_mgo_conservation_check,
+            registry,
+        )
+        .await?;
+        this.update_epoch_flags_metrics(&[], epoch_start_configuration.flags());
+        Ok(this)
+    }
+
+    pub fn update_epoch_flags_metrics(&self, old: &[EpochFlag], new: &[EpochFlag]) {
+        for flag in old {
+            self.metrics
+                .epoch_flags
+                .with_label_values(&[&flag.to_string()])
+                .set(0);
+        }
+        for flag in new {
+            self.metrics
+                .epoch_flags
+                .with_label_values(&[&flag.to_string()])
+                .set(1);
+        }
+    }
+
+    pub async fn open_with_committee_for_testing(
+        perpetual_tables: Arc<AuthorityPerpetualTables>,
+        committee: &Committee,
+        genesis: &Genesis,
+        indirect_objects_threshold: usize,
+    ) -> MgoResult<Arc<Self>> {
+        // TODO: Since we always start at genesis, the committee should be technically the same
+        // as the genesis committee.
+        assert_eq!(committee.epoch, 0);
+        Self::open_inner(
+            genesis,
+            perpetual_tables,
+            indirect_objects_threshold,
+            true,
+            &Registry::new(),
+        )
+        .await
+    }
+
+    async fn open_inner(
+        genesis: &Genesis,
+        perpetual_tables: Arc<AuthorityPerpetualTables>,
+        indirect_objects_threshold: usize,
+        enable_epoch_mgo_conservation_check: bool,
+        registry: &Registry,
+    ) -> MgoResult<Arc<Self>> {
+        let store = Arc::new(Self {
+            mutex_table: MutexTable::new(NUM_SHARDS),
+            perpetual_tables,
+            root_state_notify_read:
+                NotifyRead::<EpochId, (CheckpointSequenceNumber, Accumulator)>::new(),
+            objects_lock_table: Arc::new(RwLockTable::new(NUM_SHARDS)),
+            indirect_objects_threshold,
+            enable_epoch_mgo_conservation_check,
+            metrics: AuthorityStoreMetrics::new(registry),
+        });
+        // Only initialize an empty database.
+        if store
+            .database_is_empty()
+            .expect("Database read should not fail at init.")
+        {
+            store
+                .bulk_insert_genesis_objects(genesis.objects())
+                .await
+                .expect("Cannot bulk insert genesis objects");
+
+            // insert txn and effects of genesis
+            let transaction = VerifiedTransaction::new_unchecked(genesis.transaction().clone());
+
+            store
+                .perpetual_tables
+                .transactions
+                .insert(transaction.digest(), transaction.serializable_ref())
+                .unwrap();
+
+            store
+                .perpetual_tables
+                .effects
+                .insert(&genesis.effects().digest(), genesis.effects())
+                .unwrap();
+            // We don't insert the effects to executed_effects yet because the genesis tx hasn't but will be executed.
+            // This is important for fullnodes to be able to generate indexing data right now.
+
+            let event_digests = genesis.events().digest();
+            let events = genesis
+                .events()
+                .data
+                .iter()
+                .enumerate()
+                .map(|(i, e)| ((event_digests, i), e));
+            store.perpetual_tables.events.multi_insert(events).unwrap();
+        }
+
+        Ok(store)
+    }
+
+    pub fn get_root_state_hash(&self, epoch: EpochId) -> MgoResult<ECMHLiveObjectSetDigest> {
+        let acc = self
+            .perpetual_tables
+            .root_state_hash_by_epoch
+            .get(&epoch)?
+            .expect("Root state hash for this epoch does not exist");
+        Ok(acc.1.digest().into())
+    }
+
+    pub fn get_root_state_accumulator(
+        &self,
+        epoch: EpochId,
+    ) -> (CheckpointSequenceNumber, Accumulator) {
+        self.perpetual_tables
+            .root_state_hash_by_epoch
+            .get(&epoch)
+            .unwrap()
+            .unwrap()
+    }
+
+    pub fn get_recovery_epoch_at_restart(&self) -> MgoResult<EpochId> {
+        self.perpetual_tables.get_recovery_epoch_at_restart()
+    }
+
+    pub fn get_effects(
+        &self,
+        effects_digest: &TransactionEffectsDigest,
+    ) -> MgoResult<Option<TransactionEffects>> {
+        Ok(self.perpetual_tables.effects.get(effects_digest)?)
+    }
+
+    /// Returns true if we have an effects structure for this transaction digest
+    pub fn effects_exists(&self, effects_digest: &TransactionEffectsDigest) -> MgoResult<bool> {
+        self.perpetual_tables
+            .effects
+            .contains_key(effects_digest)
+            .map_err(|e| e.into())
+    }
+
+    pub fn get_events(
+        &self,
+        event_digest: &TransactionEventsDigest,
+    ) -> Result<Option<TransactionEvents>, TypedStoreError> {
+        let data = self
+            .perpetual_tables
+            .events
+            .safe_range_iter((*event_digest, 0)..=(*event_digest, usize::MAX))
+            .map_ok(|(_, event)| event)
+            .collect::<Result<Vec<_>, TypedStoreError>>()?;
+        Ok(data.is_empty().not().then_some(TransactionEvents { data }))
+    }
+
+    pub fn multi_get_events(
+        &self,
+        event_digests: &[TransactionEventsDigest],
+    ) -> MgoResult<Vec<Option<TransactionEvents>>> {
+        Ok(event_digests
+            .iter()
+            .map(|digest| self.get_events(digest))
+            .collect::<Result<Vec<_>, _>>()?)
+    }
+
+    pub fn multi_get_effects<'a>(
+        &self,
+        effects_digests: impl Iterator<Item = &'a TransactionEffectsDigest>,
+    ) -> MgoResult<Vec<Option<TransactionEffects>>> {
+        Ok(self.perpetual_tables.effects.multi_get(effects_digests)?)
+    }
+
+    pub fn get_executed_effects(
+        &self,
+        tx_digest: &TransactionDigest,
+    ) -> MgoResult<Option<TransactionEffects>> {
+        let effects_digest = self.perpetual_tables.executed_effects.get(tx_digest)?;
+        match effects_digest {
+            Some(digest) => Ok(self.perpetual_tables.effects.get(&digest)?),
+            None => Ok(None),
+        }
+    }
+
+    /// Given a list of transaction digests, returns a list of the corresponding effects only if they have been
+    /// executed. For transactions that have not been executed, None is returned.
+    pub fn multi_get_executed_effects_digests(
+        &self,
+        digests: &[TransactionDigest],
+    ) -> MgoResult<Vec<Option<TransactionEffectsDigest>>> {
+        Ok(self.perpetual_tables.executed_effects.multi_get(digests)?)
+    }
+
+    /// Given a list of transaction digests, returns a list of the corresponding effects only if they have been
+    /// executed. For transactions that have not been executed, None is returned.
+    pub fn multi_get_executed_effects(
+        &self,
+        digests: &[TransactionDigest],
+    ) -> MgoResult<Vec<Option<TransactionEffects>>> {
+        let executed_effects_digests = self.perpetual_tables.executed_effects.multi_get(digests)?;
+        let effects = self.multi_get_effects(executed_effects_digests.iter().flatten())?;
+        let mut tx_to_effects_map = effects
+            .into_iter()
+            .flatten()
+            .map(|effects| (*effects.transaction_digest(), effects))
+            .collect::<HashMap<_, _>>();
+        Ok(digests
+            .iter()
+            .map(|digest| tx_to_effects_map.remove(digest))
+            .collect())
+    }
+
+    pub fn is_tx_already_executed(&self, digest: &TransactionDigest) -> MgoResult<bool> {
+        Ok(self
+            .perpetual_tables
+            .executed_effects
+            .contains_key(digest)?)
+    }
+
+    pub fn get_marker_value(
+        &self,
+        object_id: &ObjectID,
+        version: &SequenceNumber,
+        epoch_id: EpochId,
+    ) -> MgoResult<Option<MarkerValue>> {
+        let object_key = (epoch_id, ObjectKey(*object_id, *version));
+        Ok(self
+            .perpetual_tables
+            .object_per_epoch_marker_table
+            .get(&object_key)?)
+    }
+
+    pub fn get_latest_marker(
+        &self,
+        object_id: &ObjectID,
+        epoch_id: EpochId,
+    ) -> MgoResult<Option<(SequenceNumber, MarkerValue)>> {
+        let min_key = (epoch_id, ObjectKey::min_for_id(object_id));
+        let max_key = (epoch_id, ObjectKey::max_for_id(object_id));
+
+        let marker_entry = self
+            .perpetual_tables
+            .object_per_epoch_marker_table
+            .safe_iter_with_bounds(Some(min_key), Some(max_key))
+            .skip_prior_to(&max_key)?
+            .next();
+        match marker_entry {
+            Some(Ok(((epoch, key), marker))) => {
+                // because of the iterator bounds these cannot fail
+                assert_eq!(epoch, epoch_id);
+                assert_eq!(key.0, *object_id);
+                Ok(Some((key.1, marker)))
+            }
+            Some(Err(e)) => Err(e.into()),
+            None => Ok(None),
+        }
+    }
+
+    /// Returns future containing the state hash for the given epoch
+    /// once available
+    pub async fn notify_read_root_state_hash(
+        &self,
+        epoch: EpochId,
+    ) -> MgoResult<(CheckpointSequenceNumber, Accumulator)> {
+        // We need to register waiters _before_ reading from the database to avoid race conditions
+        let registration = self.root_state_notify_read.register_one(&epoch);
+        let hash = self.perpetual_tables.root_state_hash_by_epoch.get(&epoch)?;
+
+        let result = match hash {
+            // Note that Some() clause also drops registration that is already fulfilled
+            Some(ready) => Either::Left(futures::future::ready(ready)),
+            None => Either::Right(registration),
+        }
+        .await;
+
+        Ok(result)
+    }
+
+    // DEPRECATED -- use function of same name in AuthorityPerEpochStore
+    pub fn deprecated_insert_finalized_transactions(
+        &self,
+        digests: &[TransactionDigest],
+        epoch: EpochId,
+        sequence: CheckpointSequenceNumber,
+    ) -> MgoResult {
+        let mut batch = self
+            .perpetual_tables
+            .executed_transactions_to_checkpoint
+            .batch();
+        batch.insert_batch(
+            &self.perpetual_tables.executed_transactions_to_checkpoint,
+            digests.iter().map(|d| (*d, (epoch, sequence))),
+        )?;
+        batch.write()?;
+        trace!("Transactions {digests:?} finalized at checkpoint {sequence} epoch {epoch}");
+        Ok(())
+    }
+
+    // DEPRECATED -- use function of same name in AuthorityPerEpochStore
+    pub fn deprecated_get_transaction_checkpoint(
+        &self,
+        digest: &TransactionDigest,
+    ) -> MgoResult<Option<(EpochId, CheckpointSequenceNumber)>> {
+        Ok(self
+            .perpetual_tables
+            .executed_transactions_to_checkpoint
+            .get(digest)?)
+    }
+
+    // DEPRECATED -- use function of same name in AuthorityPerEpochStore
+    pub fn deprecated_multi_get_transaction_checkpoint(
+        &self,
+        digests: &[TransactionDigest],
+    ) -> MgoResult<Vec<Option<(EpochId, CheckpointSequenceNumber)>>> {
+        Ok(self
+            .perpetual_tables
+            .executed_transactions_to_checkpoint
+            .multi_get(digests)?
+            .into_iter()
+            .collect())
+    }
+
+    /// Returns true if there are no objects in the database
+    pub fn database_is_empty(&self) -> MgoResult<bool> {
+        self.perpetual_tables.database_is_empty()
+    }
+
+    /// A function that acquires all locks associated with the objects (in order to avoid deadlocks).
+    async fn acquire_locks(&self, input_objects: &[ObjectRef]) -> Vec<MutexGuard> {
+        self.mutex_table
+            .acquire_locks(input_objects.iter().map(|(_, _, digest)| *digest))
+            .await
+    }
+
+    pub fn object_exists_by_key(
+        &self,
+        object_id: &ObjectID,
+        version: VersionNumber,
+    ) -> MgoResult<bool> {
+        Ok(self
+            .perpetual_tables
+            .objects
+            .contains_key(&ObjectKey(*object_id, version))?)
+    }
+
+    pub fn multi_object_exists_by_key(&self, object_keys: &[ObjectKey]) -> MgoResult<Vec<bool>> {
+        Ok(self
+            .perpetual_tables
+            .objects
+            .multi_contains_keys(object_keys.to_vec())?
+            .into_iter()
+            .collect())
+    }
+
+    pub fn get_object_ref_prior_to_key(
+        &self,
+        object_id: &ObjectID,
+        version: VersionNumber,
+    ) -> Result<Option<ObjectRef>, MgoError> {
+        let Some(prior_version) = version.one_before() else {
+            return Ok(None);
+        };
+        let mut iterator = self
+            .perpetual_tables
+            .objects
+            .unbounded_iter()
+            .skip_prior_to(&ObjectKey(*object_id, prior_version))?;
+
+        if let Some((object_key, value)) = iterator.next() {
+            if object_key.0 == *object_id {
+                return Ok(Some(
+                    self.perpetual_tables.object_reference(&object_key, value)?,
+                ));
+            }
+        }
+        Ok(None)
+    }
+
+    pub fn multi_get_object_by_key(
+        &self,
+        object_keys: &[ObjectKey],
+    ) -> Result<Vec<Option<Object>>, MgoError> {
+        let wrappers = self
+            .perpetual_tables
+            .objects
+            .multi_get(object_keys.to_vec())?;
+        let mut ret = vec![];
+
+        for (idx, w) in wrappers.into_iter().enumerate() {
+            ret.push(
+                w.map(|object| self.perpetual_tables.object(&object_keys[idx], object))
+                    .transpose()?
+                    .flatten(),
+            );
+        }
+        Ok(ret)
+    }
+
+    /// Get many objects
+    pub fn get_objects(&self, objects: &[ObjectID]) -> Result<Vec<Option<Object>>, MgoError> {
+        let mut result = Vec::new();
+        for id in objects {
+            result.push(self.get_object(id)?);
+        }
+        Ok(result)
+    }
+
+    pub fn have_deleted_owned_object_at_version_or_after(
+        &self,
+        object_id: &ObjectID,
+        version: VersionNumber,
+        epoch_id: EpochId,
+    ) -> Result<bool, MgoError> {
+        let object_key = ObjectKey::max_for_id(object_id);
+        let marker_key = (epoch_id, object_key);
+
+        // Find the most recent version of the object that was deleted or wrapped.
+        // Return true if the version is >= `version`. Otherwise return false.
+        let marker_entry = self
+            .perpetual_tables
+            .object_per_epoch_marker_table
+            .unbounded_iter()
+            .skip_prior_to(&marker_key)?
+            .next();
+        match marker_entry {
+            Some(((epoch, key), marker)) => {
+                // Make sure object id matches and version is >= `version`
+                let object_data_ok = key.0 == *object_id && key.1 >= version;
+                // Make sure we don't have a stale epoch for some reason (e.g., a revert)
+                let epoch_data_ok = epoch == epoch_id;
+                // Make sure the object was deleted or wrapped.
+                let mark_data_ok = marker == MarkerValue::OwnedDeleted;
+                Ok(object_data_ok && epoch_data_ok && mark_data_ok)
+            }
+            None => Ok(false),
+        }
+    }
+
+    // Methods to mutate the store
+
+    /// Insert a genesis object.
+    /// TODO: delete this method entirely (still used by authority_tests.rs)
+    pub(crate) fn insert_genesis_object(&self, object: Object) -> MgoResult {
+        // We only side load objects with a genesis parent transaction.
+        debug_assert!(object.previous_transaction == TransactionDigest::genesis_marker());
+        let object_ref = object.compute_object_reference();
+        self.insert_object_direct(object_ref, &object)
+    }
+
+    /// Insert an object directly into the store, and also update relevant tables
+    /// NOTE: does not handle transaction lock.
+    /// This is used to insert genesis objects
+    fn insert_object_direct(&self, object_ref: ObjectRef, object: &Object) -> MgoResult {
+        let mut write_batch = self.perpetual_tables.objects.batch();
+
+        // Insert object
+        let StoreObjectPair(store_object, indirect_object) =
+            get_store_object_pair(object.clone(), self.indirect_objects_threshold);
+        write_batch.insert_batch(
+            &self.perpetual_tables.objects,
+            std::iter::once((ObjectKey::from(object_ref), store_object)),
+        )?;
+        if let Some(indirect_obj) = indirect_object {
+            write_batch.insert_batch(
+                &self.perpetual_tables.indirect_move_objects,
+                std::iter::once((indirect_obj.inner().digest(), indirect_obj)),
+            )?;
+        }
+
+        // Update the index
+        if object.get_single_owner().is_some() {
+            // Only initialize lock for address owned objects.
+            if !object.is_child_object() {
+                self.initialize_locks_impl(&mut write_batch, &[object_ref], false)?;
+            }
+        }
+
+        write_batch.write()?;
+
+        Ok(())
+    }
+
+    /// This function should only be used for initializing genesis and should remain private.
+    pub(super) async fn bulk_insert_genesis_objects(&self, objects: &[Object]) -> MgoResult<()> {
+        let mut batch = self.perpetual_tables.objects.batch();
+        let ref_and_objects: Vec<_> = objects
+            .iter()
+            .map(|o| (o.compute_object_reference(), o))
+            .collect();
+
+        batch
+            .insert_batch(
+                &self.perpetual_tables.objects,
+                ref_and_objects.iter().map(|(oref, o)| {
+                    (
+                        ObjectKey::from(oref),
+                        get_store_object_pair((*o).clone(), self.indirect_objects_threshold).0,
+                    )
+                }),
+            )?
+            .insert_batch(
+                &self.perpetual_tables.indirect_move_objects,
+                ref_and_objects.iter().filter_map(|(_, o)| {
+                    let StoreObjectPair(_, indirect_object) =
+                        get_store_object_pair((*o).clone(), self.indirect_objects_threshold);
+                    indirect_object.map(|obj| (obj.inner().digest(), obj))
+                }),
+            )?;
+
+        let non_child_object_refs: Vec<_> = ref_and_objects
+            .iter()
+            .filter(|(_, object)| !object.is_child_object())
+            .map(|(oref, _)| *oref)
+            .collect();
+
+        self.initialize_locks_impl(
+            &mut batch,
+            &non_child_object_refs,
+            false, // is_force_reset
+        )?;
+
+        batch.write()?;
+
+        Ok(())
+    }
+
+    pub fn bulk_insert_live_objects(
+        perpetual_db: &AuthorityPerpetualTables,
+        live_objects: impl Iterator<Item = LiveObject>,
+        indirect_objects_threshold: usize,
+        expected_sha3_digest: &[u8; 32],
+    ) -> MgoResult<()> {
+        let mut hasher = Sha3_256::default();
+        let mut batch = perpetual_db.objects.batch();
+        for object in live_objects {
+            hasher.update(object.object_reference().2.inner());
+            match object {
+                LiveObject::Normal(object) => {
+                    let StoreObjectPair(store_object_wrapper, indirect_object) =
+                        get_store_object_pair(object.clone(), indirect_objects_threshold);
+                    batch.insert_batch(
+                        &perpetual_db.objects,
+                        std::iter::once((
+                            ObjectKey::from(object.compute_object_reference()),
+                            store_object_wrapper,
+                        )),
+                    )?;
+                    if let Some(indirect_object) = indirect_object {
+                        batch.merge_batch(
+                            &perpetual_db.indirect_move_objects,
+                            iter::once((indirect_object.inner().digest(), indirect_object)),
+                        )?;
+                    }
+                    if !object.is_child_object() {
+                        Self::initialize_locks(
+                            &perpetual_db.owned_object_transaction_locks,
+                            &mut batch,
+                            &[object.compute_object_reference()],
+                            false, // is_force_reset
+                        )?;
+                    }
+                }
+                LiveObject::Wrapped(object_key) => {
+                    batch.insert_batch(
+                        &perpetual_db.objects,
+                        std::iter::once::<(ObjectKey, StoreObjectWrapper)>((
+                            object_key,
+                            StoreObject::Wrapped.into(),
+                        )),
+                    )?;
+                }
+            }
+        }
+        let sha3_digest = hasher.finalize().digest;
+        if *expected_sha3_digest != sha3_digest {
+            error!(
+                "Sha does not match! expected: {:?}, actual: {:?}",
+                expected_sha3_digest, sha3_digest
+            );
+            return Err(MgoError::from("Sha does not match"));
+        }
+        batch.write()?;
+        Ok(())
+    }
+
+    pub async fn set_epoch_start_configuration(
+        &self,
+        epoch_start_configuration: &EpochStartConfiguration,
+    ) -> MgoResult {
+        self.perpetual_tables
+            .set_epoch_start_configuration(epoch_start_configuration)
+            .await?;
+        Ok(())
+    }
+
+    pub fn get_epoch_start_configuration(&self) -> MgoResult<Option<EpochStartConfiguration>> {
+        Ok(self.perpetual_tables.epoch_start_configuration.get(&())?)
+    }
+
+    /// Acquires read locks for affected indirect objects
+    #[instrument(level = "trace", skip_all)]
+    async fn acquire_read_locks_for_indirect_objects(
+        &self,
+        written: &WrittenObjects,
+    ) -> Vec<RwLockGuard> {
+        // locking is required to avoid potential race conditions with the pruner
+        // potential race:
+        //   - transaction execution branches to reference count increment
+        //   - pruner decrements ref count to 0
+        //   - compaction job compresses existing merge values to an empty vector
+        //   - tx executor commits ref count increment instead of the full value making object inaccessible
+        // read locks are sufficient because ref count increments are safe,
+        // concurrent transaction executions produce independent ref count increments and don't corrupt the state
+        let digests = written
+            .values()
+            .filter_map(|object| {
+                let StoreObjectPair(_, indirect_object) =
+                    get_store_object_pair(object.clone(), self.indirect_objects_threshold);
+                indirect_object.map(|obj| obj.inner().digest())
+            })
+            .collect();
+        self.objects_lock_table.acquire_read_locks(digests).await
+    }
+
+    /// Updates the state resulting from the execution of a certificate.
+    ///
+    /// Internally it checks that all locks for active inputs are at the correct
+    /// version, and then writes objects, certificates, parents and clean up locks atomically.
+    #[instrument(level = "debug", skip_all)]
+    pub async fn write_transaction_outputs(
+        &self,
+        epoch_id: EpochId,
+        tx_outputs: TransactionOutputs,
+    ) -> MgoResult {
+        let TransactionOutputs {
+            transaction,
+            effects,
+            markers,
+            wrapped,
+            deleted,
+            written,
+            events,
+            locks_to_delete,
+            new_locks_to_init,
+            ..
+        } = tx_outputs;
+
+        let _locks = self.acquire_read_locks_for_indirect_objects(&written).await;
+
+        // Extract the new state from the execution
+        let mut write_batch = self.perpetual_tables.transactions.batch();
+
+        // Store the certificate indexed by transaction digest
+        let transaction_digest = transaction.digest();
+        write_batch.insert_batch(
+            &self.perpetual_tables.transactions,
+            iter::once((transaction_digest, transaction.serializable_ref())),
+        )?;
+
+        // Add batched writes for objects and locks.
+        let effects_digest = effects.digest();
+
+        write_batch.insert_batch(
+            &self.perpetual_tables.object_per_epoch_marker_table,
+            markers
+                .iter()
+                .map(|(key, marker_value)| ((epoch_id, *key), *marker_value)),
+        )?;
+
+        write_batch.insert_batch(
+            &self.perpetual_tables.objects,
+            deleted
+                .into_iter()
+                .map(|key| (key, StoreObject::Deleted))
+                .chain(wrapped.into_iter().map(|key| (key, StoreObject::Wrapped)))
+                .map(|(key, store_object)| (key, StoreObjectWrapper::from(store_object))),
+        )?;
+
+        // Insert each output object into the stores
+        let (new_objects, new_indirect_move_objects): (Vec<_>, Vec<_>) = written
+            .iter()
+            .map(|(id, new_object)| {
+                let version = new_object.version();
+                debug!(?id, ?version, "writing object");
+                let StoreObjectPair(store_object, indirect_object) =
+                    get_store_object_pair(new_object.clone(), self.indirect_objects_threshold);
+                (
+                    (ObjectKey(*id, version), store_object),
+                    indirect_object.map(|obj| (obj.inner().digest(), obj)),
+                )
+            })
+            .unzip();
+
+        let indirect_objects: Vec<_> = new_indirect_move_objects.into_iter().flatten().collect();
+        let existing_digests = self
+            .perpetual_tables
+            .indirect_move_objects
+            .multi_get_raw_bytes(indirect_objects.iter().map(|(digest, _)| digest))?;
+        // split updates to existing and new indirect objects
+        // for new objects full merge needs to be triggered. For existing ref count increment is sufficient
+        let (existing_indirect_objects, new_indirect_objects): (Vec<_>, Vec<_>) = indirect_objects
+            .into_iter()
+            .enumerate()
+            .partition(|(idx, _)| matches!(&existing_digests[*idx], Some(value) if !is_ref_count_value(value)));
+
+        write_batch.insert_batch(&self.perpetual_tables.objects, new_objects.into_iter())?;
+        if !new_indirect_objects.is_empty() {
+            write_batch.merge_batch(
+                &self.perpetual_tables.indirect_move_objects,
+                new_indirect_objects.into_iter().map(|(_, pair)| pair),
+            )?;
+        }
+        if !existing_indirect_objects.is_empty() {
+            write_batch.partial_merge_batch(
+                &self.perpetual_tables.indirect_move_objects,
+                existing_indirect_objects
+                    .into_iter()
+                    .map(|(_, (digest, _))| (digest, 1_u64.to_le_bytes())),
+            )?;
+        }
+
+        let event_digest = events.digest();
+        let events = events
+            .data
+            .into_iter()
+            .enumerate()
+            .map(|(i, e)| ((event_digest, i), e));
+
+        write_batch.insert_batch(&self.perpetual_tables.events, events)?;
+
+        // NOTE: We just check here that locks exist, not that they are locked to a specific TX. Why?
+        // 1. Lock existence prevents re-execution of old certs when objects have been upgraded
+        // 2. Not all validators lock, just 2f+1, so transaction should proceed regardless
+        //    (But the lock should exist which means previous transactions finished)
+        // 3. Equivocation possible (different TX) but as long as 2f+1 approves current TX its
+        //    fine
+        // 4. Locks may have existed when we started processing this tx, but could have since
+        //    been deleted by a concurrent tx that finished first. In that case, check if the
+        //    tx effects exist.
+        self.check_owned_object_locks_exist(&locks_to_delete)?;
+
+        self.initialize_locks_impl(&mut write_batch, &new_locks_to_init, false)?;
+
+        // Note: deletes locks for received objects as well (but not for objects that were in
+        // `Receiving` arguments which were not received)
+        self.delete_locks(&mut write_batch, &locks_to_delete)?;
+
+        write_batch
+            .insert_batch(
+                &self.perpetual_tables.effects,
+                [(effects_digest, effects.clone())],
+            )?
+            .insert_batch(
+                &self.perpetual_tables.executed_effects,
+                [(transaction_digest, effects_digest)],
+            )?;
+
+        // test crashing before writing the batch
+        fail_point_async!("crash");
+
+        // Commit.
+        write_batch.write()?;
+
+        // test crashing before notifying
+        fail_point_async!("crash");
+
+        debug!(effects_digest = ?effects.digest(), "commit_certificate finished");
+
+        Ok(())
+    }
+
+    /// Acquires a lock for a transaction on the given objects if they have all been initialized previously
+    pub(crate) async fn acquire_transaction_locks(
+        &self,
+        epoch: EpochId,
+        owned_input_objects: &[ObjectRef],
+        tx_digest: TransactionDigest,
+    ) -> MgoResult {
+        // Other writers may be attempting to acquire locks on the same objects, so a mutex is
+        // required.
+        // TODO: replace with optimistic db_transactions (i.e. set lock to tx if none)
+        let _mutexes = self.acquire_locks(owned_input_objects).await;
+
+        trace!(?owned_input_objects, "acquire_locks");
+        let mut locks_to_write = Vec::new();
+
+        let locks = self
+            .perpetual_tables
+            .owned_object_transaction_locks
+            .multi_get(owned_input_objects)?;
+
+        for ((i, lock), obj_ref) in locks.into_iter().enumerate().zip(owned_input_objects) {
+            // The object / version must exist, and therefore lock initialized.
+            if lock.is_none() {
+                let latest_lock = self.get_latest_lock_for_object_id(obj_ref.0)?;
+                fp_bail!(UserInputError::ObjectVersionUnavailableForConsumption {
+                    provided_obj_ref: *obj_ref,
+                    current_version: latest_lock.1
+                }
+                .into());
+            }
+            // Safe to unwrap as it is checked above
+            let lock = lock.unwrap().map(|l| l.migrate().into_inner());
+
+            if let Some(LockDetails {
+                epoch: previous_epoch,
+                tx_digest: previous_tx_digest,
+            }) = &lock
+            {
+                fp_ensure!(
+                    &epoch >= previous_epoch,
+                    MgoError::ObjectLockedAtFutureEpoch {
+                        obj_refs: owned_input_objects.to_vec(),
+                        locked_epoch: *previous_epoch,
+                        new_epoch: epoch,
+                        locked_by_tx: *previous_tx_digest,
+                    }
+                );
+                // Lock already set to different transaction from the same epoch.
+                // If the lock is set in a previous epoch, it's ok to override it.
+                if previous_epoch == &epoch && previous_tx_digest != &tx_digest {
+                    // TODO: add metrics here
+                    info!(prev_tx_digest = ?previous_tx_digest,
+                          cur_tx_digest = ?tx_digest,
+                          "Cannot acquire lock: conflicting transaction!");
+                    return Err(MgoError::ObjectLockConflict {
+                        obj_ref: *obj_ref,
+                        pending_transaction: *previous_tx_digest,
+                    });
+                }
+                if &epoch == previous_epoch {
+                    // Exactly the same epoch and same transaction, nothing to lock here.
+                    continue;
+                } else {
+                    info!(prev_epoch =? previous_epoch, cur_epoch =? epoch, "Overriding an old lock from previous epoch");
+                    // Fall through and override the old lock.
+                }
+            }
+            let obj_ref = owned_input_objects[i];
+            let lock_details = LockDetails { epoch, tx_digest };
+            locks_to_write.push((obj_ref, Some(lock_details.into())));
+        }
+
+        if !locks_to_write.is_empty() {
+            trace!(?locks_to_write, "Writing locks");
+            let mut batch = self.perpetual_tables.owned_object_transaction_locks.batch();
+            batch.insert_batch(
+                &self.perpetual_tables.owned_object_transaction_locks,
+                locks_to_write,
+            )?;
+            batch.write()?;
+        }
+
+        Ok(())
+    }
+
+    /// Gets ObjectLockInfo that represents state of lock on an object.
+    /// Returns UserInputError::ObjectNotFound if cannot find lock record for this object
+    pub(crate) fn get_lock(&self, obj_ref: ObjectRef, epoch_id: EpochId) -> MgoLockResult {
+        Ok(
+            if let Some(lock_info) = self
+                .perpetual_tables
+                .owned_object_transaction_locks
+                .get(&obj_ref)?
+            {
+                match lock_info {
+                    Some(lock_info) => {
+                        let lock_info = lock_info.migrate().into_inner();
+                        match Ord::cmp(&lock_info.epoch, &epoch_id) {
+                            // If the object was locked in a previous epoch, we can say that it's
+                            // no longer locked and is considered as just Initialized.
+                            Ordering::Less => ObjectLockStatus::Initialized,
+                            Ordering::Equal => ObjectLockStatus::LockedToTx {
+                                locked_by_tx: lock_info,
+                            },
+                            Ordering::Greater => {
+                                return Err(MgoError::ObjectLockedAtFutureEpoch {
+                                    obj_refs: vec![obj_ref],
+                                    locked_epoch: lock_info.epoch,
+                                    new_epoch: epoch_id,
+                                    locked_by_tx: lock_info.tx_digest,
+                                });
+                            }
+                        }
+                    }
+                    None => ObjectLockStatus::Initialized,
+                }
+            } else {
+                ObjectLockStatus::LockedAtDifferentVersion {
+                    locked_ref: self.get_latest_lock_for_object_id(obj_ref.0)?,
+                }
+            },
+        )
+    }
+
+    /// Returns UserInputError::ObjectNotFound if no lock records found for this object.
+    pub(crate) fn get_latest_lock_for_object_id(
+        &self,
+        object_id: ObjectID,
+    ) -> MgoResult<ObjectRef> {
+        let mut iterator = self
+            .perpetual_tables
+            .owned_object_transaction_locks
+            .unbounded_iter()
+            // Make the max possible entry for this object ID.
+            .skip_prior_to(&(object_id, SequenceNumber::MAX, ObjectDigest::MAX))?;
+        Ok(iterator
+            .next()
+            .and_then(|value| {
+                if value.0 .0 == object_id {
+                    Some(value)
+                } else {
+                    None
+                }
+            })
+            .ok_or_else(|| {
+                MgoError::from(UserInputError::ObjectNotFound {
+                    object_id,
+                    version: None,
+                })
+            })?
+            .0)
+    }
+
+    /// Checks multiple object locks exist.
+    /// Returns UserInputError::ObjectNotFound if cannot find lock record for at least one of the objects.
+    /// Returns UserInputError::ObjectVersionUnavailableForConsumption if at least one object lock is not initialized
+    ///     at the given version.
+    pub fn check_owned_object_locks_exist(&self, objects: &[ObjectRef]) -> MgoResult {
+        let locks = self
+            .perpetual_tables
+            .owned_object_transaction_locks
+            .multi_get(objects)?;
+        for (lock, obj_ref) in locks.into_iter().zip(objects) {
+            if lock.is_none() {
+                let latest_lock = self.get_latest_lock_for_object_id(obj_ref.0)?;
+                fp_bail!(UserInputError::ObjectVersionUnavailableForConsumption {
+                    provided_obj_ref: *obj_ref,
+                    current_version: latest_lock.1
+                }
+                .into());
+            }
+        }
+        Ok(())
+    }
+
+    /// Initialize a lock to None (but exists) for a given list of ObjectRefs.
+    /// Returns MgoError::ObjectLockAlreadyInitialized if the lock already exists and is locked to a transaction
+    fn initialize_locks_impl(
+        &self,
+        write_batch: &mut DBBatch,
+        objects: &[ObjectRef],
+        is_force_reset: bool,
+    ) -> MgoResult {
+        trace!(?objects, "initialize_locks");
+        AuthorityStore::initialize_locks(
+            &self.perpetual_tables.owned_object_transaction_locks,
+            write_batch,
+            objects,
+            is_force_reset,
+        )
+    }
+
+    pub fn initialize_locks(
+        locks_table: &DBMap<ObjectRef, Option<LockDetailsWrapper>>,
+        write_batch: &mut DBBatch,
+        objects: &[ObjectRef],
+        is_force_reset: bool,
+    ) -> MgoResult {
+        trace!(?objects, "initialize_locks");
+
+        let locks = locks_table.multi_get(objects)?;
+
+        if !is_force_reset {
+            // If any locks exist and are not None, return errors for them
+            let existing_locks: Vec<ObjectRef> = locks
+                .iter()
+                .zip(objects)
+                .filter_map(|(lock_opt, objref)| {
+                    lock_opt.clone().flatten().map(|_tx_digest| *objref)
+                })
+                .collect();
+            if !existing_locks.is_empty() {
+                info!(
+                    ?existing_locks,
+                    "Cannot initialize locks because some exist already"
+                );
+                return Err(MgoError::ObjectLockAlreadyInitialized {
+                    refs: existing_locks,
+                });
+            }
+        }
+
+        write_batch.insert_batch(locks_table, objects.iter().map(|obj_ref| (obj_ref, None)))?;
+        Ok(())
+    }
+
+    /// Removes locks for a given list of ObjectRefs.
+    pub(crate) fn delete_locks(
+        &self,
+        write_batch: &mut DBBatch,
+        objects: &[ObjectRef],
+    ) -> MgoResult {
+        trace!(?objects, "delete_locks");
+        write_batch.delete_batch(
+            &self.perpetual_tables.owned_object_transaction_locks,
+            objects.iter(),
+        )?;
+        Ok(())
+    }
+
+    #[cfg(test)]
+    pub(crate) fn reset_locks_for_test(
+        &self,
+        transactions: &[TransactionDigest],
+        objects: &[ObjectRef],
+        epoch_store: &AuthorityPerEpochStore,
+    ) {
+        for tx in transactions {
+            epoch_store.delete_signed_transaction_for_test(tx);
+        }
+
+        let mut batch = self.perpetual_tables.owned_object_transaction_locks.batch();
+        batch
+            .delete_batch(
+                &self.perpetual_tables.owned_object_transaction_locks,
+                objects.iter(),
+            )
+            .unwrap();
+        batch.write().unwrap();
+
+        let mut batch = self.perpetual_tables.owned_object_transaction_locks.batch();
+        self.initialize_locks_impl(&mut batch, objects, false)
+            .unwrap();
+        batch.write().unwrap();
+    }
+
+    /// This function is called at the end of epoch for each transaction that's
+    /// executed locally on the validator but didn't make to the last checkpoint.
+    /// The effects of the execution is reverted here.
+    /// The following things are reverted:
+    /// 1. All new object states are deleted.
+    /// 2. owner_index table change is reverted.
+    ///
+    /// NOTE: transaction and effects are intentionally not deleted. It's
+    /// possible that if this node is behind, the network will execute the
+    /// transaction in a later epoch. In that case, we need to keep it saved
+    /// so that when we receive the checkpoint that includes it from state
+    /// sync, we are able to execute the checkpoint.
+    /// TODO: implement GC for transactions that are no longer needed.
+    pub async fn revert_state_update(&self, tx_digest: &TransactionDigest) -> MgoResult {
+        let Some(effects) = self.get_executed_effects(tx_digest)? else {
+            debug!("Not reverting {:?} as it was not executed", tx_digest);
+            return Ok(());
+        };
+
+        info!(?tx_digest, ?effects, "reverting transaction");
+
+        // We should never be reverting shared object transactions.
+        assert!(effects.input_shared_objects().is_empty());
+
+        let mut write_batch = self.perpetual_tables.transactions.batch();
+        write_batch.delete_batch(
+            &self.perpetual_tables.executed_effects,
+            iter::once(tx_digest),
+        )?;
+        if let Some(events_digest) = effects.events_digest() {
+            write_batch.schedule_delete_range(
+                &self.perpetual_tables.events,
+                &(*events_digest, usize::MIN),
+                &(*events_digest, usize::MAX),
+            )?;
+        }
+
+        let tombstones = effects
+            .all_tombstones()
+            .into_iter()
+            .map(|(id, version)| ObjectKey(id, version));
+        write_batch.delete_batch(&self.perpetual_tables.objects, tombstones)?;
+
+        let all_new_object_keys = effects
+            .all_changed_objects()
+            .into_iter()
+            .map(|((id, version, _), _, _)| ObjectKey(id, version));
+        write_batch.delete_batch(&self.perpetual_tables.objects, all_new_object_keys.clone())?;
+
+        let modified_object_keys = effects
+            .modified_at_versions()
+            .into_iter()
+            .map(|(id, version)| ObjectKey(id, version));
+
+        macro_rules! get_objects_and_locks {
+            ($object_keys: expr) => {
+                self.perpetual_tables
+                    .objects
+                    .multi_get($object_keys.clone())?
+                    .into_iter()
+                    .zip($object_keys)
+                    .filter_map(|(obj_opt, key)| {
+                        let obj = self
+                            .perpetual_tables
+                            .object(
+                                &key,
+                                obj_opt.unwrap_or_else(|| {
+                                    panic!("Older object version not found: {:?}", key)
+                                }),
+                            )
+                            .expect("Matching indirect object not found")?;
+
+                        if obj.is_immutable() {
+                            return None;
+                        }
+
+                        let obj_ref = obj.compute_object_reference();
+                        Some(obj.is_address_owned().then_some(obj_ref))
+                    })
+            };
+        }
+
+        let old_locks = get_objects_and_locks!(modified_object_keys);
+        let new_locks = get_objects_and_locks!(all_new_object_keys);
+
+        let old_locks: Vec<_> = old_locks.flatten().collect();
+
+        // Re-create old locks.
+        self.initialize_locks_impl(&mut write_batch, &old_locks, true)?;
+
+        // Delete new locks
+        write_batch.delete_batch(
+            &self.perpetual_tables.owned_object_transaction_locks,
+            new_locks.flatten(),
+        )?;
+
+        write_batch.write()?;
+
+        Ok(())
+    }
+
+    /// Return the object with version less then or eq to the provided seq number.
+    /// This is used by indexer to find the correct version of dynamic field child object.
+    /// We do not store the version of the child object, but because of lamport timestamp,
+    /// we know the child must have version number less then or eq to the parent.
+    pub fn find_object_lt_or_eq_version(
+        &self,
+        object_id: ObjectID,
+        version: SequenceNumber,
+    ) -> Option<Object> {
+        self.perpetual_tables
+            .find_object_lt_or_eq_version(object_id, version)
+    }
+
+    /// Returns the latest object reference we have for this object_id in the objects table.
+    ///
+    /// The method may also return the reference to a deleted object with a digest of
+    /// ObjectDigest::deleted() or ObjectDigest::wrapped() and lamport version
+    /// of a transaction that deleted the object.
+    /// Note that a deleted object may re-appear if the deletion was the result of the object
+    /// being wrapped in another object.
+    ///
+    /// If no entry for the object_id is found, return None.
+    pub fn get_latest_object_ref_or_tombstone(
+        &self,
+        object_id: ObjectID,
+    ) -> Result<Option<ObjectRef>, MgoError> {
+        self.perpetual_tables
+            .get_latest_object_ref_or_tombstone(object_id)
+    }
+
+    /// Returns the latest object reference if and only if the object is still live (i.e. it does
+    /// not return tombstones)
+    pub fn get_latest_object_ref_if_alive(
+        &self,
+        object_id: ObjectID,
+    ) -> Result<Option<ObjectRef>, MgoError> {
+        match self.get_latest_object_ref_or_tombstone(object_id)? {
+            Some(objref) if objref.2.is_alive() => Ok(Some(objref)),
+            _ => Ok(None),
+        }
+    }
+
+    /// Returns the latest object we have for this object_id in the objects table.
+    ///
+    /// If no entry for the object_id is found, return None.
+    pub fn get_latest_object_or_tombstone(
+        &self,
+        object_id: ObjectID,
+    ) -> Result<Option<(ObjectKey, ObjectOrTombstone)>, MgoError> {
+        let Some((object_key, store_object)) = self
+            .perpetual_tables
+            .get_latest_object_or_tombstone(object_id)?
+        else {
+            return Ok(None);
+        };
+
+        if let Some(object_ref) = self
+            .perpetual_tables
+            .tombstone_reference(&object_key, &store_object)?
+        {
+            return Ok(Some((object_key, ObjectOrTombstone::Tombstone(object_ref))));
+        }
+
+        let object = self
+            .perpetual_tables
+            .object(&object_key, store_object)?
+            .expect("Non tombstone store object could not be converted to object");
+
+        Ok(Some((object_key, ObjectOrTombstone::Object(object))))
+    }
+
+    pub fn insert_transaction_and_effects(
+        &self,
+        transaction: &VerifiedTransaction,
+        transaction_effects: &TransactionEffects,
+    ) -> Result<(), TypedStoreError> {
+        let mut write_batch = self.perpetual_tables.transactions.batch();
+        write_batch
+            .insert_batch(
+                &self.perpetual_tables.transactions,
+                [(transaction.digest(), transaction.serializable_ref())],
+            )?
+            .insert_batch(
+                &self.perpetual_tables.effects,
+                [(transaction_effects.digest(), transaction_effects)],
+            )?;
+
+        write_batch.write()?;
+        Ok(())
+    }
+
+    pub fn multi_insert_transaction_and_effects<'a>(
+        &self,
+        transactions: impl Iterator<Item = &'a VerifiedExecutionData>,
+    ) -> Result<(), TypedStoreError> {
+        let mut write_batch = self.perpetual_tables.transactions.batch();
+        for tx in transactions {
+            write_batch
+                .insert_batch(
+                    &self.perpetual_tables.transactions,
+                    [(tx.transaction.digest(), tx.transaction.serializable_ref())],
+                )?
+                .insert_batch(
+                    &self.perpetual_tables.effects,
+                    [(tx.effects.digest(), &tx.effects)],
+                )?;
+        }
+
+        write_batch.write()?;
+        Ok(())
+    }
+
+    pub fn multi_get_transaction_blocks(
+        &self,
+        tx_digests: &[TransactionDigest],
+    ) -> MgoResult<Vec<Option<VerifiedTransaction>>> {
+        Ok(self
+            .perpetual_tables
+            .transactions
+            .multi_get(tx_digests)
+            .map(|v| v.into_iter().map(|v| v.map(|v| v.into())).collect())?)
+    }
+
+    pub fn get_transaction_block(
+        &self,
+        tx_digest: &TransactionDigest,
+    ) -> Result<Option<VerifiedTransaction>, TypedStoreError> {
+        self.perpetual_tables
+            .transactions
+            .get(tx_digest)
+            .map(|v| v.map(|v| v.into()))
+    }
+
+    /// This function reads the DB directly to get the system state object.
+    /// If reconfiguration is happening at the same time, there is no guarantee whether we would be getting
+    /// the old or the new system state object.
+    /// Hence this function should only be called during RPC reads where data race is not a major concern.
+    /// In general we should avoid this as much as possible.
+    /// If the intent is for testing, you can use AuthorityState:: get_mgo_system_state_object_for_testing.
+    pub fn get_mgo_system_state_object_unsafe(&self) -> MgoResult<MgoSystemState> {
+        get_mgo_system_state(self.perpetual_tables.as_ref())
+    }
+
+    pub fn iter_live_object_set(
+        &self,
+        include_wrapped_object: bool,
+    ) -> impl Iterator<Item = LiveObject> + '_ {
+        self.perpetual_tables
+            .iter_live_object_set(include_wrapped_object)
+    }
+
+    pub fn expensive_check_mgo_conservation(
+        self: &Arc<Self>,
+        old_epoch_store: &AuthorityPerEpochStore,
+    ) -> MgoResult {
+        if !self.enable_epoch_mgo_conservation_check {
+            return Ok(());
+        }
+
+        // Note that this can only be called at reconfiguration time, at which time the
+        // db is fully consistent. Therefore the system cache (in AuthorityState) has no
+        // dirty data and is not needed.
+        let cache = Arc::new(ExecutionCache::new_with_no_metrics(self.clone()));
+
+        let executor = old_epoch_store.executor();
+        info!("Starting MGO conservation check. This may take a while..");
+        let cur_time = Instant::now();
+        let mut pending_objects = vec![];
+        let mut count = 0;
+        let mut size = 0;
+        let (mut total_mgo, mut total_storage_rebate) = thread::scope(|s| {
+            let pending_tasks = FuturesUnordered::new();
+            for o in self.iter_live_object_set(false) {
+                match o {
+                    LiveObject::Normal(object) => {
+                        size += object.object_size_for_gas_metering();
+                        count += 1;
+                        pending_objects.push(object);
+                        if count % 1_000_000 == 0 {
+                            let mut task_objects = vec![];
+                            mem::swap(&mut pending_objects, &mut task_objects);
+                            let cache = cache.clone();
+                            pending_tasks.push(s.spawn(move || {
+                                let mut layout_resolver =
+                                    executor.type_layout_resolver(Box::new(cache.as_ref()));
+                                let mut total_storage_rebate = 0;
+                                let mut total_mgo = 0;
+                                for object in task_objects {
+                                    total_storage_rebate += object.storage_rebate;
+                                    // get_total_mgo includes storage rebate, however all storage rebate is
+                                    // also stored in the storage fund, so we need to subtract it here.
+                                    total_mgo +=
+                                        object.get_total_mgo(layout_resolver.as_mut()).unwrap()
+                                            - object.storage_rebate;
+                                }
+                                if count % 50_000_000 == 0 {
+                                    info!("Processed {} objects", count);
+                                }
+                                (total_mgo, total_storage_rebate)
+                            }));
+                        }
+                    }
+                    LiveObject::Wrapped(_) => {
+                        unreachable!("Explicitly asked to not include wrapped tombstones")
+                    }
+                }
+            }
+            pending_tasks.into_iter().fold((0, 0), |init, result| {
+                let result = result.join().unwrap();
+                (init.0 + result.0, init.1 + result.1)
+            })
+        });
+        let mut layout_resolver = executor.type_layout_resolver(Box::new(cache.as_ref()));
+        for object in pending_objects {
+            total_storage_rebate += object.storage_rebate;
+            total_mgo +=
+                object.get_total_mgo(layout_resolver.as_mut()).unwrap() - object.storage_rebate;
+        }
+        info!(
+            "Scanned {} live objects, took {:?}",
+            count,
+            cur_time.elapsed()
+        );
+        self.metrics
+            .mgo_conservation_live_object_count
+            .set(count as i64);
+        self.metrics
+            .mgo_conservation_live_object_size
+            .set(size as i64);
+        self.metrics
+            .mgo_conservation_check_latency
+            .set(cur_time.elapsed().as_secs() as i64);
+
+        // It is safe to call this function because we are in the middle of reconfiguration.
+        let system_state = self
+            .get_mgo_system_state_object_unsafe()
+            .expect("Reading mgo system state object cannot fail")
+            .into_mgo_system_state_summary();
+        let storage_fund_balance = system_state.storage_fund_total_object_storage_rebates;
+        info!(
+            "Total MGO amount in the network: {}, storage fund balance: {}, total storage rebate: {} at beginning of epoch {}",
+            total_mgo, storage_fund_balance, total_storage_rebate, system_state.epoch
+        );
+
+        let imbalance = (storage_fund_balance as i64) - (total_storage_rebate as i64);
+        self.metrics
+            .mgo_conservation_storage_fund
+            .set(storage_fund_balance as i64);
+        self.metrics
+            .mgo_conservation_storage_fund_imbalance
+            .set(imbalance);
+        self.metrics
+            .mgo_conservation_imbalance
+            .set((total_mgo as i128 - TOTAL_SUPPLY_MIST as i128) as i64);
+
+        if let Some(expected_imbalance) = self
+            .perpetual_tables
+            .expected_storage_fund_imbalance
+            .get(&())
+            .expect("DB read cannot fail")
+        {
+            fp_ensure!(
+                imbalance == expected_imbalance,
+                MgoError::from(
+                    format!(
+                        "Inconsistent state detected at epoch {}: total storage rebate: {}, storage fund balance: {}, expected imbalance: {}",
+                        system_state.epoch, total_storage_rebate, storage_fund_balance, expected_imbalance
+                    ).as_str()
+                )
+            );
+        } else {
+            self.perpetual_tables
+                .expected_storage_fund_imbalance
+                .insert(&(), &imbalance)
+                .expect("DB write cannot fail");
+        }
+
+        if let Some(expected_mgo) = self
+            .perpetual_tables
+            .expected_network_mgo_amount
+            .get(&())
+            .expect("DB read cannot fail")
+        {
+            fp_ensure!(
+                total_mgo == expected_mgo,
+                MgoError::from(
+                    format!(
+                        "Inconsistent state detected at epoch {}: total mgo: {}, expecting {}",
+                        system_state.epoch, total_mgo, expected_mgo
+                    )
+                    .as_str()
+                )
+            );
+        } else {
+            self.perpetual_tables
+                .expected_network_mgo_amount
+                .insert(&(), &total_mgo)
+                .expect("DB write cannot fail");
+        }
+
+        Ok(())
+    }
+
+    pub fn expensive_check_is_consistent_state(
+        &self,
+        checkpoint_executor: &CheckpointExecutor,
+        accumulator: Arc<StateAccumulator>,
+        cur_epoch_store: &AuthorityPerEpochStore,
+        panic: bool,
+    ) {
+        let live_object_set_hash = accumulator.digest_live_object_set(
+            !cur_epoch_store
+                .protocol_config()
+                .simplified_unwrap_then_delete(),
+        );
+
+        let root_state_hash = self
+            .get_root_state_hash(cur_epoch_store.epoch())
+            .expect("Retrieving root state hash cannot fail");
+
+        let is_inconsistent = root_state_hash != live_object_set_hash;
+        if is_inconsistent {
+            if panic {
+                panic!(
+                    "Inconsistent state detected: root state hash: {:?}, live object set hash: {:?}",
+                    root_state_hash, live_object_set_hash
+                );
+            } else {
+                error!(
+                    "Inconsistent state detected: root state hash: {:?}, live object set hash: {:?}",
+                    root_state_hash, live_object_set_hash
+                );
+            }
+        } else {
+            info!("State consistency check passed");
+        }
+
+        if !panic {
+            checkpoint_executor.set_inconsistent_state(is_inconsistent);
+        }
+    }
+
+    #[cfg(test)]
+    pub async fn prune_objects_immediately_for_testing(
+        &self,
+        transaction_effects: Vec<TransactionEffects>,
+    ) -> anyhow::Result<()> {
+        let mut wb = self.perpetual_tables.objects.batch();
+
+        let mut object_keys_to_prune = vec![];
+        for effects in &transaction_effects {
+            for (object_id, seq_number) in effects.modified_at_versions() {
+                info!("Pruning object {:?} version {:?}", object_id, seq_number);
+                object_keys_to_prune.push(ObjectKey(object_id, seq_number));
+            }
+        }
+
+        wb.delete_batch(
+            &self.perpetual_tables.objects,
+            object_keys_to_prune.into_iter(),
+        )?;
+        wb.write()?;
+        Ok(())
+    }
+
+    #[cfg(msim)]
+    pub fn remove_all_versions_of_object(&self, object_id: ObjectID) {
+        let entries: Vec<_> = self
+            .perpetual_tables
+            .objects
+            .unbounded_iter()
+            .filter_map(|(key, _)| if key.0 == object_id { Some(key) } else { None })
+            .collect();
+        info!("Removing all versions of object: {:?}", entries);
+        self.perpetual_tables.objects.multi_remove(entries).unwrap();
+    }
+
+    // Counts the number of versions exist in object store for `object_id`. This includes tombstone.
+    #[cfg(msim)]
+    pub fn count_object_versions(&self, object_id: ObjectID) -> usize {
+        self.perpetual_tables
+            .objects
+            .safe_iter_with_bounds(
+                Some(ObjectKey(object_id, VersionNumber::MIN)),
+                Some(ObjectKey(object_id, VersionNumber::MAX)),
+            )
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap()
+            .len()
+    }
+}
+
+impl ObjectStore for AuthorityStore {
+    /// Read an object and return it, or Ok(None) if the object was not found.
+    fn get_object(
+        &self,
+        object_id: &ObjectID,
+    ) -> Result<Option<Object>, mgo_types::storage::error::Error> {
+        self.perpetual_tables.as_ref().get_object(object_id)
+    }
+
+    fn get_object_by_key(
+        &self,
+        object_id: &ObjectID,
+        version: VersionNumber,
+    ) -> Result<Option<Object>, mgo_types::storage::error::Error> {
+        self.perpetual_tables.get_object_by_key(object_id, version)
+    }
+}
+
+/// A wrapper to make Orphan Rule happy
+pub struct ResolverWrapper<T: BackingPackageStore> {
+    pub resolver: Arc<T>,
+    pub metrics: Arc<ResolverMetrics>,
+}
+
+impl<T: BackingPackageStore> ResolverWrapper<T> {
+    pub fn new(resolver: Arc<T>, metrics: Arc<ResolverMetrics>) -> Self {
+        metrics.module_cache_size.set(0);
+        ResolverWrapper { resolver, metrics }
+    }
+
+    fn inc_cache_size_gauge(&self) {
+        // reset the gauge after a restart of the cache
+        let current = self.metrics.module_cache_size.get();
+        self.metrics.module_cache_size.set(current + 1);
+    }
+}
+
+impl<T: BackingPackageStore> ModuleResolver for ResolverWrapper<T> {
+    type Error = MgoError;
+    fn get_module(&self, module_id: &ModuleId) -> Result<Option<Vec<u8>>, Self::Error> {
+        self.inc_cache_size_gauge();
+        get_module(&self.resolver, module_id)
+    }
+}
+
+pub enum UpdateType {
+    Transaction(TransactionEffectsDigest),
+    Genesis,
+}
+
+pub type MgoLockResult = MgoResult<ObjectLockStatus>;
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum ObjectLockStatus {
+    Initialized,
+    LockedToTx { locked_by_tx: LockDetails },
+    LockedAtDifferentVersion { locked_ref: ObjectRef },
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum LockDetailsWrapper {
+    V1(LockDetailsV1),
+}
+
+impl LockDetailsWrapper {
+    pub fn migrate(self) -> Self {
+        // TODO: when there are multiple versions, we must iteratively migrate from version N to
+        // N+1 until we arrive at the latest version
+        self
+    }
+
+    // Always returns the most recent version. Older versions are migrated to the latest version at
+    // read time, so there is never a need to access older versions.
+    pub fn inner(&self) -> &LockDetails {
+        match self {
+            Self::V1(v1) => v1,
+
+            // can remove #[allow] when there are multiple versions
+            #[allow(unreachable_patterns)]
+            _ => panic!("lock details should have been migrated to latest version at read time"),
+        }
+    }
+    pub fn into_inner(self) -> LockDetails {
+        match self {
+            Self::V1(v1) => v1,
+
+            // can remove #[allow] when there are multiple versions
+            #[allow(unreachable_patterns)]
+            _ => panic!("lock details should have been migrated to latest version at read time"),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct LockDetailsV1 {
+    pub epoch: EpochId,
+    pub tx_digest: TransactionDigest,
+}
+
+pub type LockDetails = LockDetailsV1;
+
+impl From<LockDetails> for LockDetailsWrapper {
+    fn from(details: LockDetails) -> Self {
+        // always use latest version.
+        LockDetailsWrapper::V1(details)
+    }
+}

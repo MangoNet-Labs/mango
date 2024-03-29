@@ -1,0 +1,5 @@
+processed 1 task
+
+task 0 'publish'. lines 6-14:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("Invalid entry point parameter type. Clock must be passed by immutable reference. got: mgo::clock::Clock"), command: Some(0) } }

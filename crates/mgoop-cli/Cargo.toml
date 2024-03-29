@@ -1,0 +1,47 @@
+[package]
+authors = [
+  "MangoNet Labs <build@mangonetlabs.com>",
+]
+edition = "2021"
+license = "Apache-2.0"
+name = "mgoop-cli"
+publish = false
+version = "0.1.7"
+
+[lib]
+name = "mgooplib"
+path = "src/lib.rs"
+
+[[bin]]
+name = "mgoop"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+chrono.workspace = true
+clap.workspace = true
+colored.workspace = true
+docker-api.workspace = true
+field_names.workspace = true
+include_dir.workspace = true
+inquire.workspace = true
+prettytable-rs.workspace = true
+regex.workspace = true
+reqwest = {workspace = true, features = [
+  "rustls-tls",
+  "json",
+], default-features = false}
+semver.workspace = true
+serde = {workspace = true, features = ["derive"]}
+serde_json.workspace = true
+serde_yaml.workspace = true
+spinners.workspace = true
+strum.workspace = true
+tokio = {workspace = true, features = ["full"]}
+toml_edit.workspace = true
+tracing-subscriber.workspace = true
+tracing.workspace = true
+workspace-hack.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

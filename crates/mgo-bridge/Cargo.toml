@@ -1,0 +1,57 @@
+[package]
+name = "mgo-bridge"
+version = "0.1.0"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+ethers = "2.0"
+tokio = { workspace = true, features = ["full"] }
+mgo-types.workspace = true
+mgo-common.workspace = true
+arc-swap.workspace = true
+num_enum.workspace = true
+move-core-types.workspace = true
+url.workspace = true
+futures.workspace = true
+once_cell.workspace = true
+telemetry-subscribers.workspace = true
+prometheus.workspace = true
+async-trait.workspace = true
+typed-store-derive.workspace = true
+rocksdb.workspace = true
+tokio-retry.workspace = true
+typed-store.workspace = true
+mango-metrics.workspace = true
+mgo-sdk.workspace = true
+mgo-config.workspace = true
+clap.workspace = true
+tracing.workspace = true
+git-version.workspace = true
+const-str.workspace = true
+bcs.workspace = true
+mgo-json-rpc-types.workspace = true
+serde.workspace = true
+serde_with.workspace = true
+serde_json.workspace = true
+eyre.workspace = true
+tempfile.workspace = true
+axum.workspace = true
+anyhow.workspace = true
+reqwest.workspace = true
+fastcrypto.workspace = true
+tap.workspace = true
+rand.workspace = true
+workspace-hack.workspace = true
+lru.workspace = true
+shared-crypto.workspace = true
+
+[dev-dependencies]
+mgo-types = { workspace = true, features = ["test-utils"] }
+mgo-json-rpc-types = { workspace = true, features = ["test-utils"] }
+mgo-config.workspace = true
+mgo-test-transaction-builder.workspace = true
+test-cluster.workspace = true
+hex-literal = "0.3.4"

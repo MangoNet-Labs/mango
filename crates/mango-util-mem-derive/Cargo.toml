@@ -1,0 +1,17 @@
+[package]
+name = "mango-util-mem-derive"
+version = "0.1.0"
+license = "MIT OR Apache-2.0"
+edition = "2021"
+rust-version = "1.56.1"
+publish = false
+
+[lib]
+path = "lib.rs"
+proc-macro = true
+
+[dependencies]
+proc-macro2.workspace = true
+syn.workspace = true
+synstructure.workspace = true
+workspace-hack.workspace = true

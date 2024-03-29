@@ -1,0 +1,9 @@
+error[Mgo E01001]: invalid object construction
+   ┌─ tests/mgo_mode/id_leak/transmute.move:17:19
+   │
+17 │         let dog = Dog { id };
+   │                   ^^^^^^^^^^
+   │                   │     │
+   │                   │     The UID must come directly from mgo::object::new. Or for tests, it can come from mgo::test_scenario::new_object
+   │                   Invalid object creation without a newly created UID.
+

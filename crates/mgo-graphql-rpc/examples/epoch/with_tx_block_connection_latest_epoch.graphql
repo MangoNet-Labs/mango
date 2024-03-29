@@ -1,0 +1,31 @@
+# the last checkpoint of epoch 97 is 8097645, and the last transaction
+# number of the checkpoint is 261225985.
+{
+  epoch {
+    transactionBlocks(first: 20, after: "eyJjIjo4MDk3NjQ1LCJ0IjoyNjEyMjU5ODV9") {
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      edges {
+        cursor
+        node {
+          sender {
+            address
+          }
+          effects {
+            gasEffects {
+              gasObject {
+                address
+              }
+            }
+          }
+          gasInput {
+            gasPrice
+            gasBudget
+          }
+        }
+      }
+    }
+  }
+}

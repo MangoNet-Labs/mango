@@ -1,0 +1,68 @@
+[package]
+name = "mgo-move"
+version.workspace = true
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+colored.workspace = true
+once_cell = { workspace = true, optional = true }
+serde_json.workspace = true
+serde_yaml.workspace = true
+tracing.workspace = true
+prometheus.workspace = true
+git-version.workspace = true
+const-str.workspace = true
+
+move-binary-format.workspace = true
+move-cli.workspace = true
+move-compiler.workspace = true
+move-disassembler.workspace = true
+move-ir-types.workspace = true
+move-package.workspace = true
+move-prover.workspace = true
+move-unit-test.workspace = true
+telemetry-subscribers.workspace = true
+tokio = { workspace = true, features = ["full"] }
+
+move-vm-runtime = { path = "../../external-crates/move/crates/move-vm-runtime" }
+mgo-move-natives = { path = "../../mgo-execution/latest/mgo-move-natives", package = "mgo-move-natives-latest" }
+
+mgo-move-build.workspace = true
+mgo-protocol-config.workspace = true
+mgo-types.workspace = true
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+jemalloc-ctl.workspace = true
+
+[dev-dependencies]
+assert_cmd.workspace = true
+futures.workspace = true
+jsonrpsee.workspace = true
+rand.workspace = true
+tempfile.workspace = true
+
+move-package.workspace = true
+
+mango-metrics.workspace = true
+mgo-core.workspace = true
+mgo-macros.workspace = true
+mgo-node.workspace = true
+mgo-simulator.workspace = true
+
+[package.metadata.cargo-udeps.ignore]
+normal = ["jemalloc-ctl"]
+
+[features]
+default = []
+build = []
+coverage = []
+disassemble = []
+prove = []
+unit_test = ["build", "dep:once_cell"]
+calibrate = []
+all = ["build", "coverage", "disassemble", "prove", "unit_test", "calibrate"]

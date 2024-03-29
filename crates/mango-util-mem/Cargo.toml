@@ -1,0 +1,29 @@
+[package]
+name = "mango-util-mem"
+version = "0.11.0"
+license = "MIT OR Apache-2.0"
+edition = "2021"
+rust-version = "1.56.1"
+publish = false
+
+[dependencies]
+cfg-if.workspace = true
+hashbrown = { workspace = true, optional = true }
+mango-util-mem-derive.workspace = true
+impl-trait-for-tuples.workspace = true
+fastcrypto = { workspace = true }
+fastcrypto-tbls.workspace = true
+indexmap.workspace = true
+roaring.workspace = true
+ed25519-consensus.workspace = true
+
+smallvec = { workspace = true, optional = true }
+parking_lot = { workspace = true, optional = true }
+once_cell.workspace = true
+workspace-hack.workspace = true
+
+[features]
+default = ["std", "hashbrown", "smallvec", "estimate-heapsize"]
+std = ["parking_lot"]
+# Full estimate: no call to allocator
+estimate-heapsize = []

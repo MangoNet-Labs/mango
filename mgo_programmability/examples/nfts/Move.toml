@@ -1,0 +1,9 @@
+[package]
+name = "NFTs"
+version = "0.0.1"
+
+[dependencies]
+Mgo = { local = "../../../crates/mgo-framework/packages/mgo-framework" }
+
+[addresses]
+nfts = "0x0"

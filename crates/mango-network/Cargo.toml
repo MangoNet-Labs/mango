@@ -1,0 +1,25 @@
+[package]
+name = "mango-network"
+version = "0.2.0"
+license = "Apache-2.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+anemo.workspace = true
+bcs.workspace = true
+bytes.workspace = true
+eyre.workspace = true
+futures.workspace = true
+http.workspace = true
+multiaddr.workspace = true
+serde.workspace = true
+snap.workspace = true
+tokio = { workspace = true, features = ["sync", "rt", "macros"] }
+tokio-stream.workspace = true
+tonic.workspace = true
+tonic-health.workspace = true
+tower.workspace = true
+tower-http.workspace = true
+tracing.workspace = true
+workspace-hack.workspace = true

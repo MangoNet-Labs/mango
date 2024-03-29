@@ -1,0 +1,5 @@
+processed 2 tasks
+
+task 1 'publish'. lines 5-26:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("_::M1, 'init' function cannot have return values"), command: Some(0) } }

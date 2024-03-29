@@ -1,0 +1,13 @@
+processed 3 tasks
+
+task 0 'publish'. lines 4-11:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("_::m. 'init' function must be private"), command: Some(0) } }
+
+task 1 'publish'. lines 13-20:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("_::m. 'init' function must be private"), command: Some(0) } }
+
+task 2 'publish'. lines 22-29:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("_::m. 'init' function must be private"), command: Some(0) } }

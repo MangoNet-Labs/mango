@@ -1,0 +1,33 @@
+[package]
+name = "mgo-swarm"
+version = "0.0.0"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+anyhow.workspace = true
+rand.workspace = true
+tracing.workspace = true
+tokio = { workspace = true, features = ["full"] }
+futures.workspace = true
+tempfile.workspace = true
+tonic-health.workspace = true
+tap.workspace = true
+prometheus.workspace = true
+
+mgo-config.workspace = true
+mgo-swarm-config.workspace = true
+mgo-macros.workspace = true
+mgo-node.workspace = true
+mgo-protocol-config.workspace = true
+mgo-types.workspace = true
+mango-metrics.workspace = true
+mango-network.workspace = true
+telemetry-subscribers.workspace = true
+workspace-hack.workspace = true
+
+[target.'cfg(msim)'.dependencies]
+mgo-simulator.workspace = true
+

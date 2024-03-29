@@ -1,0 +1,15 @@
+{
+  objects(filter: {type: "0x3::staking_pool::StakedMgo"}) {
+    edges {
+      node {
+        asMoveObject {
+          contents {
+            type {
+              repr
+            }
+          }
+        }
+      }
+    }
+  }
+}

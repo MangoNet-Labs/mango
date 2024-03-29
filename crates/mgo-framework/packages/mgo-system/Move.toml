@@ -1,0 +1,11 @@
+[package]
+name = "MgoSystem"
+version = "0.0.1"
+published-at = "0x3"
+
+[dependencies]
+MoveStdlib = { local = "../move-stdlib" }
+Mgo = { local = "../mgo-framework" }
+
+[addresses]
+mgo_system = "0x3"

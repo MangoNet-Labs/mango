@@ -1,0 +1,38 @@
+[package]
+name = "mgo-oracle"
+version.workspace = true
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+anyhow = { version = "1.0.64", features = ["backtrace"] }
+clap.workspace = true
+prometheus = "0.13.3"
+tokio = { workspace = true, features = ["full"] }
+tracing = "0.1.36"
+once_cell.workspace = true
+reqwest = { version = "0.11.13", default_features = false, features = ["blocking", "json", "rustls-tls"] }
+serde = { version = "1.0.144", features = ["derive", "rc"] }
+serde_json = { version = "1.0.1" }
+jsonpath_lib = "0.3.0"
+chrono.workspace = true
+tap.workspace = true
+bcs.workspace = true
+
+mgo-config = { path = "../mgo-config" }
+mgo-json-rpc-types = { path = "../mgo-json-rpc-types" }
+mgo-sdk = { path = "../mgo-sdk" }
+mgo-types = { path = "../mgo-types" }
+mango-metrics = { path = "../mango-metrics" }
+telemetry-subscribers.workspace = true
+workspace-hack.workspace = true
+
+[dev-dependencies]
+mgo-keys = { path = "../mgo-keys" }
+mgo-move-build = { path = "../mgo-move-build" }
+shared-crypto = { path = "../shared-crypto" }
+bcs = "0.1.5"
+rand = "0.8.5"
+dirs = "4.0.0"

@@ -1,0 +1,16 @@
+// Copyright (c) MangoNet Labs, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
+// invalid, one-time witness type candidate used in a different module
+
+//# publish
+module 0x0.n {
+    import 0x2.mgo;
+    import 0x2.tx_context;
+
+    init(_otw: mgo.MGO, _ctx: &mut tx_context.TxContext) {
+        label l0:
+        return;
+    }
+
+}

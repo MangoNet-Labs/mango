@@ -1,0 +1,29 @@
+[package]
+name = "mgo-json-rpc-api"
+version = "0.0.0"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+anyhow.workspace = true
+jsonrpsee.workspace = true
+once_cell.workspace = true
+prometheus.workspace = true
+tap.workspace = true
+tracing.workspace = true
+fastcrypto.workspace = true
+mango-metrics.workspace = true
+mgo-json.workspace = true
+mgo-json-rpc-types.workspace = true
+mgo-open-rpc.workspace = true
+mgo-open-rpc-macros.workspace = true
+mgo-types.workspace = true
+workspace-hack.workspace = true
+
+# NOTE: It's important to keep the above dependency list short.
+# This and the mgo-sdk crate are widely used to develop on Mgo and it's valuable
+# to not have to pull in the entire mgo repo for it.
+
+[dev-dependencies]

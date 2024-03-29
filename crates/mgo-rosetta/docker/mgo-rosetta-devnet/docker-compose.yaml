@@ -1,0 +1,36 @@
+---
+version: "3.9"
+services:
+  rosetta-online:
+    image: mangonetwork/mgo-rosetta-devnet
+    ports:
+      - "9002:9002"
+    expose:
+      - "9002"
+    volumes:
+      - data:/data:rw
+    working_dir: /mgo/devnet
+    command:
+      - /bin/bash
+      - -c
+      - |
+        /usr/local/bin/mgo-rosetta generate-rosetta-cli-config --env devnet &
+        /usr/local/bin/mgo-rosetta start-online-server --env devnet --node-config fullnode.yaml
+    stdin_open: true
+    tty: true
+  rosetta-offline:
+    image: mangonetwork/mgo-rosetta-devnet
+    ports:
+      - "9003:9003"
+    expose:
+      - "9003"
+    working_dir: /mgo/devnet
+    command:
+      - /bin/bash
+      - -c
+      - |
+        /usr/local/bin/mgo-rosetta start-offline-server --env devnet
+    stdin_open: true
+    tty: true
+volumes:
+  data:

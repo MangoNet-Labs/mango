@@ -1,0 +1,45 @@
+[package]
+name = "typed-store"
+version = "0.4.0"
+license = "Apache-2.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+bcs.workspace = true
+bincode.workspace = true
+collectable.workspace = true
+eyre.workspace = true
+fdlimit.workspace = true
+once_cell.workspace = true
+tap.workspace = true
+prometheus.workspace = true
+hdrhistogram.workspace = true
+rocksdb.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["full", "test-util"] }
+tracing.workspace = true
+typed-store-error.workspace = true
+mgo-macros.workspace = true
+ouroboros.workspace = true
+rand.workspace = true
+async-trait.workspace = true
+itertools.workspace = true
+workspace-hack.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+once_cell.workspace = true
+proc-macro2.workspace = true
+quote.workspace = true
+rstest.workspace = true
+rand.workspace = true
+syn.workspace = true
+typed-store-derive.workspace = true
+uint.workspace = true
+
+# Most packages should depend on mgo-simulator instead of directly on msim, but for typed-store
+# that creates a circular dependency.
+[target.'cfg(msim)'.dependencies]
+msim.workspace = true

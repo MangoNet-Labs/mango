@@ -1,0 +1,44 @@
+[package]
+name = "mgo-adapter-v0"
+version = "0.1.0"
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+anyhow = { workspace = true, features = ["backtrace"] }
+bcs.workspace = true
+leb128.workspace = true
+once_cell.workspace = true
+tracing.workspace = true
+serde.workspace = true
+
+move-binary-format.workspace = true
+move-bytecode-utils.workspace = true
+move-core-types.workspace = true
+move-vm-config.workspace = true
+move-vm-profiler.workspace = true
+move-vm-types.workspace = true
+
+move-bytecode-verifier = { path = "../../../external-crates/move/move-execution/v0/move-bytecode-verifier", package = "move-bytecode-verifier-v0" }
+move-vm-runtime = { path = "../../../external-crates/move/move-execution/v0/move-vm/runtime", package = "move-vm-runtime-v0" }
+mgo-move-natives = { path = "../mgo-move-natives", package = "mgo-move-natives-v0" }
+mgo-verifier = { path = "../mgo-verifier", package = "mgo-verifier-v0" }
+
+mgo-macros.workspace = true
+mgo-protocol-config.workspace = true
+mgo-types.workspace = true
+parking_lot.workspace = true
+workspace-hack.workspace = true
+
+[dev-dependencies]
+move-package.workspace = true
+
+[features]
+gas-profiler = [
+    "mgo-types/gas-profiler",
+    "move-vm-runtime/gas-profiler",
+    "move-vm-profiler/gas-profiler",
+    "move-vm-types/gas-profiler",
+    "move-vm-config/gas-profiler",
+]

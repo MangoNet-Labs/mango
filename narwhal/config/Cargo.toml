@@ -1,0 +1,29 @@
+[package]
+name = "narwhal-config"
+version = "0.1.0"
+license = "Apache-2.0"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+edition = "2021"
+publish = false
+
+[dependencies]
+match_opt.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+fastcrypto.workspace = true
+fastcrypto-tbls.workspace = true
+mango-util-mem.workspace = true
+crypto = { path = "../crypto", package = "narwhal-crypto" }
+mango-network.workspace = true
+rand.workspace = true
+workspace-hack.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+rand.workspace = true
+tempfile.workspace = true
+
+test-utils = { path = "../test-utils", package = "narwhal-test-utils" }

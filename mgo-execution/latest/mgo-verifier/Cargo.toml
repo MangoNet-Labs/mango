@@ -1,0 +1,19 @@
+[package]
+name = "mgo-verifier-latest"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+move-binary-format.workspace = true
+move-bytecode-utils.workspace = true
+move-core-types.workspace = true
+move-vm-config.workspace = true
+move-abstract-stack.workspace = true
+
+move-bytecode-verifier = { path = "../../../external-crates/move/crates/move-bytecode-verifier" }
+
+mgo-types.workspace = true
+mgo-protocol-config.workspace = true
+workspace-hack.workspace = true

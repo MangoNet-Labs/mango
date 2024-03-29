@@ -1,0 +1,13 @@
+[package]
+name = "mango-common"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+tokio.workspace = true
+futures.workspace = true
+parking_lot.workspace = true
+workspace-hack.workspace = true

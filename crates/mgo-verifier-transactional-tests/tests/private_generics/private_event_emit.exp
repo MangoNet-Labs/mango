@@ -1,0 +1,17 @@
+processed 4 tasks
+
+task 0 'publish'. lines 6-16:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("_::m::t. Invalid call to 'mgo::event::emit' with an event type 'mgo::coin::CurrencyCreated<u64>'. The event's type must be defined in the current module"), command: Some(0) } }
+
+task 1 'publish'. lines 18-27:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("_::m::t. Invalid call to 'mgo::event::emit' with an event type 'T0'. The event's type must be defined in the current module"), command: Some(0) } }
+
+task 2 'publish'. lines 29-38:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("_::m::t. Invalid call to 'mgo::event::emit' with an event type 'u64'. The event's type must be defined in the current module"), command: Some(0) } }
+
+task 3 'publish'. lines 40-53:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("_::m::t. Invalid call to 'mgo::event::emit' with an event type 'vector<_::m::X>'. The event's type must be defined in the current module"), command: Some(0) } }

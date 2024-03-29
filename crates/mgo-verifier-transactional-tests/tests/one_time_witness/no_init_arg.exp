@@ -1,0 +1,5 @@
+processed 1 task
+
+task 0 'publish'. lines 6-16:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("init function of a module containing one-time witness type candidate must have _::m::M as the first parameter (a struct which has no fields or a single field of type bool)"), command: Some(0) } }

@@ -1,0 +1,27 @@
+[package]
+name = "transaction-fuzzer"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+proptest.workspace = true
+proptest-derive.workspace = true
+rand.workspace = true
+move-core-types.workspace = true
+tokio = { workspace = true, features = ["full"] }
+tracing.workspace = true
+
+once_cell.workspace = true
+mgo-core.workspace = true
+mgo-protocol-config.workspace = true
+mgo-types = { workspace = true, features = ["fuzzing"] }
+mgo-move-build.workspace = true
+workspace-hack.workspace = true
+
+
+[dev-dependencies]
+mgo-core = { workspace = true, features = ["test-utils"] }
+mgo-protocol-config.workspace = true
+mgo-types = { workspace = true, features = ["test-utils"] }

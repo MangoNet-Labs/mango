@@ -1,0 +1,10 @@
+[package]
+name = "Tutorial"
+version = "0.0.1"
+
+[dependencies]
+MoveStdlib = { local = "../../../crates/mgo-framework/packages/move-stdlib/" }
+Mgo = { local = "../../../crates/mgo-framework//packages/mgo-framework" }
+
+[addresses]
+tutorial = "0x0"

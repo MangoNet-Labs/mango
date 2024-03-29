@@ -1,0 +1,15 @@
+[package]
+name = "shared-crypto"
+version = "0.0.0"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+serde.workspace = true
+serde_repr.workspace = true
+fastcrypto = { workspace = true, features = ["copy_key"] }
+eyre.workspace = true
+bcs.workspace = true
+workspace-hack.workspace = true

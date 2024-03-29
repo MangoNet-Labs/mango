@@ -1,0 +1,36 @@
+[package]
+name = "mgo-config"
+version = "0.0.0"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+anemo.workspace = true
+anyhow = { workspace = true, features = ["backtrace"] }
+bcs.workspace = true
+csv.workspace = true
+dirs.workspace = true
+fastcrypto.workspace = true
+once_cell.workspace = true
+rand.workspace = true
+serde = { workspace = true, features = ["derive", "rc"] }
+serde_with.workspace = true
+serde_yaml.workspace = true
+tracing.workspace = true
+prometheus.workspace = true
+clap.workspace = true
+object_store.workspace = true
+reqwest.workspace = true
+
+narwhal-config.workspace = true
+mgo-keys.workspace = true
+mgo-protocol-config.workspace = true
+mgo-types.workspace = true
+workspace-hack.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+tempfile.workspace = true
+mgo-types = { workspace = true, features = ["test-utils"] }

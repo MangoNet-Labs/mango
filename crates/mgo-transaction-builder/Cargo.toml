@@ -1,0 +1,22 @@
+[package]
+name = "mgo-transaction-builder"
+version = "0.0.0"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+futures.workspace = true
+bcs.workspace = true
+
+move-binary-format.workspace = true
+mgo-json-rpc-types.workspace = true
+mgo-types.workspace = true
+mgo-json.workspace = true
+mgo-protocol-config.workspace = true
+
+move-core-types.workspace = true
+workspace-hack.workspace = true

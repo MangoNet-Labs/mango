@@ -1,0 +1,9 @@
+[package]
+name = "makes_another_object"
+version = "0.0.1"
+
+[dependencies]
+Mgo = { local = "../../../../../../mgo-framework/packages/mgo-framework" }
+
+[addresses]
+base_addr =  "0x0"

@@ -1,0 +1,12 @@
+[package]
+name = "x"
+version = "0.1.0"
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+anyhow.workspace = true
+nexlint.workspace = true
+nexlint-lints.workspace = true
+clap.workspace = true

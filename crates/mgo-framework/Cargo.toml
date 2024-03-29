@@ -1,0 +1,27 @@
+[package]
+name = "mgo-framework"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+bcs.workspace = true
+serde.workspace = true
+once_cell.workspace = true
+tracing.workspace = true
+
+mgo-types.workspace = true
+
+move-binary-format.workspace = true
+move-core-types.workspace = true
+workspace-hack.workspace = true
+
+[build-dependencies]
+anyhow.workspace = true
+bcs.workspace = true
+
+mgo-move-build.workspace = true
+
+move-binary-format.workspace = true
+move-package.workspace = true

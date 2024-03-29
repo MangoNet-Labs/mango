@@ -1,0 +1,10 @@
+[package]
+name = "D"
+version = "0.0.1"
+published-at = "0xd0"
+
+[dependencies]
+Mgo = { local = "../mgo" }
+
+[addresses]
+d = "0xd0"

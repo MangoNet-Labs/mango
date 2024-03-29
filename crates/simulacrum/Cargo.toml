@@ -1,0 +1,35 @@
+[package]
+name = "simulacrum"
+version = "0.1.0"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+async-trait.workspace = true   
+anyhow.workspace = true
+bcs.workspace = true
+fastcrypto.workspace = true
+move-binary-format.workspace = true
+move-core-types.workspace = true
+once_cell.workspace = true
+rand.workspace = true
+serde.workspace = true
+tracing.workspace = true
+prometheus.workspace = true
+futures.workspace = true
+
+move-bytecode-utils.workspace = true
+shared-crypto.workspace = true
+mgo-config.workspace = true
+mgo-framework.workspace = true
+mgo-keys.workspace = true
+mgo-protocol-config.workspace = true
+mgo-storage.workspace = true
+mgo-types.workspace = true
+mgo-genesis-builder.workspace = true
+mgo-execution.workspace = true
+mgo-swarm-config.workspace = true
+mgo-transaction-checks.workspace = true
+workspace-hack.workspace = true

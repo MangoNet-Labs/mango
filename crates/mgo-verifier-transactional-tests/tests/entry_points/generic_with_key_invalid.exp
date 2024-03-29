@@ -1,0 +1,9 @@
+processed 2 tasks
+
+task 0 'publish'. lines 6-16:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("Invalid entry point parameter type. Expected primitive or object type. Got: std::option::Option<T0>"), command: Some(0) } }
+
+task 1 'publish'. lines 18-28:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("Invalid entry point parameter type. Expected primitive or object type. Got: vector<std::option::Option<T0>>"), command: Some(0) } }

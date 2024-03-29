@@ -1,0 +1,28 @@
+[package]
+name = "mgo-json"
+version = "0.0.0"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+anyhow.workspace = true
+bcs.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+schemars.workspace = true
+
+mgo-framework.workspace = true
+mgo-types.workspace = true
+
+move-binary-format.workspace = true
+move-bytecode-utils.workspace = true
+move-core-types.workspace = true
+fastcrypto = { workspace = true }
+workspace-hack.workspace = true
+
+[dev-dependencies]
+test-fuzz.workspace = true
+mgo-types = { workspace = true, features = ["test-utils"] }
+mgo-move-build.workspace = true

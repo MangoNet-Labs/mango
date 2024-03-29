@@ -1,0 +1,72 @@
+# IDE
+**/.history/
+**/.vscode/
+**/.idea/
+
+# OSX
+.DS_Store
+
+# Rust build directory
+**/target
+.pre-commit*
+
+# Move build directory
+build
+!crates/mgo-single-node-benchmark/tests/data/package_publish_from_bytecode/package_a/build
+!crates/mgo-single-node-benchmark/tests/data/package_publish_from_bytecode/package_b/build
+storage
+!consensus/core/src/storage
+!crates/mgo-types/src/storage
+!narwhal/storage
+
+# Move-related files
+Move.lock
+!crates/mgo-framework/packages/move-stdlib/Move.lock
+!crates/mgo-framework/packages/mgo-framework/Move.lock
+!crates/mgo-framework/packages/mgo-system/Move.lock
+.trace
+.coverage_map.mvcov
+
+# Thumbnails
+._*
+
+# Emacs
+\#*\#
+.\#*
+
+# Python
+.pyc
+
+# Node.js
+node_modules
+.tsbuildinfo
+*.tsbuildinfo
+.turbo
+
+# App build directories
+dist/
+storybook-static/
+web-ext-artifacts/
+.next/
+next-env.d.ts
+
+# App test artifacts
+coverage/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# logs
+wallet.log.*
+mgo.log.*
+.vercel
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# misc
+*.key
+.env
+checkpoints_dir/*
+light_client.yaml
+docs/content/references/mgo-graphql/*

@@ -1,0 +1,10 @@
+[package]
+name = "mgo-capybaras"
+version = "0.1.0"
+
+[dependencies]
+Mgo = { local = "../../../crates/mgo-framework/packages/mgo-framework" }
+
+[addresses]
+capy = "0x0"
+me = "0x0"

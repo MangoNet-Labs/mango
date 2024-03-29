@@ -1,0 +1,5 @@
+processed 1 task
+
+task 0 'publish'. lines 6-24:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("one-time witness type _::m::M is instantiated in the _::m::pack function and must never be"), command: Some(0) } }

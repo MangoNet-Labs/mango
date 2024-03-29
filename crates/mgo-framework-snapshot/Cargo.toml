@@ -1,0 +1,21 @@
+[package]
+name = "mgo-framework-snapshot"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+anyhow.workspace = true
+bcs.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+git-version.workspace = true
+
+mgo-framework.workspace = true
+mgo-protocol-config.workspace = true
+mgo-types.workspace = true
+workspace-hack.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }

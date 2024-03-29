@@ -1,0 +1,10 @@
+[package]
+name = "z"
+version = "0.0.1"
+published-at = "$STORAGE_ID"
+
+[dependencies]
+Mgo = { local = "$REPO_ROOT/crates/mgo-framework/packages/mgo-framework" }
+
+[addresses]
+z = "$RUNTIME_ID"

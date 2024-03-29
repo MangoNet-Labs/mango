@@ -1,0 +1,44 @@
+[package]
+name = "mgo-network"
+version = "0.0.0"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+anemo.workspace = true
+anemo-tower.workspace = true
+governor.workspace = true
+serde.workspace = true
+tonic.workspace = true
+dashmap.workspace = true
+tower.workspace = true
+
+mgo-archival.workspace = true
+mgo-storage.workspace = true
+mgo-types.workspace = true
+mgo-config.workspace = true
+mgo-swarm-config.workspace = true
+
+mango-network.workspace = true
+tokio = { workspace = true, features = ["full"] }
+tracing.workspace = true
+futures.workspace = true
+tap.workspace = true
+rand.workspace = true
+anyhow.workspace = true
+prometheus.workspace = true
+mango-metrics.workspace = true
+workspace-hack.workspace = true
+
+[build-dependencies]
+anemo-build.workspace = true
+tonic-build.workspace = true
+
+[dev-dependencies]
+telemetry-subscribers.workspace = true
+tokio = { workspace = true, features = ["test-util"] }
+ed25519-consensus.workspace = true
+fastcrypto = { workspace = true }
+tempfile = "3.3.0"

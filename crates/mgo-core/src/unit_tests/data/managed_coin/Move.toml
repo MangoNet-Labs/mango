@@ -1,0 +1,9 @@
+[package]
+name = "FungibleTokens"
+version = "0.0.1"
+
+[dependencies]
+Mgo = { local = "../../../../../mgo-framework/packages/mgo-framework" }
+
+[addresses]
+fungible_tokens = "0x0"

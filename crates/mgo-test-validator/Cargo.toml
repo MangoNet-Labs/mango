@@ -1,0 +1,22 @@
+[package]
+name = "mgo-test-validator"
+version = "0.0.0"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+tokio = { workspace = true, features = ["full"] }
+axum.workspace = true
+tower.workspace = true
+tower-http.workspace = true
+http.workspace = true
+uuid.workspace = true
+
+mgo-faucet.workspace = true
+mgo-cluster-test.workspace = true
+telemetry-subscribers.workspace = true
+workspace-hack.workspace = true

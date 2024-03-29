@@ -1,0 +1,9 @@
+[package]
+name = "Games"
+version = "0.0.1"
+
+[dependencies]
+Mgo = { local = "../../../crates/mgo-framework/packages/mgo-framework" }
+
+[addresses]
+games = "0x0"

@@ -1,0 +1,28 @@
+[package]
+name = "mgo-simulator"
+version = "0.7.0"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+move-package.workspace = true
+
+mgo-framework.workspace = true
+mgo-move-build.workspace = true
+mgo-types.workspace = true
+tempfile.workspace = true
+tracing.workspace = true
+anemo.workspace = true
+anemo-tower.workspace = true
+narwhal-network.workspace = true
+fastcrypto = { workspace = true, features = ["copy_key"] }
+telemetry-subscribers.workspace = true
+tower.workspace = true
+lru.workspace = true
+rand.workspace = true
+workspace-hack.workspace = true
+
+[target.'cfg(msim)'.dependencies]
+msim.workspace = true

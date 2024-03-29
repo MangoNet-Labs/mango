@@ -1,0 +1,57 @@
+[package]
+name = "mgo-node"
+version.workspace = true
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+anemo.workspace = true
+anemo-tower.workspace = true
+arc-swap.workspace = true
+axum.workspace = true
+anyhow.workspace = true
+clap.workspace = true
+prometheus.workspace = true
+tokio = { workspace = true, features = ["full"] }
+tracing.workspace = true
+futures.workspace = true
+tower.workspace = true
+reqwest.workspace = true
+tap.workspace = true
+serde.workspace = true
+snap.workspace = true
+git-version.workspace = true
+const-str.workspace = true
+url.workspace = true
+humantime.workspace = true
+
+mgo-archival.workspace = true
+mgo-tls.workspace = true
+mgo-macros.workspace = true
+mgo-config.workspace = true
+mgo-core.workspace = true
+mgo-rest-api.workspace = true
+mgo-storage.workspace = true
+mgo-network.workspace = true
+mgo-json-rpc.workspace = true
+mgo-json-rpc-api.workspace = true
+mgo-protocol-config.workspace = true
+mgo-snapshot.workspace = true
+mgo-telemetry.workspace = true
+mgo-types.workspace = true
+mango-metrics.workspace = true
+mango-common.workspace = true
+narwhal-network.workspace = true
+narwhal-worker.workspace = true
+typed-store.workspace = true
+mango-network.workspace = true
+telemetry-subscribers.workspace = true
+fastcrypto.workspace = true
+fastcrypto-zkp.workspace = true
+workspace-hack.workspace = true
+move-vm-profiler.workspace = true
+
+[target.'cfg(msim)'.dependencies]
+mgo-simulator.workspace = true

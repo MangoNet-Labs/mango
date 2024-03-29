@@ -1,0 +1,16 @@
+[package]
+name = "mgo-telemetry"
+version = "0.1.0"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+serde.workspace = true
+reqwest.workspace = true
+tracing.workspace = true
+
+mgo-core.workspace = true
+workspace-hack.workspace = true
+

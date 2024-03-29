@@ -1,0 +1,31 @@
+[package]
+name = "mgo-move-build"
+version.workspace = true
+edition = "2021"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+anyhow.workspace = true
+fastcrypto.workspace = true
+tempfile.workspace = true
+
+move-bytecode-verifier = { path = "../../external-crates/move/crates/move-bytecode-verifier" }
+mgo-verifier = { path = "../../mgo-execution/latest/mgo-verifier", package = "mgo-verifier-latest" }
+
+serde-reflection.workspace = true
+mgo-types.workspace = true
+mgo-protocol-config.workspace = true
+
+move-binary-format.workspace = true
+move-bytecode-utils.workspace = true
+move-command-line-common.workspace = true
+move-compiler.workspace = true
+move-core-types.workspace = true
+move-ir-types.workspace = true
+move-package.workspace = true
+move-symbol-pool.workspace = true
+workspace-hack.workspace = true
+
+[dev-dependencies]
+datatest-stable.workspace = true

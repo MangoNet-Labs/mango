@@ -1,0 +1,17 @@
+processed 5 tasks
+
+task 1 'publish'. lines 10-19:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("_::m::t. Invalid call to 'mgo::transfer::transfer' on an object of type 'T0'. The transferred object's type must be defined in the current module. If the object has the 'store' type ability, you can use the non-internal variant instead, i.e. 'mgo::transfer::public_transfer'"), command: Some(0) } }
+
+task 2 'publish'. lines 21-30:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("_::m::t. Invalid call to 'mgo::transfer::freeze_object' on an object of type 'T0'. The transferred object's type must be defined in the current module. If the object has the 'store' type ability, you can use the non-internal variant instead, i.e. 'mgo::transfer::public_freeze_object'"), command: Some(0) } }
+
+task 3 'publish'. lines 32-41:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("_::m::t. Invalid call to 'mgo::transfer::share_object' on an object of type 'T0'. The transferred object's type must be defined in the current module. If the object has the 'store' type ability, you can use the non-internal variant instead, i.e. 'mgo::transfer::public_share_object'"), command: Some(0) } }
+
+task 4 'publish'. lines 43-54:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("_::m::t. Invalid call to 'mgo::transfer::receive' on an object of type 'T0'. The transferred object's type must be defined in the current module. If the object has the 'store' type ability, you can use the non-internal variant instead, i.e. 'mgo::transfer::public_receive'"), command: Some(0) } }

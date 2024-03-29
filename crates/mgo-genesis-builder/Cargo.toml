@@ -1,0 +1,38 @@
+[package]
+name = "mgo-genesis-builder"
+version = "0.0.0"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+anyhow.workspace = true
+bcs.workspace = true
+camino.workspace = true
+fastcrypto.workspace = true
+move-binary-format.workspace = true
+move-core-types.workspace = true
+rand.workspace = true
+serde.workspace = true
+serde_with.workspace = true
+serde_yaml.workspace = true
+tempfile.workspace = true
+tracing.workspace = true
+prometheus.workspace = true
+
+shared-crypto.workspace = true
+mgo-config.workspace = true
+mgo-execution.workspace = true
+mgo-framework.workspace = true
+mgo-framework-snapshot.workspace = true
+mgo-protocol-config.workspace = true
+mgo-types.workspace = true
+workspace-hack.workspace = true
+[target.'cfg(msim)'.dependencies]
+mgo-simulator.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+tempfile.workspace = true
+mgo-types = { workspace = true, features = ["test-utils"] }

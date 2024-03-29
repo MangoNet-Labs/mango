@@ -1,0 +1,31 @@
+[package]
+name = "mgo-tls"
+version = "0.0.0"
+license = "Apache-2.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+anyhow.workspace = true
+ed25519.workspace = true
+pkcs8.workspace = true
+rcgen.workspace = true
+rustls.workspace = true
+webpki.workspace = true
+x509-parser.workspace = true
+
+fastcrypto.workspace = true
+
+# reqwest support
+reqwest.workspace = true
+
+# Axum support
+axum.workspace = true
+axum-server.workspace = true
+tokio-rustls.workspace = true
+tower-layer.workspace = true
+tokio.workspace = true
+workspace-hack.workspace = true
+
+[dev-dependencies]
+rand.workspace = true

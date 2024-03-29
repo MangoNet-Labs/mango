@@ -1,0 +1,51 @@
+[package]
+name = "mgo-faucet"
+version.workspace = true
+edition = "2021"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+axum.workspace = true
+clap.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["full"] }
+tracing.workspace = true
+serde.workspace = true
+tower.workspace = true
+tower-http.workspace = true
+http.workspace = true
+futures.workspace = true
+uuid.workspace = true
+prometheus.workspace = true
+scopeguard.workspace = true
+tap.workspace = true
+ttl_cache.workspace = true
+eyre.workspace = true
+rocksdb.workspace = true
+tempfile.workspace = true
+parking_lot.workspace = true
+
+mgo.workspace = true
+mgo-json-rpc-types.workspace = true
+mgo-types.workspace = true
+mgo-config.workspace = true
+mgo-keys.workspace = true
+mgo-sdk.workspace = true
+mango-metrics.workspace = true
+telemetry-subscribers.workspace = true
+typed-store.workspace = true
+typed-store-derive.workspace = true
+shared-crypto.workspace = true
+async-recursion.workspace = true
+workspace-hack.workspace = true
+
+[dev-dependencies]
+test-cluster.workspace = true
+
+[[bin]]
+name = "mgo-faucet"
+path = "src/main.rs"

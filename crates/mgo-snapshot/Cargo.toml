@@ -1,0 +1,36 @@
+[package]
+name = "mgo-snapshot"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "Apache-2.0"
+authors = ["MangoNet Labs <build@mangonetlabs.com>"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+integer-encoding.workspace = true
+indicatif.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+bcs.workspace = true
+byteorder.workspace = true
+tracing.workspace = true
+bytes.workspace = true
+tokio-stream.workspace = true
+num_enum.workspace = true
+futures.workspace = true
+object_store.workspace = true
+prometheus.workspace = true
+mgo-types.workspace = true
+mgo-config.workspace = true
+mgo-core.workspace = true
+mgo-storage.workspace = true
+mgo-protocol-config.workspace = true
+fastcrypto = { workspace = true, features = ["copy_key"] }
+tokio = { workspace = true, features = ["full"] }
+workspace-hack.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

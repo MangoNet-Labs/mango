@@ -1,0 +1,10 @@
+[package]
+name = "stage2_basic_compatibility_valid"
+version = "0.0.3"
+
+[dependencies]
+Mgo = { local = "../../../../../../mgo-framework/packages/mgo-framework" }
+
+[addresses]
+base_addr = "0x0"
+mgo = "0x2"

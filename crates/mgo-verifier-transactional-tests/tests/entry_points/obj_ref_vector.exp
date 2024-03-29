@@ -1,0 +1,5 @@
+processed 1 task
+
+task 0 'publish'. lines 6-18:
+Error: Transaction Effects Status: Mgo Move Bytecode Verification Error. Please run the Mgo Move Verifier for more information.
+Execution Error: ExecutionError: ExecutionError { inner: ExecutionErrorInner { kind: MgoMoveVerificationError, source: Some("Invalid entry point parameter type. Expected primitive or object type. Got: &vector<_::m::S>"), command: Some(0) } }

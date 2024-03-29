@@ -1,0 +1,9 @@
+[package]
+name = "entry_point_vector"
+version = "0.0.1"
+
+[dependencies]
+Mgo = { local = "../../../../../mgo-framework/packages/mgo-framework" }
+
+[addresses]
+entry_point_vector =  "0x0"

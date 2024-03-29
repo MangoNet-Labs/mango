@@ -1,0 +1,22 @@
+[package]
+name = "anemo-benchmark"
+version = "0.0.0"
+license = "Apache-2.0"
+publish = false
+edition = "2021"
+
+[dependencies]
+anemo.workspace = true
+clap = { version = "4.1.4", features = ["derive"] }
+mango-network.workspace = true
+rand.workspace= true
+telemetry-subscribers.workspace = true
+tokio = { workspace = true, features = ["full"] }
+workspace-hack.workspace = true
+
+[build-dependencies]
+anemo-build.workspace = true
+
+[dev-dependencies]
+telemetry-subscribers.workspace = true
+tokio = { workspace = true, features = ["test-util"] }

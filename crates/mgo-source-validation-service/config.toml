@@ -1,0 +1,64 @@
+[[packages]]
+source = "Repository"
+[packages.values]
+repository = "https://github.com/MangoNetworkOs/Mango"
+branch = "framework/mainnet"
+network = "mainnet"
+packages = [
+    { path = "crates/mgo-framework/packages/move-stdlib", watch = "0x1" },
+    { path = "crates/mgo-framework/packages/mgo-framework", watch = "0x2" },
+    { path = "crates/mgo-framework/packages/mgo-system", watch = "0x3" },
+]
+
+[[packages]]
+source = "Repository"
+[packages.values]
+repository = "https://github.com/MangoNetworkOs/Mango"
+branch = "framework/testnet"
+network = "testnet"
+packages = [
+    { path = "crates/mgo-framework/packages/move-stdlib", watch = "0x1" },
+    { path = "crates/mgo-framework/packages/mgo-framework", watch = "0x2" },
+    { path = "crates/mgo-framework/packages/mgo-system", watch = "0x3" },
+]
+
+[[packages]]
+source = "Repository"
+[packages.values]
+repository = "https://github.com/MangoNetworkOs/Mango"
+branch = "framework/devnet"
+network = "devnet"
+packages = [
+    { path = "crates/mgo-framework/packages/move-stdlib", watch = "0x1" },
+    { path = "crates/mgo-framework/packages/mgo-framework", watch = "0x2" },
+    { path = "crates/mgo-framework/packages/mgo-system", watch = "0x3" },
+]
+
+[[packages]]
+source = "Repository"
+[packages.values]
+repository = "https://github.com/MangoNetworkOs/apps"
+branch = "main"
+network = "mainnet"
+packages = [
+    { path = "kiosk" },
+]
+
+[[packages]]
+source = "Repository"
+[packages.values]
+repository = "https://github.com/MangoNetworkOs/apps"
+branch = "testnet"
+network = "testnet"
+packages = [
+    { path = "kiosk" },
+]
+
+# [[packages]]
+# source = "Repository"
+# [packages.values]
+# repository = "https://github.com/kunalabs-io/mgo-smart-contracts"
+# branch = "master"
+# packages = [
+#    { path = "kai-finance" }
+# ]
