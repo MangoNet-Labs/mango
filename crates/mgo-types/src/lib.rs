@@ -343,7 +343,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_mgo_numeric_address() {
+    fn test_parse_mgo_named_address() {
         let result = parse_mgo_address("mgo").expect("should not error");
 
         let expected =
