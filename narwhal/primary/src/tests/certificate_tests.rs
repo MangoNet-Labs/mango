@@ -1,4 +1,4 @@
-// Copyright (c) MangoNet Labs, Inc.
+// Copyright (c) MangoNet Labs Ltd.
 // SPDX-License-Identifier: Apache-2.0
 
 // This test file tests the validity of the 'certificates' implementation.

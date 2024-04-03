@@ -1,4 +1,4 @@
-// Copyright (c) MangoNet Labs, Inc.
+// Copyright (c) MangoNet Labs Ltd.
 // SPDX-License-Identifier: Apache-2.0
 
 //! WritePathPendingTransactionLog is used in the transaction write path (e.g. in

@@ -1,4 +1,4 @@
-// Copyright (c) MangoNet Labs, Inc.
+// Copyright (c) MangoNet Labs Ltd.
 // SPDX-License-Identifier: Apache-2.0
 
 //! MgoNodeHandle wraps MgoNode in a way suitable for access by test code.

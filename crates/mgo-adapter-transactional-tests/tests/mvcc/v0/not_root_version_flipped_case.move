@@ -1,4 +1,4 @@
-// Copyright (c) MangoNet Labs, Inc.
+// Copyright (c) MangoNet Labs Ltd.
 // SPDX-License-Identifier: Apache-2.0
 
 // tests accessing version of the input parent, not the runtime parent

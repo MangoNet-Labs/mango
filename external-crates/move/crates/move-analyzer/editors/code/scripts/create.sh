@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Copyright (c) MangoNet Labs, Inc.
+# Copyright (c) MangoNet Labs Ltd.
 # SPDX-License-Identifier: Apache-2.0
 
 # This script is meant to be executed on MacOS (hence zsh use - to get associative arrays otherwise

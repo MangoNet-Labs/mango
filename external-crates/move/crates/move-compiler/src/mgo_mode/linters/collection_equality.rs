@@ -1,4 +1,4 @@
-// Copyright (c) MangoNet Labs, Inc.
+// Copyright (c) MangoNet Labs Ltd.
 // SPDX-License-Identifier: Apache-2.0
 
 //! This analysis flags situations when instances of a mgo::table::Table or mgo::table_vec::TableVec

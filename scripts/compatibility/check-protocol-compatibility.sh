@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) MangoNet Labs, Inc.
+# Copyright (c) MangoNet Labs Ltd.
 # SPDX-License-Identifier: Apache-2.0
 
 # check if API_USER and API_KEY env vars are set

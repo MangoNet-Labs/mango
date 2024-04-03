@@ -1,4 +1,4 @@
-// Copyright (c) MangoNet Labs, Inc.
+// Copyright (c) MangoNet Labs Ltd.
 // SPDX-License-Identifier: Apache-2.0
 
 /// Module which defines hash functions. Note that Sha-256 and Sha3-256 is available in the std::hash module in the

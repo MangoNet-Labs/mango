@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) MangoNet Labs, Inc.
+# Copyright (c) MangoNet Labs Ltd.
 # SPDX-License-Identifier: Apache-2.0
 
 # Runs a cluster with 2 validators built at one commit, and 2 at another, and

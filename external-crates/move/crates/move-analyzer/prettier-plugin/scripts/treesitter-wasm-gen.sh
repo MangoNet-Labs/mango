@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) MangoNet Labs, Inc.
+# Copyright (c) MangoNet Labs Ltd.
 # SPDX-License-Identifier: Apache-2.0
 
 # This scripts regenerates WASM bytecode representing the tree-sitter Move parser by wasm-ifying the

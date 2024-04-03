@@ -1,4 +1,4 @@
-// Copyright (c) MangoNet Labs, Inc.
+// Copyright (c) MangoNet Labs Ltd.
 // SPDX-License-Identifier: Apache-2.0
 use anyhow::{bail, Result};
 use axum::{extract::Extension, http::StatusCode, routing::get, Router};

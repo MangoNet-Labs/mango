@@ -1,4 +1,4 @@
-// Copyright (c) MangoNet Labs, Inc.
+// Copyright (c) MangoNet Labs Ltd.
 // SPDX-License-Identifier: Apache-2.0
 use super::cluster::{new_wallet_context_from_cluster, Cluster};
 use async_trait::async_trait;

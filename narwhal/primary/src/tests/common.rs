@@ -1,5 +1,5 @@
 use std::num::NonZeroUsize;
-// Copyright (c) MangoNet Labs, Inc.
+// Copyright (c) MangoNet Labs Ltd.
 // SPDX-License-Identifier: Apache-2.0
 use config::{AuthorityIdentifier, WorkerId};
 use storage::PayloadToken;

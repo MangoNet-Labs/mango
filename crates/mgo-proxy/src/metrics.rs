@@ -1,4 +1,4 @@
-// Copyright (c) MangoNet Labs, Inc.
+// Copyright (c) MangoNet Labs Ltd.
 // SPDX-License-Identifier: Apache-2.0
 use axum::{extract::Extension, routing::get, Router};
 use mango_metrics::RegistryService;

@@ -1,4 +1,4 @@
-// Copyright (c) MangoNet Labs, Inc.
+// Copyright (c) MangoNet Labs Ltd.
 // SPDX-License-Identifier: Apache-2.0
 use prometheus::{
     default_registry, register_histogram_vec_with_registry, register_histogram_with_registry,

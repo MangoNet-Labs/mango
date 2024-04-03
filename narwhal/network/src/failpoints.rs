@@ -1,4 +1,4 @@
-// Copyright (c) MangoNet Labs, Inc.
+// Copyright (c) MangoNet Labs Ltd.
 // SPDX-License-Identifier: Apache-2.0
 use anemo_tower::callback::{MakeCallbackHandler, ResponseHandler};
 use mgo_macros::fail_point;

@@ -1,4 +1,4 @@
-// Copyright (c) MangoNet Labs, Inc.
+// Copyright (c) MangoNet Labs Ltd.
 // SPDX-License-Identifier: Apache-2.0
 
 //# init --addresses Test_V1=0x0 Test_V2=0x0 Test_V3=0x0 --accounts A

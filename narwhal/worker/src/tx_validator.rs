@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Display};
 
-// Copyright (c) MangoNet Labs, Inc.
+// Copyright (c) MangoNet Labs Ltd.
 // SPDX-License-Identifier: Apache-2.0
 use async_trait::async_trait;
 use mgo_protocol_config::ProtocolConfig;

@@ -1,4 +1,4 @@
-// Copyright (c) MangoNet Labs, Inc.
+// Copyright (c) MangoNet Labs Ltd.
 // SPDX-License-Identifier: Apache-2.0
 use crate::authority::AuthorityMetrics;
 use crate::consensus_types::committee_api::CommitteeAPI;

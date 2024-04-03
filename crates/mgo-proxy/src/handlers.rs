@@ -1,4 +1,4 @@
-// Copyright (c) MangoNet Labs, Inc.
+// Copyright (c) MangoNet Labs Ltd.
 // SPDX-License-Identifier: Apache-2.0
 use crate::admin::{Labels, ReqwestClient};
 use crate::consumer::{convert_to_remote_write, populate_labels, NodeMetric};

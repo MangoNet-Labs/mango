@@ -1,4 +1,4 @@
-// Copyright (c) MangoNet Labs, Inc.
+// Copyright (c) MangoNet Labs Ltd.
 // SPDX-License-Identifier: Apache-2.0
 
 /// Similar to `mgo::bag`, an `ObjectBag` is a heterogeneous map-like collection. But unlike
