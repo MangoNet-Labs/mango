@@ -1171,18 +1171,18 @@ impl ProtocolConfig {
             // All flags are disabled in V1
             feature_flags: Default::default(),
 
-            max_tx_size_bytes: Some(128 * 1024),
+            max_tx_size_bytes: Some(512 * 1024),
             // We need this number to be at least 100x less than `max_serialized_tx_effects_size_bytes`otherwise effects can be huge
-            max_input_objects: Some(2048),
+            max_input_objects: Some(4096),
             max_serialized_tx_effects_size_bytes: Some(512 * 1024),
             max_serialized_tx_effects_size_bytes_system_tx: Some(512 * 1024 * 16),
             max_gas_payment_objects: Some(256),
             max_modules_in_publish: Some(128),
-            max_arguments: Some(512),
+            max_arguments: Some(2048),
             max_type_arguments: Some(16),
             max_type_argument_depth: Some(16),
             max_pure_argument_size: Some(16 * 1024),
-            max_programmable_tx_commands: Some(1024),
+            max_programmable_tx_commands: Some(4096),
             move_binary_format_version: Some(6),
             max_move_object_size: Some(250 * 1024),
             max_move_package_size: Some(100 * 1024),
