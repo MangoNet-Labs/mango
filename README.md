@@ -19,7 +19,7 @@ Mango is the only blockchain today that can scale with the growth of web3 while 
 
 ## Mango Architecture
 
-![Mango Architecture](https://image.devnet.mangonetwork.io/img/mgo-white.jpg)
+![Mango Architecture](https://image.devnet.mangonetwork.io/img/mango-white.jpg)
 
 ## Mango Network Introduce
 
