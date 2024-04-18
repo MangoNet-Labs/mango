@@ -28,7 +28,7 @@ pub struct MgoAccount {
 }
 
 impl MgoAccount {
-    pub fn new(key: Arc<AcsnacountKeyPair>, gas: ObjectRef, objs: Vec<ObjectRef>) -> Self {
+    pub fn new(key: Arc<AccountKeyPair>, gas: ObjectRef, objs: Vec<ObjectRef>) -> Self {
         let owned = objs.into_iter().map(|obj| (obj.0, obj)).collect();
         MgoAccount { key, gas, owned }
     }

@@ -15,7 +15,7 @@ use tracing::debug;
 use tracing::info;
 
 // include the boilerplate code in this binary
-static PROJECT_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/boilerplate");
+static PROJECT_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/../mango-service-boilerplate");
 
 #[derive(ValueEnum, Parser, Debug, Clone)]
 pub enum ServiceLanguage {

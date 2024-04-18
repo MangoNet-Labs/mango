@@ -228,7 +228,10 @@ impl IndexerApiServer for IndexerApiV2 {
         parent_object_id: ObjectID,
         name: DynamicFieldName,
     ) -> RpcResult<MgoObjectResponse> {
-        let name_bcs_value = self.inner.bcs_name_from_dynamic_field_name(&name)?;
+        let name_bcs_value = self
+            .inner
+            .bcs_name_from_dynamic_field_name_in_blocking_task(&name)
+            .await?;
 
         // Try as Dynamic Field
         let id = mgo_types::dynamic_field::derive_dynamic_field_id(

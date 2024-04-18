@@ -16275,7 +16275,6 @@ dependencies = [
  "guppy",
  "guppy-summaries",
  "guppy-workspace-hack",
- "h2",
  "hakari",
  "half 1.8.2",
  "half 2.3.1",
