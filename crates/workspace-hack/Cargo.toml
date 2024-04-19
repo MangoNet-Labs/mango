@@ -351,6 +351,7 @@ group-5ef9efb8ec2df382 = { package = "group", version = "0.12", default-features
 guppy = { version = "0.15", default-features = false, features = ["rayon1", "summaries"] }
 guppy-summaries = { version = "0.7", default-features = false }
 guppy-workspace-hack = { version = "0.1", default-features = false }
+h2 = { version = "0.3.26", default-features = false }
 hakari = { version = "0.13", default-features = false, features = ["cli-support"] }
 half-dff4ba8e3ae991db = { package = "half", version = "1", default-features = false }
 half-f595c2ba2a3f28df = { package = "half", version = "2", default-features = false, features = ["num-traits"] }
