@@ -1,0 +1,9 @@
+{
+    "label": "Developer-first-dapp",
+    "position": 2,
+    "link": {
+      "type": "generated-index",
+      "description": "You use Move to write packages that live on chain, meaning they exist on the Mango network you publish them to. The instructions in this section walk you through writing a basic package, debugging and testing your code, and publishing. You need to follow these instructions in order to complete the exercise."
+    }
+  }
+  
