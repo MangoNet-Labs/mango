@@ -1,0 +1,121 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+/*:root {*/
+/*  --ifm-color-primary: #81D8CF;*/
+/*  --ifm-color-primary-dark: #81D8CF;*/
+/*  --ifm-color-primary-darker: #81D8CF;*/
+/*  --ifm-color-primary-darkest: #81D8CF;*/
+/*  --ifm-color-primary-light: #81D8CF;*/
+/*  --ifm-color-primary-lighter: #81D8CF;*/
+/*  --ifm-color-primary-lightest: #81D8CF;*/
+/*  --ifm-code-font-size: 95%;*/
+/*  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);*/
+/*}*/
+
+/*!* For readability concerns, you should choose a lighter palette in dark mode. *!*/
+/*[data-theme='dark'] {*/
+/*  --ifm-color-primary: #ebedf0;*/
+/*  --ifm-color-primary-dark: #ebedf0;*/
+/*  --ifm-color-primary-darker: #ebedf0;*/
+/*  --ifm-color-primary-darkest: #ebedf0;*/
+/*  --ifm-color-primary-light: #ebedf0;*/
+/*  --ifm-color-primary-lighter: #ebedf0;*/
+/*  --ifm-color-primary-lightest: #ebedf0;*/
+/*  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);*/
+/*}*/
+
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #81d8cf;
+  --ifm-color-primary-dark: #78c9c0;
+  --ifm-color-primary-darker: #6cb4ad;
+  --ifm-color-primary-darkest: #5d9b94;
+  --ifm-color-primary-light: #d1f1ee;
+  --ifm-color-primary-lighter: #dafcf8;
+  --ifm-color-primary-lightest: #e6fcfa;
+
+  --ifm-code-font-size: 95%;
+  --ifm-background-color-dark: #1b1b1d;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --mgo-black: #090B1A;
+
+  --mgo-blue: #81d8cf;
+  --mgo-blue-bright: #d1f1ee;
+  --mgo-blue-light: #d1f1ee;
+  --mgo-blue-lighter: #dafcf8;
+  --mgo-blue-dark: 52 99 151;
+  --mgo-blue-darker: #303846;
+
+  --mgo-hero: #0284AD;
+  --mgo-hero-dark: #007195;
+  --mgo-mgo-steel: #A0B6C3;
+  --mgo-steel-dark: #758F9E;
+  --mgo-steel-darker: #566873;
+  --mgo-header-nav: #2A4362;
+  --mgo-success: #2DD7A7;
+  --mgo-success-dark: #008C65;
+  --mgo-success-light: #D5F7EE;
+  --mgo-issue: #FF794B;
+  --mgo-issue-dark: #EB5A29;
+  --mgo-issue-light: #FFECE5;
+  --mgo-warning: #F2BD24;
+  --mgo-warning-dark: #8D6E15;
+  --mgo-warning-light: #FFF8E2;
+  --mgo-code: #845ED6;
+  --mgo-gray-35: #FEFEFE;
+  --mgo-gray-40: #F7F8F8;
+  --mgo-gray-45: #EBECED;
+  --mgo-gray-50: #E9EAEB;
+  --mgo-gray-55: #D7D8DA;
+  --mgo-gray-60: #C3C5C8;
+  --mgo-gray-65: #9C9FA4;
+  --mgo-gray-70: #898D93;
+  --mgo-gray-75: #767A81;
+  --mgo-gray-80: #636870;
+  --mgo-gray-85: #5A6573;
+  --mgo-gray-90: #383F47;
+  --mgo-gray-95: #2A3645;
+  --mgo-gray-100: #182435;
+
+  --mgo-link-color: #81d8cf;
+  --mgo-link-color-dark: #78c9c0;
+  --mgo-link-color-light: #d1f1ee;
+
+  --mgo-ghost-white: #f8f8ff;
+  --mgo-ghost-dark: #282a36;
+  --mgo-white: 255 255 255;
+  --mgo-card-dark: 13 20 37;
+  --mgo-card-darker: 0 23 49;
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+[data-theme='dark'] {
+  --ifm-color-primary: #d1f1ee;
+  --ifm-color-primary-dark: #78c9c0;
+  --ifm-color-primary-darker: #6cb4ad;
+  --ifm-color-primary-darkest: #5d9b94;
+  --ifm-color-primary-light: #d1f1ee;
+  --ifm-color-primary-lighter: #dafcf8;
+  --ifm-color-primary-lightest: #e6fcfa;
+
+  --ifm-background-color: #011829;
+}
+
+.active-scroll-spy {
+  @apply bg-mgo-ghost-white dark:bg-mgo-ghost-dark rounded-lg;
+}
+
