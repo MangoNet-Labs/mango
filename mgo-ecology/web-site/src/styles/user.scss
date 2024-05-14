@@ -1,0 +1,17 @@
+.user-style {
+  .bl1 {
+    border-left: 1px solid rgba(#FFFFFF, 0.1);
+  }
+  .bb1 {
+    border-bottom: 1px solid rgba(#FFFFFF, 0.1);
+  }
+  .van-tabs--line .van-tabs__wrap {
+    height: 76px;
+    @media (max-width: 768px) {
+      height: 36px;
+    }
+  }
+  [class*=van-hairline]:after {
+    border: 1px solid rgba(#FFFFFF, 0.1);
+  }
+}

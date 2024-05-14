@@ -1,0 +1,28 @@
+.home-box5-style {
+  .box5 {
+    border-top: 1px solid rgba(#323245, 0.7);
+    border-bottom: 1px solid rgba(#323245, 0.7);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+
+    .b5bl {
+      border-left: 1px solid rgba(#323245, 0.7);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .b5br {
+      border-right: 1px solid rgba(#323245, 0.7);
+    }
+
+    @media screen and (max-width: 768px) {
+      grid-template-columns: repeat(1, 1fr);
+
+      .b5bb {
+        border-bottom: 1px solid rgba(#323245, 0.7);
+      }
+    }
+  }
+}

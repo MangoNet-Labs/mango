@@ -1,0 +1,45 @@
+{
+  "name": "test-global",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start -p 5173",
+    "lint": "next lint",
+    "run": "next build && next start -p 5173"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^5.3.6",
+    "@ant-design/nextjs-registry": "^1.0.0",
+    "@reduxjs/toolkit": "^2.2.3",
+    "antd": "^5.16.1",
+    "bignumber.js": "^9.1.2",
+    "clsx": "^2.1.0",
+    "dayjs": "^1.11.10",
+    "echarts": "^5.5.0",
+    "i18next": "^23.10.1",
+    "i18next-resources-to-backend": "^1.2.0",
+    "next": "14.1.4",
+    "next-i18n-router": "^5.4.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-i18next": "^14.1.0",
+    "react-redux": "^9.1.0",
+    "use-debounce": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
+    "eslint": "^8",
+    "eslint-config-next": "14.1.4",
+    "postcss": "^8",
+    "sass": "^1.74.1",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5"
+  }
+}

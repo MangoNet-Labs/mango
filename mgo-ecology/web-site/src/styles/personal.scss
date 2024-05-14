@@ -1,0 +1,51 @@
+.personal-style {
+  padding-top: 30px;
+  .van-button {
+    color: #06061A !important;
+    font-size: 18px;
+    padding-left: 24px;
+    padding-right: 24px;
+    border-radius: 0;
+  }
+  .van-button__loading .van-loading__spinner {
+    width: 24px;
+    height: 24px;
+  }
+  @media (max-width: 768px) {
+    padding-top: 15px;
+  }
+}
+.pic-style {
+  .n-upload-trigger+.n-upload-file-list {
+    display: none;
+  }
+  .bb1 {
+    border-bottom: 1px solid rgba(#FFFFFF, 0.1);
+  }
+  .upboxbg {
+    background: rgba(#81D8CF, 0.2);
+  }
+  .n-radio-group {
+    display: block;
+  }
+  .van-button {
+    color: #06061A !important;
+    font-size: 18px;
+    padding-left: 24px;
+    padding-right: 24px;
+    border-radius: 0;
+  }
+  .van-button__loading .van-loading__spinner {
+    width: 24px;
+    height: 24px;
+  }
+  @media (max-width: 768px) {
+    .van-button {
+      font-size: 14px;
+      padding-left: 12px;
+      padding-right: 12px;
+      height: 36px;
+      white-space: nowrap;
+    }
+  }
+}
