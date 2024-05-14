@@ -1,0 +1,49 @@
+---
+title: Get MGO Token
+description: GET MGO TOKEN
+sidebar_position: 5
+---
+
+Developers can obtain free Mango test tokens through a faucet. These test tokens can be used on the Devnet network.
+
+Before requesting from the faucet, you should prepare a wallet address to receive the MGO tokens.
+
+Here are several ways to request tokens from the faucet:
+
+## Requesting via Command Line
+
+If you are using the Devnet network, you can request tokens using the Mango CLI. By default, tokens are requested for the active account on the command line, but you can customize the network and recipient account using two parameters:
+
+- `--address`: Custom recipient address, provide an address or an alias.
+- `--url`: Custom faucet request URL.
+
+## Requesting via Wallet
+
+After installing the Mango Wallet, you can request tokens directly from within the wallet.
+
+## Requesting via cURL
+
+Use the following command to directly request tokens from the faucet server:
+
+```rust
+curl --location --request POST 'https://faucet.devnet.mangonetwork.io/gas' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "FixedAmountRequest": {
+        "recipient": "<YOUR ADDRESS>"
+    }
+}
+```
+
+## Requesting via TypeScript SDK
+
+You can use the following method to request tokens from the faucet:
+
+```tsx
+import { requestMgoFromFaucetV0, getFaucetHost } from '@mgonetwork/mango.js/faucet';
+
+await requestMgoFromFaucetV0({
+	host: getFaucetHost('devnet'),
+	recipient: '<YOUR ADDRESS>',
+});
+```

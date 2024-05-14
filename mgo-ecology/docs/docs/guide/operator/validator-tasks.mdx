@@ -1,0 +1,288 @@
+---
+title: Validator Tasks
+sidebar_position: 6
+---
+
+This guide focuses on running the Mgo node software as a validator.
+
+## Requirements
+
+To run a Mgo validator, you'll need a machine with the following specifications:
+
+- CPU: 24 physical cores (or 48 virtual cores)
+- Memory: 128 GB
+- Storage: 4 TB NVME
+- Network: 1 Gbps
+
+## Deployment
+
+There are multiple ways to deploy a Mgo node.
+
+You can deploy using the officially provided pre-built linux/amd64 binary files, available [here](https://github.com/MangoNet-Labs/mango/releases).
+
+Alternatively, you can build directly from the source code:
+
+```shell
+git clone https://github.com/MangoNet-Labs/mango/tree/v1.0.0-devnet && cd mango
+git checkout [SHA|BRANCH|TAG]
+cargo build --release --bin mgo-node
+```
+
+## Configuration
+
+The Mgo node is run by providing a single configuration file as a parameter, for example:
+
+```bash
+./Mgo-node --config-path /opt/Mgo/config/validator.yaml
+```
+
+See Validator for the configuration template.
+
+## Port Usage
+
+Mgo nodes use the following ports by default:
+
+| Protocol/Port | Accessibility    | Purpose                           |
+| ------------- | ---------------- | --------------------------------- |
+| TCP/8080      | inbound          | protocol/transaction interface    |
+| UDP/8081      | inbound/outbound | narwhal primary interface         |
+| UDP/8082      | inbound/outbound | narwhal worker interface          |
+| TCP/8083      | localhost        | Mgo -> narwhal interface          |
+| UDP/8084      | inbound/outbound | peer to peer state sync interface |
+| TCP/8443      | outbound         | metrics push                      |
+| TCP/9184      | localhost        | metrics pull                      |
+
+To run the validator successfully, it's crucial to ensure that ports 8080 to 8084 are opened as specified above, including the specific protocols (TCP/UDP).
+
+## Network Buffer
+
+During load testing of the Mgo validator network, it was found that the default Linux network buffer sizes are too small.
+We recommend increasing them using one of the following methods:
+
+### Option 1: Using /etc/sysctl.d/
+
+These settings can be added to a new sysctl file specifically for mgo-node or appended to an existing file.
+Modifications made this way will persist after the system is rebooted.
+
+```
+# Create a new sysctl file for mgo-node
+sudo nano /etc/sysctl.d/100-mgo-node.conf
+
+# Add the following lines to the file, overriding existing settings if necessary.
+net.core.rmem_max = 104857600
+net.core.wmem_max = 104857600
+net.ipv4.tcp_rmem = 8192 262144 104857600
+net.ipv4.tcp_wmem = 8192 262144 104857600
+
+# Apply the settings immediately before the next reboot
+sudo sysctl --system
+```
+
+### Option 2: Using the sysctl Command
+
+These modifications will not persist after a system reboot. Therefore, these commands should be run each time the host is restarted.
+
+```shell
+sudo sysctl -w net.core.wmem_max=104857600
+sudo sysctl -w net.core.rmem_max=104857600
+sudo sysctl -w net.ipv4.tcp_rmem="8192 262144 104857600"
+sudo sysctl -w net.ipv4.tcp_wmem="8192 262144 104857600"
+```
+
+## verify
+
+To verify if system settings have been updated, check the output of the following command:
+
+```shell
+sudo sysctl -a | egrep [rw]mem
+
+```
+
+## Storage
+
+All data related to Mgo nodes is stored by default in /opt/mgo/db/. This is controlled by the Mgo node configuration file.
+
+```shell
+$ cat /opt/mgo/config/validator.yaml | grep db-path
+  db-path: /opt/mgo/db/authorities_db
+  db-path: /opt/mgo/db/consensus_db
+```
+
+Ensure that an appropriately sized disk is mounted for writing to the database.
+
+- To check the size of the local Mgo node database:
+
+```shell
+du -sh /opt/mgo/db/
+du -sh /opt/mgo/db/authorities_db
+du -sh /opt/mgo/db/consensus_db
+```
+
+` To delete the local Mgo node database:
+
+```shell
+sudo systemctl stop mgo-node
+sudo rm -rf /opt/mgo/db/authorities_db /opt/mgo/db/consensus_db
+```
+
+## Key Management
+
+Mgo nodes use the following keys:
+| Key | Scheme | Purpose |
+| ------------ | -------- | ------------------------------- |
+| protocol.key | bls12381 | Transactions, Narwhal Consensus |
+| account.key | ed25519 | Controls assets for staking |
+| network.key | ed25519 | Narwhal primary, Mgo state sync |
+| worker.key | ed25519 | Validates Narwhal workers |
+
+These keys are configured in the Mgo node configuration file.
+
+## Monitoring
+
+### Metrics
+
+Mgo nodes expose metrics via a local HTTP interface. These metrics can be scraped by centralized monitoring systems or viewed directly from the node.
+
+- View all metrics:
+
+```shell
+curl -s http://localhost:9184/metrics
+```
+
+- Search for specific metrics:
+
+```shell
+curl http://localhost:9184/metrics | grep <METRIC>
+```
+
+Mgo nodes also push metrics to a central Mgo metrics proxy.
+
+### Logging
+
+Logging is controlled via the `RUST_LOG` environment variable.
+
+Optionally, set `RUST_LOG_JSON=1` environment variable to enable JSON structured logging.
+
+Logging configuration can be changed during runtime via the management interface of the node.
+
+To view the current configured logging values:
+
+```shell
+curl localhost:1337/logging
+```
+
+To change the currently configured logging values:
+
+```shell
+curl localhost:1337/logging -d "info"
+```
+
+## State Sync
+
+Checkpoints in Mgo contain a permanent history of the network. They are similar to blocks in other blockchains but with one significant difference, they lag behind rather than lead. All transactions have been finalized before being included in a checkpoint.
+
+These checkpoints are synchronized between validators and full nodes via a dedicated peer-to-peer state sync interface.
+
+State sync between validators is always allowed, but controls can be put in place to restrict what full nodes are allowed to sync from specific validators.
+
+The default and recommended `max-concurrent-connections: 0` configuration does not affect state sync between validators but does limit sync from all full nodes. The Mgo node configuration can be modified to allow known full nodes to sync from validators:
+
+```shell
+p2p-config:
+  anemo-config:
+    max-concurrent-connections: 0
+  seed-peers:
+    - address: <multiaddr>  # The p2p address of the fullnode
+      peer-id: <peer-id>    # hex encoded network public key of the node
+    - address: ...          # another permitted peer
+      peer-id: ...
+```
+
+## Chain Operations
+
+The following chain operations are performed using the mgo CLI. This binary is a released binary just like mgo-node, click [Releases](https://github.com/MangoNet-Labs/mango/releases) to get it.
+It is recommended and often necessary for the mgo binary version to match the deployed network's version.
+
+### Updating On-Chain Metadata
+
+Most of these tasks can be performed using the Validator Tool.
+
+Active/pending validators can update their on-chain metadata by submitting transactions. Some metadata changes take effect immediately, including:
+
+-Name
+-Description
+-Image URL
+-Project URL
+
+Other metadata (keys, addresses, etc.) take effect from the next epoch.
+
+To update metadata, validators make MoveCall transactions interacting with the System Object. For example:
+
+1. To update the name to `new_validator_name`, use the Mgo Client CLI to call `mgo_system::update_validator_name`:
+
+```bash
+mgo client call --package 0x3 --module mgo_system --function update_validator_name --args 0x5 \"new_validator_name\" --gas-budget 10000
+```
+
+2. To update the p2p address to `/ip4/192.168.1.1` starting from the next epoch, use the Mgo Client CLI to call
+   `mgo_system::update_validator_next_epoch_p2p_address`:
+
+```bash
+mgo client call --package 0x3 --module mgo_system --function update_validator_next_epoch_p2p_address --args 0x5 "[4, 192, 168, 1, 1]" --gas-budget 10000
+```
+
+### Operating Capabilities
+
+To avoid frequently touching account keys and allow them to be stored offline, validators can delegate operational capabilities to another address. Then, that address can update reference gas prices and tally rules on behalf of the validator.
+
+Upon creation of a`Validator`, an `UnverifiedValidatorOperationCap` is also created and transferred to the validator's address. Therefore, the holder of this `Cap` object (referred to as "Capability") can perform operational actions for the validator. To authorize another address to perform these actions, the validator transfers the object to another address it controls. This can be done using `mgo client transfer`.
+
+To rotate the delegate address or revoke authorization, the current holder of the `Cap` transfers it to another address. In cases of key theft or loss, validators can create a new `Cap` object to invalidate the current one. This is done by calling `mgo_system::rotate_operation_cap`:
+
+```bash
+mgo client call --package 0x3 --module mgo_system --function rotate_operation_cap --args 0x5 --gas-budget 10000
+```
+
+By default, the new Cap object will be transferred to the validator's address, which can then transfer it to the new delegate address. At this point, the old Cap becomes invalid and no longer represents delegated authority.
+
+To get the ID of the current valid Cap object for a validator, use the Mgo Client CLI `mgo client objects` command after setting the holder to the active address.
+
+### Updating Gas Price Survey Bids
+
+To update a validator's gas price survey bid, which is used to calculate the reference gas price at the end of an epoch, the sender needs to hold a valid `UnverifiedValidatorOperationCap`. The sender can be the validator itself or a trusted agent. To do this, call `mgo_system::request_set_gas_price`:
+
+```bash
+mgo client call --package 0x3 --module mgo_system --function request_set_gas_price --args 0x5 {cap_object_id} {new_gas_price} --gas-budget 10000
+```
+
+### Reporting/Undoing Report on Validator
+
+To report a validator or revoke an existing report, the sender needs to hold a valid `UnverifiedValidatorOperationCap`. The sender can be the validator itself or a trusted agent. To do this, call `mgo_system::report_validator/undo_report_validator`:
+
+```bash
+mgo client call --package 0x3 --module mgo_system --function report_validator/undo_report_validator --args 0x5 {cap_object_id} {reportee_address} --gas-budget 10000
+```
+
+### Joining Validator Set
+
+To have an Mgo address join the validator set, they need to first register as a validator candidate by calling `mgo_system::request_add_validator_candidate` with their metadata and initial configuration:
+
+```bash
+mgo client call --package 0x3 --module mgo_system --function request_add_validator_candidate --args 0x5 {protocol_pubkey_bytes} {network_pubkey_bytes} {worker_pubkey_bytes} {proof_of_possession} {name} {description} {image_url} {project_url} {net_address} {p2p_address} {primary_address} {worker_address} {gas_price} {commission_rate} --gas-budget 10000
+```
+
+Once an address becomes a validator candidate, any address (including the candidate address itself) can start staking using the candidate's stake pool. Once the candidate's stake pool accumulates at least `mgo_system::MIN_VALIDATOR_JOINING_STAKE` of stake, the candidate can call `mgo_system::request_add_validator` to formally add themselves to the active validator set of the next epoch:
+
+```bash
+mgo client call --package 0x3 --module mgo_system --function request_add_validator --args 0x5 --gas-budget 10000000
+```
+
+### Leaving Validator Set
+
+To leave the validator set starting from the next epoch, the sender needs to be an active validator of the current epoch and should call `mgo_system::request_remove_validator`:
+
+```bash
+mgo client call --package 0x3 --module mgo_system --function request_remove_validator --args 0x5 --gas-budget 10000
+```
+
+After removing the validator post next epoch change, the stake pool becomes inactive and stake can only be withdrawn from the inactive pool.
