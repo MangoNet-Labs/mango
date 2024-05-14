@@ -1,0 +1,9 @@
+{
+    "label": "Developer",
+    "position": 1,
+    "link": {
+      "type": "generated-index",
+      "description": "The developer guides are meant to introduce you to the Move programming language and its implementation on the Mango network through examples, tasks, and conceptual content."
+    }
+  }
+  

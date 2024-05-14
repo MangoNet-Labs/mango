@@ -1,0 +1,9 @@
+{
+    "label": "Operator",
+    "position": 2,
+    "link": {
+      "type": "generated-index",
+      "description": "Operator guides demonstrate how to run Full nodes on Mango, whether as a validator or operator of a Full node to support your dApp, as well as how to integrate MANGO into an exchange."
+    }
+  }
+  
