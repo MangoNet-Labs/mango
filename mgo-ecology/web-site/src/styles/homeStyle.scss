@@ -1,0 +1,224 @@
+@keyframes upanddown {
+  0% {
+    transform: translateY(0);
+  }
+
+  25% {
+    transform: translateY(-15px);
+  }
+
+  50% {
+    transform: translateY(0);
+  }
+
+  75% {
+    transform: translateY(15px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.home-style {
+  .add-animate {
+    animation: upanddown 1.5s linear infinite;
+  }
+  .add-sty {
+    object {
+      width: 100%;
+    }
+  }
+  .n-collapse .n-collapse-item .n-collapse-item__header .n-collapse-item__header-main {
+    justify-content: space-between;
+  }
+  .box1 {
+    background-image: url('/img/bg1.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    padding: 160px 0 240px;
+    @media screen and (max-width: 768px) {
+      padding: 25px 0 40px;
+    }
+    .b1text {
+      font-size: 64px;
+      font-weight: 700;
+      line-height: 1.3;
+      @media screen and (max-width: 768px) {
+        font-size: 28px;
+      }
+    }
+    .b1iconlist {
+      position: relative;
+      width: 63%;
+      margin: 0 auto;
+      .pos-kong {
+        background: linear-gradient(135deg, #171727 0%, #333333 100%);
+        width: 3.471%;
+        height: 12.104%;
+        border-radius: 50%;
+      }
+    }
+  }
+  .box3 {
+    padding-bottom: 150px;
+
+    .b3-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      padding-top: 70px;
+    }
+
+    .b3-bg1 {
+      padding: 30px 20px;
+      background-image: url('/img/bg8.png');
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+      // border-radius: 30px;
+      // overflow: hidden;
+    }
+
+    @media screen and (max-width: 768px) {
+      padding-bottom: 40px;
+
+      .b3-grid {
+        padding-top: 22px;
+        grid-template-columns: repeat(1, 1fr);
+        gap: 10px;
+      }
+
+      .b3-bg1 {
+        padding: 20px;
+        background-image: url('/img/bg10.png');
+      }
+    }
+  }
+  .box4 {
+    padding-bottom: 180px;
+
+    .b4-listtopline {
+      border-top: 1px solid rgba(#323245, 0.7);
+
+      .b4-list-item {
+        border-bottom: 1px solid rgba(#323245, 0.7);
+        padding-top: 20px;
+        padding-bottom: 42px;
+        display: grid;
+        grid-template-columns: 1fr 1.5fr;
+        gap: 10px;
+      }
+    }
+
+    .b4-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 40px;
+
+      .b4-item {
+        box-shadow: 0px 4px 30px 0px rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+      }
+
+      .b4chi-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        border-bottom: 1px solid rgba(#323245, 0.7);
+        padding-bottom: 20px;
+      }
+
+      .bbblack32 {
+        border-bottom: 1px solid rgba(#323245, 0.7);
+      }
+
+      .b4item-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+
+      .b4item-grid2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+    }
+
+    .b4-coll {
+      border-top: 1px solid rgba(#323245, 0.7);
+      // padding-top: 20px;
+    }
+
+    .b4-pic-grid {
+      display: grid;
+      grid-template-columns: 39.571% 56.857%;
+      gap: 3.572%;
+      margin-bottom: 2.6vw;
+    }
+
+    .b4-pic-grid2 {
+      display: grid;
+      grid-template-columns: 56.857% 39.571%;
+      gap: 3.572%;
+    }
+
+    .tobig {
+      display: block;
+      transition: all 1s;
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+
+    .add-tobig {
+      display: block;
+      transition: all 1s;
+      &:hover {
+        transform: scale(1.05);
+        @media (max-width: 768px) {
+          transform: scale(1.05);
+        }
+      }
+    }
+
+    @media screen and (max-width: 768px) {
+      padding-bottom: 40px;
+
+      .b4-flex1 {
+        display: flex;
+        flex-direction: column-reverse;
+        justify-content: center;
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+
+      .b4-listtopline {
+        .b4-list-item {
+          border-bottom: 1px solid rgba(#323245, 0.7);
+          padding-top: 10px;
+          padding-bottom: 15px;
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 5px;
+        }
+      }
+
+      .b4-grid {
+        grid-template-columns: 100%;
+        gap: 10px;
+
+        .b4chi-grid {
+          padding-bottom: 5px;
+        }
+      }
+
+      .b4-flex2 {
+        display: flex;
+        flex-direction: column-reverse;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+      }
+    }
+  }
+}

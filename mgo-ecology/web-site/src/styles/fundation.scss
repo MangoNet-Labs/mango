@@ -1,0 +1,135 @@
+.foundation-style {
+  .box1 {
+    background-image: url('/img/bg5.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    padding: 160px 380px 202px;
+
+    .b1-text1 {
+      font-size: 64px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      line-height: 1.3;
+      color: #fff;
+    }
+
+    .b1btn-box {
+      display: inline-block;
+      position: relative;
+      cursor: pointer;
+
+      &:hover {
+        .b1-btn-pos {
+          transform: translate(10px, 10px);
+        }
+      }
+
+      &:active {
+        .b1-btn-pos {
+          opacity: 0.7;
+        }
+      }
+
+      .b1-btn {
+        padding: 20px 46px;
+        background: #fff;
+        display: inline-block;
+        position: relative;
+        opacity: 0;
+      }
+
+      .b1-btn-pos {
+        transition: all 0.5s;
+        width: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        background: #fff;
+        padding: 20px 46px;
+        z-index: 3;
+      }
+
+      .b1-btn-pos2 {
+        width: 100%;
+        height: 100%;
+        border: 1px solid #FFFFFF;
+        position: absolute;
+        bottom: -10px;
+        right: -10px;
+        z-index: 2;
+      }
+    }
+
+    @media screen and (max-width: 768px) {
+      padding: 30px 15px 30px;
+
+      .b1-text1 {
+        font-size: 24px;
+        margin-bottom: 5px;
+      }
+
+      .b1btn-box {
+        &:hover {
+          .b1-btn-pos {
+            transform: translate(5px, 5px);
+          }
+        }
+
+        .b1-btn {
+          padding: 8px 15px;
+        }
+
+        .b1-btn-pos {
+          padding: 8px 15px;
+        }
+
+        .b1-btn-pos2 {
+          bottom: -5px;
+          right: -5px;
+        }
+      }
+    }
+  }
+
+  .box2 {
+    width: 100%;
+    height: 40px;
+    background-image: url('/img/bg4.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
+  .box3 {
+    .b3-bb1 {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+
+      .b3-tabs {
+        border: 1px solid rgba(#323245, 0.7);
+        padding: 18px 56px;
+        color: #FFFFFF;
+        font-size: 24px;
+      }
+
+      .b3-tabs-ac {
+        background: #FFFFFF;
+        color: #06061A;
+      }
+    }
+
+    @media screen and (max-width: 768px) {
+      .b3-bb1 {
+        .b3-tabs {
+          padding: 5px 14px;
+          font-size: 12px;
+        }
+      }
+
+      .b3-flex1 {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+    }
+  }
+}

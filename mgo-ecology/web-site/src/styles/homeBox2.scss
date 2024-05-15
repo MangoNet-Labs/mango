@@ -1,0 +1,25 @@
+.home-box2-style {
+  .box2 {
+    padding-top: 120px;
+    padding-bottom: 150px;
+
+    .b2item {
+      box-shadow: 0px 4px 30px 0px rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 60px 10px;
+    }
+
+    @media screen and (max-width: 768px) {
+      padding-top: 30px;
+      padding-bottom: 34px;
+
+      .b2item {
+        padding: 15px 10px;
+        overflow-x: auto;
+      }
+    }
+  }
+}
