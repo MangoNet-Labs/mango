@@ -1,0 +1,10 @@
+packages:
+  - 'sdk/**'
+  - '!sdk\typescript\bcs'
+  - '!sdk\typescript\client'
+  - '!sdk\typescript\cryptography'
+  - '!sdk\typescript\faucet'
+  - '!sdk\typescript\multisig'
+  - '!sdk\typescript\transactions'
+  - '!sdk\typescript\utils'
+  - '!sdk\typescript\verify'
