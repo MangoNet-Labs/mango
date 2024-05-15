@@ -1,0 +1,291 @@
+.technology-style {
+  .box1 {
+    background-image: url('/img/bg5.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    padding: 224px 380px 200px;
+    .b1-text1 {
+      font-size: 64px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: #fff;
+    }
+    .b1btn-box {
+      display: inline-block;
+      position: relative;
+      cursor: pointer;
+      &:hover {
+        .b1-btn-pos {
+          transform: translate(10px, 10px);
+        }
+      }
+      &:active {
+        .b1-btn-pos {
+          opacity: 0.7;
+        }
+      }
+      .b1-btn {
+        padding: 20px 46px;
+        background: #fff;
+        display: inline-block;
+        position: relative;
+        opacity: 0;
+      }
+      .b1-btn-pos {
+        transition: all 0.5s;
+        width: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        background: #fff;
+        padding: 20px 46px;
+        z-index: 3;
+      }
+      .b1-btn-pos2 {
+        width: 100%;
+        height: 100%;
+        border: 1px solid #FFFFFF;
+        position: absolute;
+        bottom: -10px;
+        right: -10px;
+        z-index: 2;
+      }
+    }
+
+    @media (max-width: 768px) {
+      padding: 55px 15px 63px;
+      .b1-text1 {
+        font-size: 24px;
+        margin-bottom: 5px;
+      }
+      .b1btn-box {
+        &:hover {
+          .b1-btn-pos {
+            transform: translate(5px, 5px);
+          }
+        }
+        .b1-btn {
+          padding: 8px 15px;
+        }
+        .b1-btn-pos {
+          padding: 8px 15px;
+        }
+        .b1-btn-pos2 {
+          bottom: -5px;
+          right: -5px;
+        }
+      }
+    }
+  }
+  .tec-grid1 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
+    .tecg1-item {
+      border: 1px solid rgba(#323245, 0.7);
+      padding: 40px;
+      border-radius: 20px;
+      .tecg1-item-img {
+        width: 80px;
+        height: 80px;
+        background-repeat: no-repeat;
+        background-size: cover;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+        @media (max-width: 768px) {
+          width: 36px;
+          height: 36px;
+        }
+      }
+    }
+    @media (max-width: 768px) {
+      grid-template-columns: 100%;
+      gap: 10px;
+      .tecg1-item {
+        padding: 15px;
+        border-radius: 5px;
+      }
+      .tecg1-item-img {
+        width: 36px;
+        height: 36px;
+      }
+    }
+  }
+  @media (max-width: 768px) {
+    .tec-flex1 {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+  .tec-bg1 {
+    background-image: url('/img/bg7.png');
+    background-size: 4000px 2000px;
+    background-position: -2000px -500px;
+    background-repeat: no-repeat;
+  }
+  .tec-bb {
+    padding-bottom: 30px;
+    border-bottom: 1px solid rgba(#323245, 0.7);
+    @media (max-width: 768px) {
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+  }
+  .tec-grid2 {
+    display: grid;
+    grid-template-columns: 80px 1fr 80px;
+    gap: 40px;
+    @media (max-width: 768px) {
+      grid-template-columns: 16px 1fr 16px;
+      gap: 10px;
+    }
+  }
+  .tec-swi {
+    margin: 0 1px;
+    border: 1px solid #46ADB3;
+    border-radius: 10px;
+    overflow: hidden;
+    .tec-swi-top {
+      background: #46ADB3 linear-gradient(90deg, #6BC2B9 0%, #689FFD 100%);
+      padding: 32px 40px;
+      font-size: 32px;
+      font-weight: bold;
+      color: #fff;
+    }
+  }
+  @media (max-width: 768px) {
+    .tec-add-1 {
+      background: #171727;
+      border-radius: 5px;
+      padding: 15px 15px 15px 10px;
+      margin-bottom: 10px;
+      &:last-of-type {
+        margin-bottom: 0;
+      }
+    }
+    .tec-add-2 {
+      background: #323245;
+      border-radius: 3px;
+      height: 36px;
+      margin-top: 10px;
+    }
+    .tec-swi {
+      .tec-swi-top {
+        padding: 10px 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: #fff;
+      }
+    }
+  }
+  .add-box2 {
+    border-top: 1px solid rgba(#323245, 0.7);
+    border-bottom: 1px solid rgba(#323245, 0.7);
+    @media (max-width: 768px) {
+      border-top: none;
+      border-bottom: none;
+    }
+  }
+  .box2 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+
+    @media (max-width: 768px) {
+      grid-template-columns: 100%;
+      background: #171727;
+      border-radius: 5px;
+    }
+    .bl32 {
+      border-left: 1px solid rgba(#323245, 0.7);
+      @media (max-width: 768px) {
+        border-left: none;
+      }
+    }
+    .br32 {
+      border-right: 1px solid rgba(#323245, 0.7);
+      @media (max-width: 768px) {
+        border-right: none;
+        border-bottom: 1px solid rgba(#323245, 0.7);
+
+        &:last-of-type {
+          border-bottom: none;
+        }
+      }
+    }
+    .b2-item {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 54px;
+      @media (max-width: 768px) {
+        gap: 20px;
+      }
+    }
+  }
+  .tec-grid3 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 80px;
+    row-gap: 60px;
+    @media (max-width: 768px) {
+      grid-template-columns: 100%;
+      column-gap: 0;
+      row-gap: 0;
+      background: #171727;
+      padding: 15px;
+      border-radius: 5px;
+      .tec-add-3 {
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+        border-bottom: 1px solid rgba(#323245, 0.7);
+        &:last-of-type {
+          margin-bottom: 0;
+          border-bottom: none;
+        }
+      }
+    }
+  }
+  .tec-gun {
+    height: 120px;
+    overflow-x: hidden;
+    position: relative;
+    .tec-gun1-list {
+      height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      animation: moveMove 40s linear infinite;
+    }
+    .tec-gun1-list2 {
+      height: 100%;
+      position: absolute;
+      right: 0;
+      top: 0;
+      animation: moveMove2 40s linear infinite;
+    }
+    .gun-item {
+      width: 360px;
+      height: 100%;
+      background: rgba(#323245, 0.4);
+      box-shadow: 0px 4px 10px 0px rgba(255, 255, 255, 0.05);
+      margin-right: 60px;
+      cursor: pointer;
+      &:hover {
+        background: rgba(#323245, 0.2);
+      }
+    }
+  }
+  .tec-grid4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    row-gap: 100px;
+    .tecg4-item {
+      max-width: 90%;
+      max-height: 56px;
+    }
+  }
+}

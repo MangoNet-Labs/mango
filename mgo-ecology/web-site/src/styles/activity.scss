@@ -1,0 +1,65 @@
+.activity-style {
+  .box1 {
+    background-image: url('/img/bg5.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    padding: 190px 380px 206px;
+    font-size: 64px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #fff;
+
+    @media (max-width: 768px) {
+      padding: 55px 15px 73px;
+      font-size: 24px;
+    }
+  }
+
+  .ac-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 44px;
+
+    @media (max-width: 768px) {
+      gap: 25px;
+    }
+  }
+
+  .btff02 {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .bbff02 {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .blff02 {
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .brff02 {
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .ac-grid1 {
+    display: grid;
+    grid-template-columns: repeat(3, 33.333%);
+
+    @media (max-width: 768px) {
+      grid-template-columns: 100%;
+    }
+  }
+
+  .ac-pos1 {
+    width: 100%;
+    height: 76px;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(#F9FCFE, 0.1);
+
+  }
+}

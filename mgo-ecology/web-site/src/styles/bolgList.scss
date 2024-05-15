@@ -1,0 +1,117 @@
+.bloglist-style {
+  .box1 {
+    padding-top: 100px;
+    padding-bottom: 120px;
+    border-bottom: 1px solid rgba(#323245, 0.7);
+    .b1-row1 {
+      margin-bottom: 20px;
+      gap: 20px;
+      .b1r1-text1 {
+        font-size: 48px;
+        color: #fff;
+        flex: auto;
+      }
+      .b1r1-text2 {
+        font-size: 24px;
+        color: #D8D8D8;
+        flex-shrink: 0;
+      }
+    }
+    .b1-row2 {
+      font-size: 18px;
+      color: #CCCCCC;
+    }
+    @media (max-width: 768px) {
+      padding-top: 15Px;
+      padding-bottom: 25Px;
+      .b1-row1 {
+        .b1r1-text1 {
+          font-size: 16Px;
+          font-weight: 600;
+        }
+        .b1r1-text2 {
+          font-size: 12Px;
+        }
+      }
+      .b1-row2 {
+        font-size: 13Px;
+      }
+    }
+  }
+  .box2 {
+    color: #fff;
+    padding-top: 50px;
+    .b2-title {
+      font-size: 48px;
+    }
+    .b4-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+      .b4-item {
+        background: #06061A;
+        box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.04);
+        border-radius: 10px;
+        overflow: hidden;
+        .b4i-img {
+          width: 100%;
+          height: 240px;
+          img {
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+          }
+          @media (max-width: 768px) {
+            height: auto;
+          }
+        }
+        .b4i-box {
+          padding: 20px 0px;
+        }
+        .b4i-text1 {
+          font-size: 24px;
+          font-weight: 500;
+          margin-bottom: 10px;
+        }
+        .b4i-text2 {
+          font-size: 14px;
+          margin-bottom: 26px;
+        }
+        .b4i-text3 {
+          font-size: 14px;
+        }
+      }
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        .b4-item {
+          .b4i-text1 {
+            font-size: 14Px;
+            margin-bottom: 5Px;
+          }
+          .b4i-text2 {
+            font-size: 12Px;
+            margin-bottom: 10Px;
+          }
+          .b4i-text3 {
+            font-size: 12Px;
+          }
+        }
+      }
+    }
+    @media (max-width: 768px) {
+      padding-top: 40px;
+
+      .b2-title {
+        font-size: 18px;
+      }
+    }
+  }
+  .b2-page {
+    padding-top: 50px;
+    padding-bottom: 50px;
+    @media (max-width: 768px) {
+      padding-top: 30px;
+    }
+  }
+}

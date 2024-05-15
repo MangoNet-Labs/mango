@@ -1,0 +1,62 @@
+.chain-box1-btn-style {
+  .b1btn-box {
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    &:hover {
+      .b1-btn-pos {
+        transform: translate(10px, 10px);
+      }
+    }
+    &:active {
+      .b1-btn-pos {
+        opacity: 0.7;
+      }
+    }
+    .b1-btn {
+      padding: 20px 46px;
+      background: #fff;
+      display: inline-block;
+      position: relative;
+      opacity: 0;
+    }
+    .b1-btn-pos {
+      transition: all 0.5s;
+      width: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      background: #fff;
+      padding: 20px 46px;
+      z-index: 3;
+    }
+    .b1-btn-pos2 {
+      width: 100%;
+      height: 100%;
+      border: 1px solid #FFFFFF;
+      position: absolute;
+      bottom: -10px;
+      right: -10px;
+      z-index: 2;
+    }
+  }
+  @media (max-width: 768px) {
+    .b1btn-box {
+      &:hover {
+        .b1-btn-pos {
+          transform: translate(5px, 5px);
+        }
+      }
+      .b1-btn {
+        padding: 8px 15px;
+      }
+      .b1-btn-pos {
+        padding: 8px 15px;
+      }
+      .b1-btn-pos2 {
+        bottom: -5px;
+        right: -5px;
+      }
+    }
+  }
+}

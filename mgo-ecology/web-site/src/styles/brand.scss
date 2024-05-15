@@ -1,0 +1,30 @@
+.brand-style {
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  .bra-roun1 {
+    padding: 4px 30px;
+    border-radius: 50px;
+    border: 1px solid #fff;
+    font-size: 16px;
+    display: inline-block;
+    cursor: pointer;
+    &:hover {
+      background: rgba(#fff, 0.1);
+    }
+  }
+  .bra-roun2 {
+    padding: 4px 25px;
+    border-radius: 50px;
+    border: 1px solid #fff;
+    font-size: 16px;
+    cursor: pointer;
+    &:hover {
+      background: rgba(#fff, 0.1);
+    }
+  }
+  .bb1 {
+    border-bottom: 1px solid #323245;
+  }
+}

@@ -1,0 +1,14 @@
+.home-box1-btns-style {
+  .b1-btn {
+    border: 1px solid #FFFFFF;
+    border-radius: 100px;
+    padding: 15px 28px;
+    font-size: 18px;
+    color: #FFFFFF;
+    background: transparent;
+    @media screen and (max-width: 768px) {
+      font-size: 14px;
+      padding: 5px 10px;
+    }
+  }
+}
