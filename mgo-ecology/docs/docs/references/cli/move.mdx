@@ -1,0 +1,113 @@
+---
+title: Move
+---
+
+The MGO CLI `move` command provides multiple commands for handling Move source code. Typical usage of `mgo move` includes compiling and testing Move code, or generating a new Move project with `mgo move new project_name`, which creates the necessary directories and a Move.toml file.
+
+## Commands
+
+The following list details all the available sub-commands for the `mgo move` command.
+
+```bash
+Move application build and test tools
+
+Usage: mgo.exe move [options] <command>
+
+Commands:
+  build          Build
+  coverage       Check test coverage for this package. Previous tests must have been run with the `--coverage` flag
+  disassemble    Disassemble
+  new            Create a new Move package named `name` in `path`. If `path` is not provided, the package will be created in the directory `name`
+  test           Run Move unit tests in this package
+  help           Print this message or the help information of a given sub-command
+
+Options:
+  -p, --path <PACKAGE_PATH>                            Path of the package to run the command on
+  -d, --dev                                            Compile in 'dev' mode. If this flag is set, the 'dev-addresses' and 'dev-dependencies' fields will be used. This flag is useful for the development of packages that expose named addresses but are not set to a specific value
+      --test                                           Compile in 'test' mode. The 'dev-addresses' and 'dev-dependencies' fields and any code in the 'tests' directory will be used
+      --doc                                            Generate documentation for the package
+      --install-dir <INSTALL_DIR>                      Installation directory for compiled artifacts. Defaults to the current directory
+      --force                                          Force recompilation of all packages
+      --fetch-deps-only                                Fetch only dependency repositories to MOVE_HOME
+      --skip-fetch-latest-git-deps                     Skip fetching the latest git dependencies
+      --default-move-flavor <DEFAULT_FLAVOR>           Default flavor of Move compilation, if not specified in the package's configuration
+      --default-move-edition <DEFAULT_EDITION>         Default edition of Move compilation, if not specified in the package's configuration
+      --dependencies-are-root                          If set, dependency packages will be treated as root packages. Specifically, this will remove warning suppressions in dependency packages
+      --silence-warnings                               If set, ignore all compiler warnings
+      --warnings-are-errors                            If set, treat warnings as errors
+      --no-lint                                        If `true`, disable the linter
+  -h, --help                                           Print help
+  -V, --version                                        Print version
+```
+
+## Demonstration Example
+
+### Create a New Move Project
+
+```bash
+$ mgo move new smart_contract_test
+
+$ cd .\smart_contract_test\
+
+$ ls
+
+    Directory: D:\Project_Move\smart_contract_test
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         2024/4/18     18:18                sources
+-a----         2024/4/18     18:18            241 Move.toml
+```
+
+### Compile the Move Project
+
+```bash
+$ mgo move build
+INCLUDING DEPENDENCY Mgo
+INCLUDING DEPENDENCY MoveStdlib
+BUILDING smart_contract_test
+Total number of linter warnings suppressed: 1 (filtered categories: 1)
+
+```
+
+### Run Tests in the Move Project
+
+```bash
+$ mgo move test
+INCLUDING DEPENDENCY Mgo
+INCLUDING DEPENDENCY MoveStdlib
+BUILDING smart_contract_test
+Running Move unit tests
+[ PASS    ] 0x0::test::mint_burn
+Test result: OK. Total tests: 1; passed: 1; failed: 0
+Total number of linter warnings suppressed: 1 (filtered categories: 1)
+```
+
+### Get Test Coverage for the Module
+
+First run the command `mgo move test --coverage`, then run `mgo move coverage summary --test` to obtain a summary of the test coverage.
+
+```bash
+mgo move test --coverage
+INCLUDING DEPENDENCY Mgo
+INCLUDING DEPENDENCY MoveStdlib
+BUILDING first_package
+Running Move unit tests
+[ PASS    ] 0x0::example::test_module_init
+[ PASS    ] 0x0::example::test_sword_transactions
+Test result: OK. Total tests: 2; passed: 2; failed: 0
+
+$ mgo move coverage summary --test
++-------------------------+
+| Move Coverage Summary   |
++-------------------------+
+Module 0000000000000000000000000000000000000000000000000000000000000000::example
+>>> % Module coverage: 92.81
++-------------------------+
+| % Move Coverage: 92.81  |
++-------------------------+
+```
+
+## HELP
+
+Appending --help or -h after certain sub-commands provides detailed information about the relevant parameters.

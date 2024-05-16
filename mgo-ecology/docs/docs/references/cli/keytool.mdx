@@ -1,0 +1,143 @@
+---
+title: Keytool
+---
+
+The MGO CLI `keytool` command provides multiple command-level accesses for managing and generating addresses, as well as using private keys, signing, or zkLogin. For example, users can use the command to export private keys from the Mango Wallet and import them into the local MGO CLI wallet with `mgo keytool import [...]`.
+
+## Commands
+
+The following list enumerates all available subcommands of the MGO keytool command.
+
+```bash
+Mgo keystore tool
+
+Usage: mgo.exe keytool [options] <command>
+
+Commands:
+  update-alias                             Update old alias to new alias. If new alias is not provided, a random alias will be generated
+  convert                                  Convert private key from hexadecimal or Base64 format to new format (flag || privkey) starting with "mgoprivkey". Import and export of Hex private key format have been deprecated in Mgo Wallet and Mgo CLI keystore. Use `mgo keytool import` to import keys into Mgo keystore
+  decode-tx-bytes                          Decode components of given Base64 encoded transaction bytes
+  decode-multi-sig                         Decode components of given Base64 encoded multi-sig. If tx_bytes are provided, it verifies the multi-sig
+  generate                                 Generate new key pair with key scheme flag {`ed25519` | `secp256k1` | `secp256r1`} with optional derivation path, defaulting to m/44'/784'/0'/0'/0' for ed25519 or m/54'/784'/0'/0/0 for secp256k1 or m/74'/784'/0'/0/0 for secp256r1. Word length can be {`word12` | `word15` | `word18` | `word21` | `word24`}, defaulting to word12 if not specified
+  import                                   Add new key to Mgo CLI keystore with given mnemonic phrase or Bech32 encoded 33 byte `flag || privkey` starting with "mgoprivkey", key scheme flag {`ed25519` | `secp256k1` | `secp256r1`} and optional derivation path, defaulting to m/44'/784'/0'/0'/0' for ed25519 or m/54'/784'/0'/0/0 for secp256k1 or m/74'/784'/0'/0/0 for secp256r1, support word length of 12, 15, 18, 21, 24. Use --alias flag to set alias for key. If alias is not provided, tool will generate one
+  export                                   Output private key in Mgo CLI keystore for given key identifier as Bech32 encoded string starting with "mgoprivkey"
+  list                                     List all keys in mgo.keystore by their Mgo address, Base64 encoded public key, key scheme name
+  load-keypair                             This will read from content from provided file path. Accepted formats can be [enum MgoKeyPair] (Base64 encoded 33 byte `flag || privkey`) or `type AuthorityKeyPair` (Base64 encoded `privkey`). It outputs keypair to a file in current directory where address is filename and prints out its Mgo address, Base64 encoded public key, key scheme and key scheme flag
+  multi-sig-address                        To MultiSig Mgo address. Pass list of all Base64 encoded public keys `flag || pk`. For example public keys, see `keytool list`
+  multi-sig-combine-partial-sig            Provide list of partial signatures (Base64 encoded `flag || sig || pk`), threshold, list of all public keys and list of their weights defining MultiSig address. Returns valid MultiSig signature and its sender address. Sum of weights of all signatures must be >= threshold
+  multi-sig-combine-partial-sig-legacy
+  show                                     Read from content from provided file path. Accepted formats can be [enum MgoKeyPair] (Base64 encoded 33 byte `flag || privkey`) or `type AuthorityKeyPair` (Base64 encoded `privkey`). It prints out its Base64 encoded public key and key scheme flag
+  sign                                     Create signature using private key from Mgo keystore for given address (or its alias). Any signature is submitted to [struct IntentMessage] (composed of Base64 encoded transaction bytes and its intent). If intent does not exist, default value is used
+  sign-kms                                 Create signature utilizing AWS KMS. Pass key-id to sign message with Amazon KMS and base64 pubkey. Use MangoNetLabs/base64pemkey to generate PubKey from pem. Any signature is submitted to [struct IntentMessage] (composed of Base64 encoded transaction bytes and its intent). If intent does not exist, default value is used
+  unpack                                   This will take Base64 encoded [enum MgoKeyPair] (Base64 encoded 33 byte `flag || privkey`). It outputs keypair to a file in current directory where address is filename and prints out its Mgo address, Base64 encoded public key, key scheme and key scheme flag
+  zk-login-sign-and-execute-tx             Given max_epoch, generate an OAuth URL to prompt user to paste redirect with id_token, call salt server and then call proof server to create test transaction, sign it with temporary keypair and execute, by assembling it into serialized zkLogin signature
+  zk-login-enter-token                     A workaround for above command since sometimes cannot paste token (e.g. Facebook). Print out all inputs required here
+  zk-login-sig-verify                      Given zkLogin signature, parse it if valid. If `bytes` is provided, parse it as TransactionData or PersonalMessage based on `intent_scope`. It validates zkLogin signature against latest retrieved JWK. Example request: mgo keytool zk-login-sig-verify --sig $SERIALIZED_ZKLOGIN_SIG --bytes $BYTES --intent-scope 0 --network devnet --curr-epoch 10
+  zk-login-insecure-sign-personal-message  For testing only: Given data string, sign it with fixed only dev temporary keypair and output zkLogin signature with fixed only dev proof, max epoch is 10
+  help                                     Print this message or the help of the given subcommand
+
+Options:
+      --keystore-path <KEYSTORE_PATH>
+      --json                           Return command output in json format
+  -h, --help                           Print help
+  -V, --version                        Print version
+```
+
+## Demo Example
+
+### Update Account Alias
+
+```bash
+$ mgo keytool update-alias condescending-emerald
+Old alias condescending-emerald was updated to dreamy-euclase
+```
+
+### Convert Hexadecimal or Base64 Private Key to MGO Private Key Format
+
+```bash
+$  mgo keytool convert 0x9****e9
+╭────────────────┬──────────────────────────────────────────────────────────────────────────╮
+│ bech32WithFlag │  mgoprivkey1....5k                                                       │
+│ base64WithFlag │  AJ...np                                                                 │
+│ hexWithoutFlag │  9f...e9                                                                 │
+│ scheme         │  ed25519                                                                 │
+╰────────────────┴──────────────────────────────────────────────────────────────────────────╯
+
+```
+
+### Generate an Account for a Specified Algorithm
+
+Generate an account using the key scheme flag {`ed25519` | `secp256k1` | `secp256r1`}, with an optional derivation path, defaulting to m/44'/784'/0'/0'/0' (for ed25519), m/54'/784'/0'/0/0 (for secp256k1), or m/74'/784'/0'/0/0 (for secp256r1). Word length can be {`word12` | `word15` | `word18` | `word21` | `word24`}, defaulting to word12 if not specified.
+
+```bash
+mgo keytool generate ed25519
+╭─────────────────┬────────────────────────────────────────────────────────────────────────────────────╮
+│ alias           │                                                                                    │
+│ mgoAddress      │  0x2b...651                                                                        │
+│ publicBase64Key │  A...boh                                                                           │
+│ keyScheme       │  ed25519                                                                           │
+│ flag            │  0                                                                                 │
+│ mnemonic        │  di...own                                                                          │
+│ peerId          │  b8...ba21                                                                         │
+╰─────────────────┴────────────────────────────────────────────────────────────────────────────────────╯
+
+```
+
+### Import Account Using Specified Private Key Mnemonic
+
+```bash
+$ mgo keytool import  "mnemonic word" ed25519
+Keys saved as Base64 with 33 bytes `flag || privkey` ($BASE64_STR).
+        To see Bech32 format encoding, use `mgo keytool export $MGO_ADDRESS` where
+        $MGO_ADDRESS can be found with `mgo keytool list`. Or use `mgo keytool convert $BASE64_STR`.
+╭─────────────────┬──────────────────────────────────────────────────────────────────────╮
+│ alias           │                                                                      │
+│ mgoAddress      │  0x2731...a78                                                        │
+│ publicBase64Key │  A...sdaU                                                            │
+│ keyScheme       │  ed25519                                                             │
+│ flag            │  0                                                                   │
+│ peerId          │  3...54                                                              │
+╰─────────────────┴──────────────────────────────────────────────────────────────────────╯
+```
+
+### Export Private Key of Account with Specified Alias
+
+```bash
+$ mgo keytool export --key-identity dreamy-euclase
+╭────────────────────┬────────────────────────────────────────────────────────────────────────────────────────────╮
+│ exportedPrivateKey │  mgoprivkey1q...qd                                                                         │
+│ key                │ ╭─────────────────┬──────────────────────────────────────────────────────────────────────╮ │
+│                    │ │ alias           │                                                                      │ │
+│                    │ │ mgoAddress      │  0x1a...2f                                                           │ │
+│                    │ │ publicBase64Key │  AF...Nh                                                             │ │
+│                    │ │ keyScheme       │  ed25519                                                             │ │
+│                    │ │ flag            │  0                                                                   │ │
+│                    │ │ peerId          │  57...61                                                             │ │
+│                    │ ╰─────────────────┴──────────────────────────────────────────────────────────────────────╯ │
+╰────────────────────┴────────────────────────────────────────────────────────────────────────────────────────────╯
+
+```
+
+### Display All Accounts
+
+```bash
+$ mgo keytool list
+╭────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ╭─────────────────┬──────────────────────────────────────────────────────────────────────╮ │
+│ │ alias           │  dreamy-euclase                                                      │ │
+│ │ mgoAddress      │  0x1a8...6b2f                                                        │ │
+│ │ publicBase64Key │  AF...rNh                                                            │ │
+│ │ keyScheme       │  ed25519                                                             │ │
+│ │ flag            │  0                                                                   │ │
+│ │ peerId          │  57ca...b361                                                         │ │
+│ ╰─────────────────┴──────────────────────────────────────────────────────────────────────╯ │
+╰────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+## JSON Output
+
+Append the --json flag to the command to format the response as JSON instead of the default more human-readable MGO CLI output. This is useful for very large datasets, where displaying these results on a smaller screen might pose issues.
+
+## HELP Command
+
+Appending --help or -h after certain subcommands provides information about related parameters.

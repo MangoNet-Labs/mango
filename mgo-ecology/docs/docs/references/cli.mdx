@@ -1,0 +1,50 @@
+---
+title: CLI
+---
+
+Mango provides a Command Line Interface (CLI) tool for interacting with the Mango network, its functionalities, and the Move programming language. The complete tool suite is referred to as MGO CLI, with commands grouped together based on functionality. Each group of commands is typically referenced by its top-level command: MGO Client CLI, MGO Console CLI, MGO Keytool CLI, MGO Move CLI, and MGO Validator CLI.
+
+## Checking MGO CLI
+
+Before using MGO CLI, you must have it installed. To check if MGO CLI is available on your system, open a terminal or console and type the following command:
+
+```bash
+mgo --version
+```
+
+If the terminal or console returns a version number, it indicates that you have installed MGO CLI.
+
+If the command is not found, please follow the instructions in the Mango installation guide to obtain MGO CLI on your system.
+
+## MGO CLI
+
+There are many top-level commands available, but the five most useful commands for users are as follows. For commands that have not been documented yet, please use the help flag. For example, `mgo validator --help`.
+
+```bash
+Byzantine Fault Tolerant chain with low-latency finality and high throughput
+
+Usage: mgo.exe <COMMAND>
+
+Commands:
+  start             Start the mgo network
+  network
+  genesis           Bootstrap and initialize a new mgo network
+  genesis-ceremony
+  keytool           Mgo key store tool
+  console           Start the mgo interactive console
+  client            Client to interact with the mgo network
+  validator         Tool for validators and validator candidates
+  move              Tool for building and testing Move applications
+  fire-drill        Tool for fire drills
+  help              Print this message or the help of the given subcommand
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version
+```
+
+- **[MGO Client CLI](cli/client):** : Interact with the MGO network using the `mgo client` command.
+- **[MGO Console CLI](cli/console):** : Open an interactive console with the currently active network using the `mgo console` command.
+- **[MGO keytool CLI](cli/keytool):** : Utilize cryptographic tools using the `mgo keytool` command.
+- **[MGO Move CLI](cli/move):** : Work with the Move programming language using the `mgo move` command.
+- **[MGO Validator CLI](cli/validator):** : Access tools useful for MGO validators with the `mgo validator` command.

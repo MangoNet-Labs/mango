@@ -1,0 +1,94 @@
+---
+title: String
+---
+
+In Mango Move, there is no native string type, but the official package defines the following two types of String classes:
+
+- String type using ASCII encoding
+- String type using UTF-8 encoding
+
+## std::ascii
+
+The `ASCII` module in Move defines basic string and character new types, which are used to validate whether a character is a valid ASCII and whether a string contains only valid ASCII characters.
+
+```move
+
+    struct String has copy, drop, store {
+        bytes: vector<u8>,
+    }
+
+    /// ASCII characters.
+    struct Char has copy, drop, store {
+        byte: u8,
+    }
+
+```
+
+Usage:
+
+```move
+ module ch0::hello {
+    use std::ascii::{Self,String};
+    ···
+
+	struct HelloMove has key,store{
+        hello:String
+    }
+
+    fun init(ctx:&mut TxContext){
+        let hello  =  ascii::string(b"Hello Move");
+        transfer::public_transfer(HelloMove{hello},sender(ctx));
+    }
+ }
+
+```
+
+## std::string
+
+The `string` module defines the "String" type for UTF8 encoded strings.
+
+```move
+
+    /// `String` contains a sequence of bytes guaranteed to be in utf8 format.
+    struct String has copy, drop, store {
+        bytes: vector<u8>,
+    }
+
+```
+
+Usage:
+
+```move
+ module ch0::hello {
+    use std::string::{Self,String};
+    ···
+
+	 struct HelloMove has key,store{
+        hello:String
+    }
+
+    fun init(ctx:&mut TxContext){
+        let hello  = string::utf8(b"Hello Move");
+        transfer::public_transfer(HelloMove{hello},sender(ctx));
+    }
+
+ }
+```
+
+## Interconversion of std::string and std::ascii
+
+Conversion Functions in std::string
+
+```move
+    /// Convert an ASCII string to a UTF8 string.
+    public fun from_ascii(s: ascii::String): String {
+        String { bytes: ascii::into_bytes(s) }
+    }
+
+	/// Convert a UTF8 string to an ASCII string.
+    /// if "s" is not a valid ASCII, abort
+    public fun to_ascii(s: String): ascii::String {
+        let String { bytes } = s;
+        ascii::string(bytes)
+    }
+```

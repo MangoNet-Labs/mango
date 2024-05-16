@@ -1,0 +1,98 @@
+---
+title: Validator
+---
+
+MGO CLI `validator` provides command-line access to the validator functions of the Mango network.
+
+## Commands
+
+The following list details all the available sub-commands for the MGO move command.
+
+```bash
+Validator and validator candidate tools
+
+Usage: mgo.exe validator [options] [command]
+
+Commands:
+  make-validator-info                Create validator information
+  become-candidate                   Become a candidate
+  join-committee                     Join the committee
+  leave-committee                    Leave the committee
+  display-metadata                   Display metadata
+  update-metadata                    Update metadata
+  update-gas-price                   Update the gas price used to calculate the reference gas price
+  report-validator                   Report or unreport a validator
+  serialize-payload-pop              Serialize payload for generating proof of possession. Useful for offline processing of a payload for Authority protocol key pair signing
+  display-gas-price-update-raw-txn   Print out the serialized data of a transaction setting the validator's gas price quote
+  help                               Print this message or the help information of a given sub-command
+
+Options:
+      --client.config <CONFIG>   Set the file that stores our user account state (if missing, an empty file will be created)
+      --json                     Return command output in JSON format
+  -y, --yes
+  -h, --help                     Print help
+  -V, --version                  Print version
+```
+
+## Demonstration Example
+
+### Retrieve information for a specified validator
+
+```bash
+$ mgo validator display-metadata 0x1f1aa1825e0af5f00492879d401745fe0804b3635ee5009c4e0d7b01a323b18d
+0x1f1aa1825e0af5f00492879d401745fe0804b3635ee5009c4e0d7b01a323b18d's valdiator status: Active
+MgoValidatorSummary {
+    mgo_address: 0x1f1aa1825e0af5f00492879d401745fe0804b3635ee5009c4e0d7b01a323b18d,
+    protocol_pubkey_bytes: [...],
+    network_pubkey_bytes: [...],
+    worker_pubkey_bytes: [...],
+    proof_of_possession_bytes: [...],
+    name: "validator-1",
+    description: "",
+    image_url: "",
+    project_url: "",
+    net_address: "/dns/validator2.devnet.mangonetwork.io/tcp/8080/http",
+    p2p_address: "/dns/validator2.devnet.mangonetwork.io/udp/8084/http",
+    primary_address: "/dns/validator2.devnet.mangonetwork.io/udp/8081/http",
+    worker_address: "/dns/validator2.devnet.mangonetwork.io/udp/8082/http",
+    next_epoch_protocol_pubkey_bytes: None,
+    next_epoch_proof_of_possession: None,
+    next_epoch_network_pubkey_bytes: None,
+    next_epoch_worker_pubkey_bytes: None,
+    next_epoch_net_address: None,
+    next_epoch_p2p_address: None,
+    next_epoch_primary_address: None,
+    next_epoch_worker_address: None,
+    voting_power: 2500,
+    operation_cap_id: 0x68e10cc033945a5d5402a58cb053988d5d7f33bf4e40317ad8b6b91d24a60286,
+    gas_price: 1000,
+    commission_rate: 200,
+    next_epoch_stake: 41977843056173942,
+    next_epoch_gas_price: 1000,
+    next_epoch_commission_rate: 200,
+    staking_pool_id: 0x7fdef414526f17cacca70378b8500e3e3491938e4e5551e24325a2a09469b11d,
+    staking_pool_activation_epoch: Some(
+        0,
+    ),
+    staking_pool_deactivation_epoch: None,
+    staking_pool_mgo_balance: 41977843056173942,
+    rewards_pool: 21538280307799257,
+    pool_token_balance: 20298087837313756,
+    pending_stake: 0,
+    pending_total_mgo_withdraw: 0,
+    pending_pool_token_withdraw: 0,
+    exchange_rates_id: 0x25422bd6268ab436a99cc5c5fbaf98c5117dae3290799e2c65d77d4f6369b0c2,
+    exchange_rates_size: 723,
+}
+
+```
+
+## JSON Output
+
+Append the --json flag to the command to format the response in JSON, instead of the more human-friendly default MGO CLI output. This can be useful for large datasets, which may display issues on smaller screens.
+
+This is useful for large datasets, where displaying the results on smaller screens might cause issues. In these cases, the --json flag is helpful.
+
+## HELP
+
+Appending --help or -h after certain sub-commands provides detailed information about the relevant parameters.

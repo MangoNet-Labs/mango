@@ -1,0 +1,46 @@
+---
+title: Console
+---
+
+The MGO CLI `console` command provides command-level access to interact with the Mango network by wrapping MGO client CLI commands in a bash-like functionality. This command starts a new process and provides users with an environment to run all available MGO Client CLI commands. Additionally, it offers command history support.
+
+## Commands
+
+The following list enumerates all available subcommands of the MGO console command.
+
+```bash
+Start the Mgo interactive console
+
+Usage: mgo.exe console [options]
+
+Options:
+      --client.config <CONFIG>  Set file to store our user account state (if missing, creates an empty file)
+  -h, --help                    Print help
+  -V, --version                 Print version
+
+```
+
+```bash
+$ mgo console
+
+--- Mgo Console 1.0.0 ---
+
+Managed addresses : 2
+Active address: 0xfd...658
+Keystore Type : File
+Keystore Path : Some("C:\\Users\\user\\.mgo\\mgo_config\\mgo.keystore")
+Active environment : devnet
+RPC URL: https://fullnode.devnet.mangonetwork.io:443
+Connecting to Mgo full node. API version 1.0.0
+
+Available RPC methods: ["mgo_devInspectTransactionBlock", "mgo_dryRunTransactionBlock", "mgo_executeTransactionBlock", "mgo_getChainIdentifier", "mgo_getCheckpoint", "mgo_getCheckpoints", "mgo_getEvents", "mgo_getLatestCheckpointSequenceNumber", "mgo_getLoadedChildObjects", "mgo_getMoveFunctionArgTypes", "mgo_getNormalizedMoveFunction", "mgo_getNormalizedMoveModule", "mgo_getNormalizedMoveModulesByPackage", "mgo_getNormalizedMoveStruct", "mgo_getObject", "mgo_getProtocolConfig", "mgo_getTotalTransactionBlocks", "mgo_getTransactionBlock", "mgo_multiGetObjects", "mgo_multiGetTransactionBlocks", "mgo_tryGetPastObject", "mgo_tryMultiGetPastObjects", "mgox_getAllBalances", "mgox_getAllCoins", "mgox_getBalance", "mgox_getCoinMetadata", "mgox_getCoins", "mgox_getCommitteeInfo", "mgox_getDynamicFieldObject", "mgox_getDynamicFields", "mgox_getLatestMgoSystemState", "mgox_getOwnedObjects", "mgox_getReferenceGasPrice", "mgox_getStakes", "mgox_getStakesByIds", "mgox_getTotalSupply", "mgox_getValidatorsApy", "mgox_queryEvents", "mgox_queryTransactionBlocks", "mgox_resolveNameServiceAddress", "mgox_resolveNameServiceNames", "mgox_subscribeEvent", "mgox_subscribeTransaction", "unsafe_batchTransaction", "unsafe_mergeCoins", "unsafe_moveCall", "unsafe_pay", "unsafe_payAllMgo", "unsafe_payMgo", "unsafe_publish", "unsafe_requestAddStake", "unsafe_requestWithdrawStake", "unsafe_splitCoin", "unsafe_splitCoinEqual", "unsafe_transferMgo", "unsafe_transferObject"]
+
+Welcome to the Mgo interactive console.
+
+mgo>-$
+
+```
+
+## HELP Command
+
+Appending --help or -h after some subcommands can provide information about related parameters.
