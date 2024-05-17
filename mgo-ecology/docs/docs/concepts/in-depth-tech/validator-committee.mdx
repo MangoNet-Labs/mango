@@ -1,0 +1,46 @@
+---
+title: Validator Committee
+---
+
+The validator committee in the Mgo network is composed of a group of independent validators, playing a crucial role in the network. Each validator runs Mgo software instances on their own machine or on a sharded cluster of machines within the same entity. Their primary tasks include handling read and write requests from clients, validating transactions, and updating information on the chain.
+
+## Setting up and Running Validator:
+
+To understand how to set up and run Mgo validator, including the principles of staking and rewards, please refer to Mgo Validator Node Configuration.
+
+## Validator
+
+Validators in the Mgo network run special nodes and take on more tasks and responsibilities than full nodes.
+
+Mgo adopts the Delegated Proof of Stake (DPoS) mechanism to determine which validators operate the network and their voting rights. Validators are incentivized to participate honestly by earning a portion of transaction fees, staking rewards, and by having their staked assets and staking rewards reduced in case of misconduct.
+
+Validator primarily involve the following concepts:
+
+- Stake
+- Global Tallying Rule Score
+
+## Epochs
+
+In Mgo, the state of Mgo is grouped into epochs, which are non-overlapping, roughly fixed durations (approximately 24 hours) of time. In each epoch, the set of validators and their voting rights in the validator set are fixed, and only at the end of each epoch will there be a reconfiguration, changing the validator set and voting rights based on the current situation (although there may be no changes before and after the epoch). At the beginning of each epoch, a new instance of the Mgo protocol is reconfigured, with the final state of the previous epoch as the initial state of the new epoch, and validators and their voting rights are determined based on the Delegated Proof of Stake (DPoS) mechanism. The global tallying rule score at the epoch boundary is calculated to ensure that everyone can operate efficiently and in the best interest of the network. Validators with low scores may be penalized by reducing their staking rewards. The new validator set becomes the operator of the new epoch.
+
+## Quorum
+
+A quorum is a set of validators whose combined voting power is greater than the total voting power within a specific period. When the size of the quorum exceeds 2/3, Byzantine Fault Tolerance (BFT) is ensured. Only when transactions are accompanied by cryptographic signatures from the quorum, validators will submit transactions. Mgo refers to the combination of transactions and cryptographic signatures from the quorum on their bytes as certificates. The policy of only submitting certificates ensures Byzantine Fault Tolerance: if >2/3 of validators faithfully follow the protocol, they will eventually reach consensus, meaning the submitted set of certificates and their effects are consistent.
+
+## Transactions and Certificates
+
+In the Mgo network, transactions and certificates are two important request types. Transactions are sent by clients to a quorum of validators to collect signatures required to form certificates. Upon receiving a transaction, each validator first performs a validity check to ensure the sender's signature is valid. By signing the transaction bytes and returning them to the client, the validator locks all relevant objects. The client then repeats this process, broadcasting the transaction to multiple validators until the signatures from a quorum are collected, forming a certificate.
+
+Certificates are collections of transactions submitted by clients to validators for state changes to be executed. Validators perform validity checks on certificates to ensure the signer is a validator of the current epoch and the signature is valid cryptographically. Upon validation, validators execute the transactions in the certificate. Execution may succeed, committing all effects, or fail, with no effect other than deducting the gas input from the transaction. Validators persist valid certificates, indexed by the hash of internal transactions.
+
+Once clients collect signatures from a quorum, they can confirm the finality of transactions. This means transaction effects persist in the shared database and are practically committed and visible to everyone when the period ends. Clients can parallelize the process of sharing certificates with validators and outsource it to third-party service providers. Ultimately, this allows the Mgo network to process a large number of transactions in parallel orderings, ensuring high throughput and efficient state updates.
+
+## Narwhal and Bullshark
+
+Narwhal and Bullshark play important roles in the Mgo network, together forming the memory pool and consensus engine of the network.
+
+Narwhal manages the memory pool of transactions by batching and proposing them simultaneously to blocks for efficient transaction processing. It allows transactions to be batched and processed concurrently, improving network processing efficiency and throughput.
+
+Bullshark defines the algorithm for executing transaction blocks forming a Directed Acyclic Graph (DAG) in the Mgo network and implements a high-throughput consensus mechanism based on DAG.
+
+Through collaboration, Narwhal and Bullshark ensure the stable operation of the Mgo network, effectively process transactions, and maintain the security and validity of the blockchain. They are critical technical components in the Mgo network, providing essential support for the network's normal operation and development.

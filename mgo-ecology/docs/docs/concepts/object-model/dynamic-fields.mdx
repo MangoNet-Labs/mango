@@ -1,0 +1,133 @@
+---
+title: Dynamic Fields
+---
+
+Storing data using object fields has some limitations:
+
+- The number of fields is fixed at the time of contract deployment (limited to the fields declared within a struct).
+- If an object encapsulates other objects, the space occupied by the object becomes significantly large, consuming more Gas in transactions, and there is an upper limit to the size of the object.
+- In some cases, there is a need to store collections of objects of heterogeneous types, while vector types only support instantiation of a single type.
+
+To address these issues, Mango provides dynamic fields that can be dynamically added or removed. Gas is only consumed when these fields are accessed, and they can store data of heterogeneous types.
+
+Dynamic fields have two subtypes:
+
+- **Dynamic Fields**: Can store any value with `store` capability. Objects stored in these fields are considered wrapped objects. For example, a global object with key capability nested inside another structure cannot be directly accessed through external tools (browsers, wallets, etc.) to access the stored ID.
+- **Dynamic Object Fields**: The value must be a Mango object (with `key` and `store` capabilities, and `id: UID` as the first field) but can still be directly accessed through their object ID.
+
+## Adding Dynamic Fields
+
+The following methods can be called to add dynamic fields:
+
+```rust
+module mgo::dynamic_field {
+
+	public fun add<Name: copy + drop + store, Value: store>(
+	  object: &mut UID,
+	  name: Name,
+	  value: Value,
+	);
+
+}
+
+module mgo::dynamic_object_field {
+
+	public fun add<Name: copy + drop + store, Value: key + store>(
+	  object: &mut UID,
+	  name: Name,
+	  value: Value,
+	);
+
+}
+```
+
+The following code demonstrates how to add a `child` object as a dynamic field of `parent`:
+
+```rust
+use mgo::dynamic_object_field as ofield;
+
+struct Parent has key {
+    id: UID,
+}
+
+struct Child has key, store {
+    id: UID,
+    counts: u64,
+}
+
+public fun add_child(parent: &mut Parent, child: Child) {
+    ofield::add(&mut parent.id, b"child", child);
+}
+```
+
+## Access to dynamic fields
+
+Dynamic fields can be read or accessed as follows:
+
+```rust
+module mgo::dynamic_field {
+
+	public fun borrow<Name: copy + drop + store, Value: store>(
+	    object: &UID,
+	    name: Name,
+	): &Value;
+
+	public fun borrow_mut<Name: copy + drop + store, Value: store>(
+	    object: &mut UID,
+	    name: Name,
+	): &mut Value;
+
+}
+```
+
+The following code demonstrates how to modify the `child` dynamic field of `parent`:
+
+```rust
+use mgo::dynamic_object_field as ofield;
+
+public fun update_child(child: &mut Child) {
+    child.counts= child.counts + 1;
+}
+
+public fun update_child_via_parent(parent: &mut Parent) {
+    mutate_child(ofield::borrow_mut(
+        &mut parent.id,
+        b"child",
+    ));
+}
+```
+
+## Delete Fields
+
+Dynamic fields can be deleted as follows:
+
+```rust
+module mgo::dynamic_field {
+
+public fun remove<Name: copy + drop + store, Value: store>(
+    object: &mut UID,
+    name: Name,
+): Value;
+
+}
+```
+
+The following code demonstrates how to remove the `child` dynamic field from `parent`:
+
+```rust
+use mgo::dynamic_object_field as ofield;
+use mgo::{object, transfer, tx_context};
+use mgo::tx_context::TxContext;
+
+public fun delete_child(parent: &mut Parent) {
+    let Child { id, count: _ } = get_child(parent);
+    object::delete(id);
+}
+
+public fun get_child(parent: &mut Parent, ctx: &mut TxContext): Child {
+    ofield::remove(
+        &mut parent.id,
+        b"child",
+    );
+}
+```

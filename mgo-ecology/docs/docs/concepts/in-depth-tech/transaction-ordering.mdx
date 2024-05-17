@@ -1,0 +1,37 @@
+---
+title: Transaction Ordering
+---
+
+In blockchain technology, transaction ordering is a critical task that determines the execution sequence of transactions, directly impacting the system's performance and efficiency. Traditional blockchain platforms typically employ a sequential execution model, where only one transaction can be processed at a time, leading to network congestion and performance degradation under high loads. Mgo overcomes these limitations by introducing parallel processing, achieving efficient transaction ordering and execution.
+
+Mgo utilizes parallel processing technology, allowing multiple transactions to be processed simultaneously, improving system scalability and throughput. By leveraging multiple computing resources, Mgo dynamically allocates more computational power during periods of high demand, thus reducing transaction latency and congestion.
+
+## Mgo Transactions
+
+### Independent Transactions
+
+These transactions are independent of each other, with no causal or dependency relationships. In other words, the execution of one independent transaction does not affect the execution of another independent transaction. In Mgo, independent transactions can be processed in parallel because there are no sequencing requirements between them. This type of transaction typically involves simple asset transfers, payments, or smart contract executions unrelated to shared objects.
+
+### Dependent Transactions
+
+Contrary to independent transactions, dependent transactions have causal or dependency relationships between them. In other words, the execution of one transaction may affect the execution of another transaction because they share the same objects or state. Dependent transactions are ordered and executed based on their causal relationships to ensure the correct execution sequence of transactions. This type of transaction typically involves complex smart contracts, asset transfers involving shared objects, or state changes.
+
+## Object-Based Transaction Ordering
+
+The object-based data model is one of the key features of the Mgo blockchain, crucial for achieving parallel processing and transaction ordering.
+In Mgo, each piece of data involved in a transaction is treated as an object. These objects can be digital assets, smart contracts, user accounts, etc. Each object has a globally unique identifier, i.e., the object's ID. For example, a digital asset can be viewed as an object with a unique ID used to identify ownership and status of the asset.
+Each object has an owner, who is either the creator or the current owner of the object. The owner is identified by an address, which can be a user's public key or another unique identifier. By the address, the owner of each object can be determined, and ownership changes of objects can be tracked.
+Each transaction involves a set of objects, which can be either inputs or outputs of the transaction. Input objects represent the state before the transaction execution, while output objects represent the state after the transaction execution. Transactions can create, destroy, update, or transfer objects, thereby changing the state and ownership of objects.
+
+### Parallel Transaction Execution
+
+Mgo's parallel processing and transaction ordering rely on causal relationships between transactions. This means that if one transaction produces an object, and another transaction depends on the state or outcome of this object, there exists a causal relationship between these two transactions. By explicitly declaring the causal relationships between transactions, Mgo achieves parallel processing and ordering of transactions.
+
+The object-based data model allows Mgo to achieve parallel processing of transactions without involving shared objects. This means that if two transactions involve objects that are not dependent on each other, they can be verified and executed simultaneously, thereby improving system efficiency and performance.
+Mgo uses the Byzantine fault-tolerant consensus protocol for parallel transactions, eliminating the cost of global consensus while ensuring safety and liveness.
+
+### Transaction Execution via Consensus
+
+In Mgo, executing transactions via consensus involves a series of steps and mechanisms to ensure transactions are correctly processed and confirmed by validating nodes in the network.
+For complex transactions involving shared objects, Mgo utilizes the state-of-the-art Bullshark consensus protocol to ensure consensus on transaction ordering. In the Bullshark consensus, validating nodes agree on the order of transactions based on specific protocols and rules, ensuring system consistency and security. This ensures that even in the presence of malicious or faulty nodes, the system remains stable and consistent.
+Once transactions achieve the correct order through consensus and pass all necessary validations and checks, they are confirmed and included in blocks. This means that the transactions have been successfully accepted and processed by the network, and have impacted the global state.

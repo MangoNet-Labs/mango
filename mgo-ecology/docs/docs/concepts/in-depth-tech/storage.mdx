@@ -1,0 +1,68 @@
+---
+title: Storage
+---
+
+The database used for storage is RocksDB.
+
+RocksDB is an embedded key-value storage engine written in C++, where both keys and values can be binary streams. Developed by Facebook based on LevelDB, it provides backward-compatible LevelDB API.
+
+Storage mainly consists of two parts:
+1. Transaction Data
+2. Consensus Data
+
+## Transaction Data
+
+Each validator node initializes the data file storage location based on the `db_path` parameter in the node configuration file. It initializes the database operation object using the default database configuration. There are mainly four objects:
+1. `CommitteeStore`: Stores the mapping of each epoch ID to committee information.
+2. `AuthorityPerpetualTables`: Contains data for each epoch and main chain data.
+3. `ExecutionCache`
+4. `CheckpointStore`
+
+### Main Data Tables
+
+| Table Name              | Purpose                   |
+|-------------------------|---------------------------|
+| OBJECTS_BLOCK_CACHE_MB  | Object block storage      |
+| TRANSACTIONS_BLOCK_CACHE_MB | Transaction block storage |
+| EFFECTS_BLOCK_CACHE_MB  | Transaction effect mapping|
+| EVENTS_BLOCK_CACHE_MB   | Event storage             |
+| INDIRECT_OBJECTS_BLOCK_CACHE_MB | Move object storage|
+
+### Data Storage
+
+#### Initialization / Recovery
+
+If there is data in the database, the node state is restored based on the data.
+
+#### Transactions
+
+After the transaction is checked and confirmed, it gets the RocksDB operation object through `AuthorityPerpetualTables`. The processed content of the transaction is then submitted to the RocksDB transaction and finally executed to complete the data storage.
+
+## Consensus Data
+
+Consensus data mainly consists of the following three objects.
+1. `CertificateStore`: Responsible for storing DAG certificate data.
+2. `ConsensusStore`: Stores current consensus data.
+3. `RandomnessStore`: Stores the final vote digest of each authority.
+
+### Main Data Tables
+
+| Table Name   | Purpose                                   |
+|--------------|-------------------------------------------|
+| certificates | Mapping of CertificateDigest to Certificate, saving certificates by digest ID |
+| last_committed | Latest round committed by each validator |
+| committed_sub_dag | Global consensus sequence |
+
+### Data Storage
+
+#### Certificates
+
+Whenever a certificate is received, the data in `CertificateStore` is updated, and the latest certificate is written to it.
+
+#### Consensus Progression
+
+When a certain amount of certificates is received, the consensus round is progressed. `ConsensusStore` stores the data of the new round. The purpose of storing this data is to ensure that the consensus state can be recovered through `ConsensusStore` in case of system crash.
+
+#### DKG
+
+Whenever the consensus round is updated, the state of `Randomness` is pushed forward, and the corresponding data in `RandomnessStore` is updated.

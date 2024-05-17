@@ -1,0 +1,58 @@
+---
+title: Overview
+---
+
+Move is an open-source language for writing smart contracts. You can use Move to define, create, and manage programmable Mango objects. Mango has added new features to Move and introduced additional constraints to enhance and optimize the capabilities of Move. Mango significantly increases throughput and reduces the latency of transactions.
+
+## Features
+
+Move on Mango has the following features:
+
+- Mango utilizes object-centric global storage.
+- Mango addresses represent object identities.
+- Mango objects have globally unique IDs.
+- Mango includes module initializers (init).
+- Mango uses the entry function modifier to decorate functions as inputs.
+
+## Object-Centric Global Storage
+
+Each object has a unique identifier. Objects must have an owner or be made public. If an object is owned by a single owner, transactions involving that object can be executed in parallel with other transactions that do not share common objects, without the need for consensus. The blockchain can parallelly schedule non-overlapping transactions, greatly increasing throughput.
+
+## Address Represents Object Identity
+
+Mango does not have Diem's global storage; therefore, `address` is repurposed as a 32-byte identifier for objects and accounts. Each transaction is signed by an account ("sender"), which can be accessed from the transaction context, and each object stores its `address` in its `id: UID` field.
+
+## Globally Unique ID
+
+In Mango, types with key capability are object types, and the first field must be a UID type id field, representing the object's unique address on the chain. Mango's underlying bytecode verifier ensures that UID identifiers are never reused.
+
+## Initialization Function init
+
+Init is a reserved function that is called upon module publication and will never be called again thereafter. It can take `&mut TxContext` or `TxContext` as the last parameter and a one-time witness (optional) as the first parameter. It is used as follows:
+
+```move
+fun init(ctx: &TxContext) { /* ... */ }
+
+fun init(ctx: &mut TxContext) { /* ... */ }
+
+fun init(otw: OTW, ctx: &mut TxContext) { /* ... */ }
+
+fun init(otw: OTW, ctx: &mut TxContext) { /* ... */ }
+```
+
+## Entry Function
+
+The parameters of an `entry` function must be transactional blocks, rather than the results of previous transactions within those blocks, nor can they be modified by previous transactions within the blocks. Additionally, `entry` functions are only allowed to return types that have the `drop` capability. This prevents third parties from calling functions from other modules.
+
+For example, if a swap protocol only exposes an `entry` function to execute swaps, it would not be possible to pass a `Coin` from a flash loan as a parameter to the swap method of the swap protocol, because that coin would be the output of some previous transaction.
+
+### Special Concepts in Mango Move
+
+### One-Time Witness (OTW)
+
+In Mango Move, a type is considered an OTW type if it has the following attributes:
+
+- The module name is in uppercase (underscores are retained if present).
+- It has only the `drop` capability.
+
+A One-Time Witness (OTW) is a special type that is created only within initialization functions and exists as a singular instance. It is used during one-time operations. The `mgo::types::is_one_time_witness(witness)` method can be used to check if an instance is of the OTW type.

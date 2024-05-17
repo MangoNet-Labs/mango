@@ -1,0 +1,238 @@
+---
+title: Client
+---
+
+The MGO CLI `client` command provides command-level access to interact with the Mango network. The main uses of `mgo client` include deploying Move smart contracts, retrieving object information, executing transactions, or managing addresses.
+
+## Commands
+
+The following list enumerates all available subcommands of the MGO client command.
+
+```bash
+Client for interacting with the Mango network
+
+Usage: mgo.exe client [options] [command]
+
+Commands:
+  active-address              Default address used when none is specified
+  active-env                  Default environment used when none is specified
+  addresses                   Get addresses managed by the client
+  call                        Call a Move function
+  chain-identifier            Query chain identifier from rpc endpoint
+  dynamic-field               Query dynamic field by address
+  envs                        List all Mgo environments
+  execute-signed-tx           Execute a signed transaction. This is useful when the user wants to sign elsewhere and execute with this command
+  execute-combined-signed-tx  Execute combined serialized sender signed data string
+  faucet                      Request gas coins from faucet. By default, it will use the active address and active network
+  gas                         Get all gas objects owned by an address. Alias of the address can be used instead of address
+  merge-coin                  Merge two coin objects into one coin
+  new-address                 Generate a new address and keypair with keypair scheme flag {ed25519 | secp256k1 | secp256r1}, with an optional derivation path, defaulting to m/44'/784'/0'/0'/0' for ed25519 or m/54'/784'/0'/0/0 for secp256k1 or m/74'/784'/0'/0/0 for secp256r1. Word length can be {word12 | word15 | word18 | word21 | word24}, defaulting to word12 if not specified
+  new-env                     Add new Mgo environment
+  object                      Get object information
+  objects                     Get all objects owned by an address. It also accepts alias of address
+  pay                         Pay specified amount of coins to specified recipient using input coins. The recipient length must match the amount
+  pay-all-mgo                 Pay all remaining MGO coins to recipient using input coins, after deducting gas cost. Input coins also include the coin used for paying gas, hence no extra gas coin needed
+  pay-mgo                     Pay specified amount of MGO coins to specified recipient using input coins. The recipient length must match the amount. Input coins also include the coin used for paying gas, hence no extra gas coin needed
+  publish                     Publish Move module
+  split-coin                  Split one coin object into multiple coins
+  switch                      Switch active address and network (e.g., devnet, local rpc server)
+  tx-block                    Get effects of executing given transaction block
+  transfer                    Transfer object
+  transfer-mgo                Transfer MGO and pay gas with the same MGO coin object. If amount is specified, only that amount will be transferred; otherwise, the whole object will be transferred
+  upgrade                     Upgrade Move module
+  verify-bytecode-meter       Run bytecode verifier on package
+  verify-source               Verify local Move package against on-chain package and optional dependencies
+  profile-transaction         Analyze gas usage of transactions. Outputs a file `gas_profile_{tx_digest}_{unix_timestamp}.json` unless output file path is not specified, which can be opened in flame graph tools like speedscope
+  replay-transaction          Replay given transaction to see effects. Set environment variable MOVE_VM_STEP=1 for debugging
+  replay-batch                Replay transactions listed in file
+  replay-checkpoint           Replay all transactions in a checkpoint
+  help                        Print this message or the help of the given subcommand
+
+Options:
+      --client.config <CONFIG>  Set file to store our user account state (if missing, creates an empty file)
+      --json                    Return command output in json format
+  -y, --yes
+  -h, --help                    Print help
+  -V, --version                 Print version
+
+```
+
+## Demo Example
+
+### Get Current Active Address
+
+```
+$ mgo client active-address
+0xfd...658
+```
+
+### Get Current Default Environment
+
+```bash
+$ mgo client active-env
+devnet
+```
+
+### Get List of Addresses Managed by the Client
+
+```bash
+$ mgo client addresses
+╭───────────────────────┬────────────────────────────────────────────────────────────────────┬────────────────╮
+│ alias                 │ address                                                            │ active address │
+├───────────────────────┼────────────────────────────────────────────────────────────────────┼────────────────┤
+│ peaceful-ruby         │ 0xfd...658                                                         │ *              │
+╰───────────────────────┴────────────────────────────────────────────────────────────────────┴────────────────╯
+```
+
+### Query Chain Identifier from RPC Endpoint
+
+```bash
+$ mgo client chain-identifier
+5a1d524c
+```
+
+### Get Detailed Information of Dynamic Fields for the Provided ID
+
+```bash
+$ mgo client dynamic-field 0x5
+╭─────────────┬───────────────────────────────────────────────────────────────────────────────────────────╮
+│ hasNextPage │  false                                                                                    │
+│ nextCursor  │  0x5b890eaf2abcfa2ab90b77b8e6f3d5d8609586c3e583baf3dccd5af17edf48d1                       │
+│ data        │ ╭───────────────────────────────────────────────────────────────────────────────────────╮ │
+│             │ │ ╭────────────┬──────────────────────────────────────────────────────────────────────╮ │ │
+│             │ │ │ name       │ ╭───────┬───────╮                                                    │ │ │
+│             │ │ │            │ │ type  │  u64  │                                                    │ │ │
+│             │ │ │            │ │ value │  2    │                                                    │ │ │
+│             │ │ │            │ ╰───────┴───────╯                                                    │ │ │
+│             │ │ │ bcsName    │  LQM2cdzDY3                                                          │ │ │
+│             │ │ │ type       │  DynamicField                                                        │ │ │
+│             │ │ │ objectType │  0x3::mgo_system_state_inner::MgoSystemStateInnerV2                  │ │ │
+│             │ │ │ objectId   │  0x5b890eaf2abcfa2ab90b77b8e6f3d5d8609586c3e583baf3dccd5af17edf48d1  │ │ │
+│             │ │ │ version    │  2513787                                                             │ │ │
+│             │ │ │ digest     │  BJ1jF6q3eAk8TNeNBbKnYrGqaV1jv49umxxejy2Ntf7w                        │ │ │
+│             │ │ ╰────────────┴──────────────────────────────────────────────────────────────────────╯ │ │
+│             │ ╰───────────────────────────────────────────────────────────────────────────────────────╯ │
+╰─────────────┴───────────────────────────────────────────────────────────────────────────────────────────╯
+
+```
+
+### List All MGO Environments
+
+```bash
+$ mgo client envs
+╭────────┬─────────────────────────────────────────────┬────────╮
+│ alias  │ url                                         │ active │
+├────────┼─────────────────────────────────────────────┼────────┤
+│ devnet │ https://fullnode.devnet.mangonetwork.io:443 │ *      │
+╰────────┴─────────────────────────────────────────────┴────────╯
+
+```
+
+### Create New Address
+
+Optional Parameters ed25519 | secp256k1 | secp256r1
+
+```bash
+$  mgo client new-address ed25519
+Keys saved as Base64 with 33 bytes `flag || privkey` ($BASE64_STR).
+        To see Bech32 format encoding, use `mgo keytool export $MGO_ADDRESS` where
+        $MGO_ADDRESS can be found with `mgo keytool list`. Or use `mgo keytool convert $BASE64_STR`.
+╭───────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Created new keypair and saved it to keystore.                                                         │
+├────────────────┬──────────────────────────────────────────────────────────────────────────────────────┤
+│ alias          │ nifty-turquois                                                                       │
+│ address        │ 0x72...de                                                                            │
+│ keyScheme      │ ed25519                                                                              │
+│ recoveryPhrase │ prefer pumpkin unknown juice normal mistake indicate copper defy extend cement rigid │
+╰────────────────┴──────────────────────────────────────────────────────────────────────────────────────╯
+
+```
+
+### Create New Environment
+
+```bash
+$ mgo client new-env --alias test --rpc  https://fullnode.devnet.mangonetwork.io:443
+Added new Mgo env [test] to config.
+```
+
+### Get Object Information
+
+```bash
+$ mgo client object 0x5
+╭───────────────┬─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ objectId      │  0x0000000000000000000000000000000000000000000000000000000000000005                                                 │
+│ version       │  2513787                                                                                                            │
+│ digest        │  AzgQjrRz5Q2n6EcARiTyWpBuZ2pBESswytS5csJHbYj                                                                        │
+│ objType       │  0x3::mgo_system::MgoSystemState                                                                                    │
+│ owner         │ ╭────────┬──────────────────────────────────╮                                                                       │
+│               │ │ Shared │ ╭────────────────────────┬─────╮ │                                                                       │
+│               │ │        │ │ initial_shared_version │  1  │ │                                                                       │
+│               │ │        │ ╰────────────────────────┴─────╯ │                                                                       │
+│               │ ╰────────┴──────────────────────────────────╯                                                                       │
+│ prevTx        │  2DNomSRME8ebM6emkARFTs7ktptC2PGNYjNZ5NFGiMKX                                                                       │
+│ storageRebate │  31973200                                                                                                           │
+│ content       │ ╭───────────────────┬─────────────────────────────────────────────────────────────────────────────────────────────╮ │
+│               │ │ dataType          │  moveObject                                                                                 │ │
+│               │ │ type              │  0x3::mgo_system::MgoSystemState                                                            │ │
+│               │ │ hasPublicTransfer │  false                                                                                      │ │
+│               │ │ fields            │ ╭─────────┬───────────────────────────────────────────────────────────────────────────────╮ │ │
+│               │ │                   │ │ id      │ ╭────┬──────────────────────────────────────────────────────────────────────╮ │ │ │
+│               │ │                   │ │         │ │ id │  0x0000000000000000000000000000000000000000000000000000000000000005  │ │ │ │
+│               │ │                   │ │         │ ╰────┴──────────────────────────────────────────────────────────────────────╯ │ │ │
+│               │ │                   │ │ version │  2                                                                            │ │ │
+│               │ │                   │ ╰─────────┴───────────────────────────────────────────────────────────────────────────────╯ │ │
+│               │ ╰───────────────────┴─────────────────────────────────────────────────────────────────────────────────────────────╯ │
+╰───────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+```
+
+### Get All Object Information for an Address
+
+```bash
+mgo client objects 0x11...7hu
+╭───────────────────────────────────────────────────────────────────────────────────────╮
+│ ╭────────────┬──────────────────────────────────────────────────────────────────────╮ │
+│ │ objectId   │  0x20...4b4                                                          │ │
+│ │ version    │  2513692                                                             │ │
+│ │ digest     │  x6...8U=                                                            │ │
+│ │ objectType │  0x0000..0002::coin::Coin                                            │ │
+│ ╰────────────┴──────────────────────────────────────────────────────────────────────╯ │
+╰───────────────────────────────────────────────────────────────────────────────────────╯
+
+```
+
+### Publish Move Package
+
+#### Select Publishing Environment
+
+```bash
+$ mgo client switch --env devnet
+```
+
+#### Get Test Coins
+
+```bash
+$ mgo client faucet
+```
+
+#### Check if Owns Enough Gas Coins for Payment
+
+```bash
+$ mgo client gas
+```
+
+#### Publish Move Project
+
+Enter the root directory of the Move project.
+
+```bash
+$ mgo client publish . --gas-budget 100000000
+```
+
+## JSON Output
+
+Append the --json flag after the command to format the response as JSON instead of the more human-readable default MGO CLI output. This is useful for extremely large datasets where displaying these results on a smaller screen may be problematic.
+
+## HELP Command
+
+Appending --help or -h after some subcommands can provide information about related parameters.
