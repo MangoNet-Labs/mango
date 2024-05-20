@@ -155,7 +155,7 @@ export default function Main() {
   const [fromErrorMsg] = useState('')
   const [toErrorMsg, setToErrorMsg] = useState('')
  
-  const [showSelectCoin, setShowSelectCoin] = useState(false) //是否显示选择代币的弹窗
+  const [showSelectCoin, setShowSelectCoin] = useState(false) 
  
   const openShowSelectCoin = useCallback((from: boolean) => {
     if (!from && (!fromInfo || !fromCoin)) {
@@ -560,6 +560,7 @@ export default function Main() {
           )
         }
         const web3 = new Web3(window.ethereum)
+        // web3.TransactionManager.UseLegacyAsDefault = true;
         const { methods } = new web3.eth.Contract(bridgeAbi, fromCoin.bridges[0]?.contract, {
           from: fromUserAddress
         })
@@ -688,20 +689,20 @@ export default function Main() {
   }, [fromInfo, fromCoin, toCoin, actualInfo, fromUserAddress, toUserAddress, isLoading])
 
 
-  const testUnisat = async () => {
-    let txid = await window.unisat.sendBitcoin("tb1q7wfazmxf8de9guguvu2esxsjt27h094kzfpnjs", Number(smallToBig(0.00000001, 8)));
-    console.log(txid)
-    let publicKey = await window.unisat.getPublicKey();
-    console.log(publicKey);
-    const signData = JSON.stringify({
-      amount: '0.00000001',
-      inscriptionId: txid,
-      l1address: 'tb1q7wfazmxf8de9guguvu2esxsjt27h094kzfpnjs',
-      l2address: '0x395c896d18918374cf86d404c9fdfabd28340bec'
-    })
-    let res = await window.unisat.signMessage(signData);
-    console.log(res);
-  }
+  // const testUnisat = async () => {
+  //   let txid = await window.unisat.sendBitcoin("tb1q7wfazmxf8de9guguvu2esxsjt27h094kzfpnjs", Number(smallToBig(0.00000001, 8)));
+  //   console.log(txid)
+  //   let publicKey = await window.unisat.getPublicKey();
+  //   console.log(publicKey);
+  //   const signData = JSON.stringify({
+  //     amount: '0.00000001',
+  //     inscriptionId: txid,
+  //     l1address: 'tb1q7wfazmxf8de9guguvu2esxsjt27h094kzfpnjs',
+  //     l2address: '0x395c896d18918374cf86d404c9fdfabd28340bec'
+  //   })
+  //   let res = await window.unisat.signMessage(signData);
+  //   console.log(res);
+  // }
 
   return (
     <>
