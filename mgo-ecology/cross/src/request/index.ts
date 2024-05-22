@@ -16,11 +16,9 @@ const instance = axios.create({
   }
 })
 
-// 请求拦截器
 instance.interceptors.request.use(
   config => {
-    // 每次发送请求之前判断是否存在token，如果存在，则统一在http请求的header都加上token，不用每次请求都手动添加了
-    // 即使本地存在token，也有可能token是过期的，所以在响应拦截器中要对返回状态进行判断
+    
     const token = localStorage.getItem('mgoswap:token');
     token && (config.headers.token = token);
     return config;
@@ -30,22 +28,21 @@ instance.interceptors.request.use(
   }
 )
 
-// 响应拦截器
+
 instance.interceptors.response.use(
   response => {
-    if (response.status === 200) {
+    if (response.status === 200 || response.status === 201) {
       return Promise.resolve(response.data);
     } else {
       Toast.show({ content: response.data.msg })
       return Promise.reject(response.data);
     }
   },
-  // 服务器状态码不是200的情况    
+ 
   error => {
     if (error.response.status) {
       switch (error.response.status) {
         case 401:
-          //未登录
           Toast.show({ content: error.response.data.msg })
           localStorage.removeItem('mgoswap:token')
           break;
