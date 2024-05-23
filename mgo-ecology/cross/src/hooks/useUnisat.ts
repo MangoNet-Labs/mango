@@ -26,9 +26,8 @@ export function useUniSat() {
     const coinInfo = coinList[0]
     let ba = await window.unisat.getBalance();
     const bba = ba.confirmed
-    const res = getPointSix(bigToSmallFixed0(bba.toString(), coinInfo.decimals), coinInfo.decimals > 6 ? 6 : coinInfo.decimals) //处理精度后的余额
+    const res = getPointSix(bigToSmallFixed0(bba.toString(), coinInfo.decimals), coinInfo.decimals > 6 ? 6 : coinInfo.decimals)
     coinInfo.balance = res
-    console.log(coinInfo);
     return [coinInfo]
   }
 

@@ -98,17 +98,18 @@ export function useWeb3Js() {
   }
   async function allowQuota(quota: string, contract_from: string, user_address: string, contract_to: string) {
     const web3 = new Web3(window.ethereum)
-    let f_max_num = new BigNumber(2).pow(256).minus(1);
+    let f_max_num = new BigNumber(10).pow(6 + decimals);
     const max_num = f_max_num.toString(16)
     const contract_proto = new web3.eth.Contract(token20_abi, contract_from, {
       from: user_address
     });
     const isAllowance: any = await contract_proto.methods.allowance(user_address, contract_to).call();
-    console.log(isAllowance);
     if (new BigNumber(isAllowance).gte(quota)) {
       return true
     } else {
-      await contract_proto.methods.approve(contract_to, '0x' + max_num).send()
+      await contract_proto.methods.approve(contract_to, '0x' + max_num).send({
+        type: "0x0"
+      })
       const isAllowance: any = await contract_proto.methods.allowance(user_address, contract_to).call();
       if (new BigNumber(isAllowance).gte(quota)) {
         return true
