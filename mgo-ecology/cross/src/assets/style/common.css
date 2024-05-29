@@ -1,0 +1,32 @@
+.adm-popover-inner {
+  background-color: var(--colors-555555);
+}
+
+.adm-popover .adm-popover-arrow {
+  color: var(--colors-555555);
+}
+
+.adm-popover-menu-item {
+  padding-left: 0;
+}
+
+.adm-popover-menu-item-text {
+  padding: 14px 20px;
+  border-top: 1px solid var(--colors-555555);
+}
+
+.adm-popover-menu-item-text:hover {
+  background-color: #ffffff0C;
+}
+
+.adm-popover {
+  color: var(--colors-FFFFFF);
+}
+
+.adm-popover-menu-item:active:not(.adm-popover-menu-item-disabled) {
+  background-color: #ffffff0C;
+}
+
+.break {
+  word-break: break-all;
+}
