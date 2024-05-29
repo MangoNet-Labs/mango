@@ -1,0 +1,124 @@
+---
+title: Gas Calculate
+---
+
+Mango transactions must pay the cost of the computation performed and the cost of long-term storage of the objects created or modified in the transaction. Specifically, any transaction pays the following Gas fees:
+
+$$
+TotalGasFees[\tau] \ = \ ComputationUnits[\tau] \times ReferenceGasPrice[\tau] \ + \ StorageUnits[\tau] \times StoragePrice
+$$
+
+Although computation and storage costs are separate, they are conceptually similar because they both convert computation or storage to MGOs by multiplying the computation unit $ComputationUnits[τ]$ or the storage unit $StorageUnits[\tau]$ by the relevant price.
+
+Finally, the Mango Storage mechanism provides a storage fee rebate whenever a transaction deletes a previously stored object. Therefore, the net fee paid by the user, $PureGasFees[\tau]$, equals the Gas fee $TotalGasFees[\tau]$ minus the storage rebate $StorageRebate[\tau]$ associated with the data deletion:
+
+$$
+PureGasFees[\tau] \ = TotalGasFees[\tau] \ - \ StorageRebate[\tau]
+$$
+
+
+## Parameter description
+
+### Computation Unit
+
+Different Mango transactions require different amounts of computation time to process and execute.Mango translates these different operational loads into transaction costs by measuring each transaction in terms of $ComputationUnits[τ]$. In general, more complex transactions require more ComputationUnits.
+
+The Mango compute Gas is roughly constructed using a bucket approach. If two relatively similar transactions are in the same bucket, they translate into exactly the same number of compute units, while if two relatively different transactions are in different buckets, they translate into different numbers of compute units. The smallest bucket maps to 1,000 compute units, which means that all transactions that fall into the smallest bucket cost 1,000 compute units. The largest bucket maps to 5,000,000 compute units; if the transaction requires more compute units, it will abort. For example, transaction A consumes 500 compute units and transaction B consumes 800 compute units, but both A and B are charged 1,000 compute units according to the bucket policy.
+
+| Lower threshold of the bucket | Upper Barrel Limit | Computation Unit |
+| --- | --- | --- |
+| 0 | 1,000 | 1,000 |
+| 1,001 | 5,000 | 5,000 |
+| 5,001 | 10,000 | 10,000 |
+| 10,001 | 20,000 | 20,000 |
+| 20,001 | 50,000 | 50,000 |
+| 50,001 | 200,000 | 200,000 |
+| 200,001 | 1,000,000 | 1,000,000 |
+| 1,000,001 | 5,000,000 | 5,000,000 |
+| 5,000,001 | Infinite | The transaction will be terminated. |
+
+### Storage Unit
+
+Similarly, Mango transactions vary based on the amount of new data written to the chain's storage. The variable storage unit $StorageUnits[\tau]$ captures these differences by mapping the amount of bytes held in storage to storage units. Current Mango scheduling is linear, mapping each byte to 100 storage units. For example, storing a 25-byte transaction requires 2,500 storage units, while storing a 75-byte transaction requires 7,500 storage units.
+
+### Computation **Prices**
+
+All validators are polled at the beginning of each epoch, and each validator submits its reservation price. That is, each validator specifies the lowest gas price at which they are willing to process a transaction.Protocol ranks these offers and selects the 2/3 percentile of equity as the reference price. The goal of the Gas Price Survey is to set a reference price $ReferenceGasPrice[\tau]$ at which a quorum of Validators would be willing to process the transaction in a timely manner. For example, if there are currently 4 validators and the next epoch is quoted at 1000, 1000, 3000 and 4000 respectively, after calculating: 2/3 * 4 = 2.67, then that means the 3rd place is quoted at 3000, so the next epoch will be priced at 3000.
+
+### **Storage Price**
+
+In contrast to calculating the Gas price, the storage price $StoragePrice$ is fixed and common to all transactions within and across epochs until the storage price is updated. The Storage Price is configured through a uniform Protocol, written to the binary command, and to change it, the Protocol version needs to be upgraded and the verifier needs to upgrade the binary, default is 1, current version is 76.
+
+### Storage Rebate
+
+If you delete data, you will get a partial refund of the storage fee you initially paid $StorageRebate[\tau]$ . The storage fee is intended to cover the cost of storage for the entire data lifecycle. There is no reason to continue charging storage fees after deleting the data, so these fees will be refunded. The fallback percentage is again a uniform Protocol configuration and defaults to 99%. For example, if a transaction creates an object, charges a storage fee of 0.01, and then deletes the object, the `0.01 * 0.99` of the Gas fee will be refunded to the current owner of the object.
+
+## **Detailed Calculation Instructions for Storage Units**
+
+- `Code Location`**:** object.rs: `object_size_for_gas_metering`
+- `Calculation formula`**:** 1 byte = 100 storage units.
+- `Object bytes`**:** meta_data_size + data_size
+
+### **meta_data_size Calculation Formula**
+
+`meta_data_size = size_of::<Owner> + size_of::<Digest> + size_of::<u64>`
+
+Where `Owner` is fixed and size is represented as 8 bit type + 32 bit address. `digest` size is represented as 32 bit byte and `u64` size is represented as 2^64 which occupies 8 bit byte. So meta_data_size = 40 + 32 + 8 = 80.
+
+### **data_size Calculation Formula**
+
+`data_size`
+
+`= size_of::<MoveObject>`
+
+`= size_of::<Contents> + size_of::<Type> + 1 + 8`
+
+1. Where `1 bit byte` at the end indicates `has_public_transfer` and `8 bit byte` indicates `version` (2^64).
+2. The `Contents` size needs to be calculated based on the parameters contained in the object.
+    1. For example, `Balance<MGO>`, which contains 2 properties, `id` and `balance`. The number of bytes is 1 32-bit byte for `id` and 8-bit byte for `balance` (max 2^64) = 40.
+    2. Another example is an object with Id of `0x3f8bb9538f15d1d45dcddc78a303fbe5d9d30cc565bcf6a479578b76d426e24b`, which contains 5 attributes, id, name, description, creator, and url, with a byte count of 32 (id) + 1(length of name field) + 5(value of name field) + 1(length of description field) + 5(value of description field) + 32(creator) + 1(length of url field) + 51(value of url field) = 128.
+    3. Note: bcs convert String type, `need to add length to the header`. For example: `https`, normally, it is 5 bytes, i.e. [0x68, 0x74, 0x74, 0x70, 0x73], after bcs conversion, it will become 6 bytes, i.e. `[0x06]`, 0x68, 0x74, 0x74, 0x70, 0x73].
+3. The `Type` size needs to be calculated based on the type distinction.
+    1. Where `MGO/StakedMgo` type byte size is fixed to 1. `Coin` type byte size is the size of the StructTag byte stream inside bcs serialized Coin + 1. Other type byte size is the size of the StructTag serialized by bcs.
+    2. For example, the `coin::Coin<0x96143722c8155746dc25cfd5c4664776d27441bfede174511018d0e46f4fea66::usdt::USDT>` type, which has a byte size of 44 + 1 = 45.
+    3. Another example is the `0xe769096deeca03ed04f74ca1a081347b55f409576100f672fcafcae68d744da7::mgo_nft::NFT` type, which has a byte count of the size of the StructTag: 32(address) + 7(mgo_nft) + 3( NFT) + 4(::::) = 46.
+
+### **Example**
+
+1. Store an MGO object 
+    
+    object id of **0xc3570b40b382fc1144f811d294f9ce8b544c2ef38ecf82e7f613435fd77f5c56.**
+    
+    `total_bytes_size` 
+    
+    `= meta_data_size + data_size`
+    
+    `= meta_data_size + size_of::<Contents> + size_of::<Type> + 1 + 8`
+    
+    `= 80 + 40(32-bit id + 8-bit balance) + 1(MGO type, fixed to 1) + 1 + 8 = 130 bytes`
+    
+    1 byte maps 100 storage units, so the number of storage units that need to be mapped is: 130 * 100 = 13000 storage units, so the price to store an MGO object is: 13000 * 76(storage_gas_price) / 10^9 = 0.000988.
+    
+2. Store a USDT object
+    
+    object id of **0x74231cf08c95e3dd6c7e8b318e833830f42f28288f53d62eba81df9af71ac1bd.**
+    
+    `total_bytes_size = meta_data_size + data_size` 
+    
+    `= meta_data_size + size_of::<Contents> + size_of::<Type> + 1 + 8`
+    
+    `= 80 + 40(32-bit id + 8-bit balance) + 45(size of USDT type) + 1 + 8 = 174 bytes`
+    
+    1 byte maps 100 storage units, so the number of storage units that need to be mapped is: 174*100 = 17400 storage units, so the price to store a USDT object is: 17400 * 76 / 10^9 = 0.0013224.
+    
+3. Storing an NFT object
+    
+    object id of **0x3f8bb9538f15d1d45dcddc78a303fbe5d9d30cc565bcf6a479578b76d426e24b.**
+    
+    `total_bytes_size = meta_data_size + data_size =` 
+    
+    `meta_data_size + size_of::<Contents> + size_of::<Type> + 1 + 8` 
+    
+    `= 80 + 128(contents size) + 46(NFT type size) + 1 + 8 = 263 bytes`
+    
+    1 byte maps 100 storage units, so the number of storage units to be mapped is: 263*100 = 26300 storage units, so the price to store a USDT object is: 26300 * 76 / 10^9 = 0.0019988.

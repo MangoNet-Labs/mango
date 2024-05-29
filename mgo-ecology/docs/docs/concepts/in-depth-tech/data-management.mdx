@@ -1,0 +1,144 @@
+---
+title: Data Management
+---
+
+Managing data on the Mgo Full Node is crucial for ensuring the healthy operation of the Mgo network. This document provides an advanced description of data management on the Mgo Full Node, which can be used to optimize your Full Node configuration.
+
+## Basic Mgo Full Node Functionality
+
+A minimal version of the Mgo Full Node executes all transactions submitted by Mgo validators. The Mgo Full Node also organizes the submission of new transactions into the system.
+
+Key tasks of the Mgo Full Node include:
+
+1. **State Synchronization Protocol**: The Mgo Full Node performs the following operations to achieve state synchronization:
+   - Retrieving information about submitted checkpoints through a peer-to-peer broadcast-like protocol.
+   - Locally executing transactions to verify their effects match the effects certified by the validators.
+   - Updating local state as needed to conform to the latest object values.
+2. **RPCs**: The Mgo Full Node exposes Mgo RPC endpoints for querying the latest state of the system, including metadata for the latest state (e.g., `mgo_getProtocolConfig`) and object data for the latest state (`mgo_getObject`).
+3. **Transaction Submission**: Each Mgo Full Node organizes transactions to be submitted to the quorum of Mgo validators and, if configured, also locally executes completed transactions (referred to as fast-path execution), thus avoiding waiting for checkpoint synchronization.
+
+## Types of Data and RPCs on Mgo Full Node
+
+The Mgo Full Node stores multiple categories of data in its persistent storage.
+
+> The storage for each epoch is beyond the scope of this document. Mgo uses per-epoch storage internally for permissioning and consensus operations.
+
+The Mgo Full Node stores data of the following types:
+
+1. **Transactions with associated effects and events**: Mgo uses unique transaction digests to retrieve information about transactions, including their effects and emitted events. For basic Full Node operations, historical transaction information is not required by the Mgo Full Node. To save disk space, you can enable pruning to remove this historical data.
+2. **Checkpoints**: Mgo groups submitted transactions into checkpoints, which are then used for state synchronization. Checkpoints retain transaction digests containing additional integrity metadata. The Mgo Full Node does not require data from checkpoints to execute and submit transactions, so you can also configure pruning for this data.
+3. **Objects**: Transactions that modify objects create new versions of objects. Each object has a unique `(objectId, version)` pair for identification. The Mgo Full Node does not require historical object versions to execute and submit transactions, so you can configure the Full Node to prune this data as well.
+4. **Indexing Information**: The default configuration of the Full Node is to post-process submitted transactions: it indexifies the submitted information for efficient aggregation and filtering queries. For instance, indexes can be used to retrieve all historical transactions from a given sender or to find all objects owned by a particular address.
+
+The Mgo Full Node supports over 40 RPC types, including the following categories:
+
+- **General Metadata**, such as `mgo_getProtocolConfig` and `mgo_getChainIdentifier`. These requests do not depend on additional indexes and do not require historical data for processing.
+- **Direct Lookups**, such as `mgo_getObject`, `mgo_getEvents`. These requests do not depend on additional indexes but may require historical data in certain cases, such as `mgo_tryGetPastObject` and `mgo_getTransactionBlock`.
+- **Aggregate and Filter Queries**, such as `mgox_getOwnedObjects` and `mgox_getCoins`. These requests depend on additional indexes and may require historical data in certain cases, such as `mgox_queryTransactionBlocks`.
+
+## Mgo Archive Data
+
+Mgo archive instances store the complete history of Mgo transactions since genesis in a format agnostic to the underlying database. This includes information about transactions (with client authentication), effects, events, and checkpoints. Hence, the archive storage can be used for data auditing and replaying historical transactions.
+
+If an Mgo Full Node is unable to retrieve checkpoints from its peers via the state synchronization protocol, it falls back to downloading missing checkpoints from its pre-configured archive. This fallback enables the Full Node to synchronize with the rest of the system without being affected by the trimming policies of its peers.
+
+## Mgo Full Node Pruning Strategy
+
+As mentioned earlier, sustainable disk usage requires pruning of information about historical object versions as well as historical transaction information with corresponding effects and events, including old checkpoint data.
+
+Both transaction pruner and object pruner run in the background. Logical deletion of entries from RocksDB eventually triggers physical compaction of data on the disk, which is controlled by RocksDB background jobs: the impact of pruning on disk usage is not immediate and may take several days.
+
+You can configure pruners in two modes:
+
+- **Aggressive Pruning** (`num-epochs-to-retain: 0`): Preferred option. Mgo prunes old object versions as soon as possible.
+- **Epoch-based Pruning** (`num-epochs-to-retain: X`): Mgo prunes old object versions after X epochs.
+
+> Tests show that aggressive pruning can achieve more efficient Full Node operations.
+
+To configure transaction pruning, specify the `num-epochs-to-retain-for-checkpoints: X` configuration option. Checkpoints, including their transactions, effects, and events, will be pruned before X epochs. We recommend setting transaction pruning to 2 epochs.
+
+### Setting Archive Watermark
+
+If your Full Node is configured to upload submitted information to an archive, pruning should occur only after uploading the respective data. To do this, set `use-for-pruning-watermark: true` in the Fullnode.yaml file.
+
+## Mgo Full Node Key-Value Store Backup
+
+To enable historical data queries on an Mgo Full Node that prunes old transaction data, the Full Node RPC implementation is configured to query missing transaction data from remote storage.
+
+If information about transaction digests, effects, events, or checkpoints is not available locally, the Full Node will automatically retrieve historical data from a cloud-based key-value store (currently managed by MangoNet Labs). Note that the current key-value store implementation only retains historical transaction data: we plan to provide similar support for retrieving historical object versions in future releases.
+
+## Pruning Strategy Examples
+
+Use the examples in this section to configure your Mgo Full Node. You can copy the examples and modify the values as needed.
+
+### Mgo Minimal Configuration Node
+
+This configuration keeps disk usage to a minimum. A Full Node using this configuration cannot respond to queries requiring indexing or historical data.
+
+```yaml
+# Disable Mgo data indexing on the node
+enable-index-processing: false
+
+authority-store-pruning-config:
+  # Default values
+  num-latest-epoch-dbs-to-retain: 3
+  epoch-db-pruning-period-secs: 3600
+  max-checkpoints-in-batch: 10
+  max-transactions-in-batch: 1000
+  # End of default values
+
+  # Prune historical object versions
+  num-epochs-to-retain: 0
+  # Prune historical transactions for past epochs
+  num-epochs-to-retain-for-checkpoints: 2
+  periodic-compaction-threshold-days: 1
+```
+
+### Mgo Full Node with Indexes but No History
+
+This setup manages secondary indexes as well as the latest state but aggressively prunes historical data. A Full Node using this configuration:
+
+- Can respond to RPC queries requiring indexes, such as `muix_getBalance()`.
+- Can answer RPC queries requiring historical transactions by retrieving data from remote key-value storage: `mgo_getTransactionBlock()`.
+- Cannot respond to RPC queries requiring historical object versions: `mgo_tryGetPastObject()`.
+  - The `showBalanceChanges` filter in `mgo_getTransactionBlock()` query depends on historical object versions and thus cannot be used with this configuration.
+
+```yaml
+authority-store-pruning-config:
+  # Default values
+  num-latest-epoch-dbs-to-retain: 3
+  epoch-db-pruning-period-secs: 3600
+  max-checkpoints-in-batch: 10
+  max-transactions-in-batch: 1000
+  # End of default values
+
+  # Prune historical object versions
+  num-epochs-to-retain: 0
+  # Prune historical transactions for past epochs
+  num-epochs-to-retain-for-checkpoints: 2
+  periodic-compaction-threshold-days: 1
+```
+
+### Mgo Full Node with Complete Object History but Pruned Transaction History
+
+This configuration manages a complete object history while still pruning historical transactions. A Full Node using this configuration can respond to all historical and indexed queries (using transaction query fallback to retrieve transaction data), including those requiring historical objects, such as the `showBalanceChanges` filter in `mgo_getTransactionBlock()`.
+
+The main caveat is that the current setup allows the **transaction pruner** to surpass the **object pruner**. The object pruner may not properly clean up objects modified by transactions that have already been pruned. You should closely monitor disk space growth on the Full Node using this configuration.
+
+In addition to regular (pruned) snapshots, MangoNet Labs maintains special RocksDB snapshots with complete object version histories for operators using this configuration.
+
+```yaml
+authority-store-pruning-config:
+  # Default values
+  num-latest-epoch-dbs-to-retain: 3
+  epoch-db-pruning-period-secs: 3600
+  max-checkpoints-in-batch: 10
+  max-transactions-in-batch: 1000
+  # End of default values
+
+  # Do not prune object versions (use u64::max for number of epochs)
+  num-epochs-to-retain: 18446744073709551615
+  # Prune historical transactions for past epochs
+  num-epochs-to-retain-for-checkpoints: 2
+  periodic-compaction-threshold-days: 1
+```
