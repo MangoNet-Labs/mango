@@ -1,0 +1,72 @@
+---
+title: Key pairs
+---
+
+Accounts can be generated using three key schemes: `Ed25519Keypair`, `Secp256k1Keypair`, and `Secp256r1Keypair`.
+
+```tsx
+import { Ed25519Keypair } from '@mgonetwork/mango.js/keypairs/ed25519';
+import { Secp256k1Keypair } from '@mgonetwork/mango.js/keypairs/secp256k1';
+import { Secp256r1Keypair } from '@mgonetwork/mango.js/keypairs/secp256r1';
+```
+
+The following will illustrate using the Ed25519 scheme as an example:
+
+## Creating
+
+There are two ways to create a keypair.
+
+```tsx
+// Create a new keypair
+const keypair = new Ed25519Keypair();
+
+// Create using an existing private key (Uint8Array type)
+const keypair = Ed25519Keypair.fromSecretKey(secretKey);
+```
+
+## Deriving from Mnemonic
+
+Using the following method, a keypair can be derived from a mnemonic.
+
+```tsx
+import { Ed25519Keypair } from '@mgonetwork/mango.js/keypairs/ed25519';
+
+const mnemonic = 'world world world world ...';
+const keyPair = Ed25519Keypair.deriveKeypair(mnemonic);
+```
+
+## Deriving from Private Key
+
+Using the following method, a hexadecimal encoded string type private key can be converted into Uint8Array type and used as an argument for fromSecretKey to derive a keypair.
+
+```tsx
+import { Ed25519Keypair } from '@mgonetwork/mango.js/keypairs/ed25519';
+import { fromHex } from '@mgonetwork/mango.js/utils';
+ 
+const secret = '0x...';
+const keypair = Ed25519Keypair.fromSecretKey(fromHex(secret));
+```
+
+## Public Key Verification and Keypair Signing
+
+A keypair can be used to sign messages, followed by using the public key to verify the signature. Additionally, the publicKey.toMgoAddress() method can be used to obtain an address.
+
+```tsx
+import { Ed25519Keypair, Ed25519PublicKey } from '@mgonetwork/mango.js/keypairs/ed25519';
+
+const keypair = new Ed25519Keypair();
+const bytes = keypair.getPublicKey().toBytes();
+const publicKey = new Ed25519PublicKey(bytes);
+
+// Getting the address
+const address = publicKey.toMgoAddress();
+
+// Encoding the message
+const message = new TextEncoder().encode('Hello Mango');
+
+// Signing
+const { signature } = await keypair.signPersonalMessage(message);
+
+// Verifying the signature
+const isValid = await publicKey.verifyPersonalMessage(message, signature);
+```

@@ -1,0 +1,79 @@
+---
+title: Object Ownership
+---
+
+Each object has an owner. Objects can have the following types of ownership:
+
+## **Address-owned**
+
+Address-owned objects are owned by a specific 32-byte address, which can be an account address or an object ID. They can only be accessed by their owner, and are inaccessible to others.
+
+The owner of an object can transfer it to a different address. Since only the single owner can access these objects, transactions involving the object can be executed in parallel with other transactions that do not share the same object, without the need for consensus.
+
+## **Immutable**
+
+Immutable objects are objects that cannot be changed, transferred, or deleted. Immutable objects do not have an owner, thus anyone can use them.
+
+1. Creating immutable objects
+
+   An object can be turned into an immutable object using the `public_freeze_object` function from the transfer module.
+
+    ```rust
+    public fun public_freeze_object<T: key>(obj: T);
+    ```
+
+   Please note: This operation is irreversible.
+
+2. Using immutable objects
+
+   You can only pass immutable objects as read-only, immutable references `&T` to Mango Move entry functions, as shown below:
+
+    ```rust
+    public fun use_immut(from: &ImmutObject);
+    ```
+
+   Anyone can use immutable objects. Since multiple transactions can use the same immutable object simultaneously, there is no data contention. Therefore, immutable objects do not require consensus.
+
+
+## **Shared**
+
+Shared objects are objects that have been shared using the `share_object` function from the transfer module, and anyone can access them. Unlike address-owned objects, shared objects on the blockchain can be accessed by anyone. Shared objects need to have the `key` capability.
+
+## **Wrapped**
+
+Embedding one object within another object.
+
+In many programming languages, you can organize complex data structures by nesting one within another. In Move, you can organize data structures by placing one type field into another type field, as shown below:
+
+```rust
+struct A has key {
+    id: UID,
+    b: B,
+}
+
+struct B has store {
+    value: u64,
+}
+```
+
+To nest a struct type within a Mango object struct (which has the `key` capability), the struct type must possess the `store` capability.
+
+If struct B acquires a `key` capability, it transitions from a regular struct to a Mango object, and at this point, it can also be nested within A.
+
+Now, both A and B are Mango objects, with B being nested within A, making A the wrapper object for B. The object type A is referred to as a wrapper object.
+
+When one object is wrapped by another, it no longer exists independently on the blockchain and cannot be located by its ID; it becomes a part of the data of the wrapper object. Wrapped objects cannot be used as input parameters in Mango Move calls; they can only be accessed through the wrapper object.
+
+There are several methods to wrap objects, with the following being the typical ones:
+
+1. **Direct Wrapping**
+
+   Directly embedding an object type as a field within another Mango object type (as previously shown) is referred to as direct wrapping. The wrapped object cannot be unwrapped unless the wrapper object is destroyed. Direct wrapping is the best way to implement object locking, i.e., locking access-restricted objects. It can only be unlocked through specific contract calls.
+
+2. **Through Option Wrapping**
+
+   Direct wrapping has limited flexibility. Using an option field within another Mango object allows you to choose whether to wrap a certain object, and the wrapped object can potentially be replaced at some time.
+
+3. **Through Vector Wrapping**
+
+   Wrapping objects in another Mango object using a vector field is similar to using an option. A vector field allows the wrapping of zero, one, or multiple objects of the same type.

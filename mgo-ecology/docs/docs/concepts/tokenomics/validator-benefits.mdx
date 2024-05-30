@@ -1,0 +1,24 @@
+---
+title: Validator Benefits
+---
+
+Each Mango validator maintains its own pool of pledges to keep track of pledge amounts and compound pledge rewards. The validator pool runs with a time series of exchange rates computed at each epoch boundary. These exchange rates determine the number of MGO tokens that each past MGO pledgee can withdraw in the future. Importantly, as more and more rewards are deposited into the pool, the exchange rate rises, and the longer an MGO is deposited into the pool, the more rewards it receives.
+
+When MGOs are deposited into the Pledge Pool at epoch `E`, they are converted to Liquidity Tokens at the epoch`E` rate. As the pledge pool receives rewards, the exchange rate appreciates. At epoch `E'`, these liquidity tokens are worth more and are converted into more MGOs. The only difference between the Mango Pledge Pool and a typical liquidity pool is that there are no liquidity tokens in Mango. Instead, a global exchange rate table is used for tracking accounting. Since all MGO tokens in a pledge pool are treated the same, regardless of whether they are initially deposited as new pledges or as pledge rewards, all MGO tokens are immediately counted as pledges, which immediately compounds the rewards.
+
+They are issued to validators individually at the end of each epoch and pledged again to generate a StakedPool.
+
+The size of the storage fund is fixed at each epoch, and its size varies at the epoch boundaries based on the net inflows accumulated throughout the epoch. Inflows and outflows correspond to:
+
+- Inflows from storage fees paid for transactions executed for the current epoch.
+- Inflows from reinvestment of new principal from fund proceeds. Specifically, the percentage of equity rewards accumulated in the share storage fund that have not been paid to validators.
+- The outflow of storage fee rollbacks paid to users who delete data associated with past transactions.
+
+The key feature of the clawback feature is that it limits the storage fund outflow to always be less than the original storage flow at the individual transaction level. This mechanism ensures that storage funds never run out and are sized to the amount of data held in storage.
+
+## Validator Benefit Calculation
+
+`Validator Earnings = Equity Pool Earnings x Commission Rate + Storage Fund Rewards`
+
+- Validator Commission Rate: Validators have the option to set a non-zero commission rate that specifies the percentage of Pledge Rewards they receive from Pledgers. For example, if the Validator's commission rate is 10%, 10% of each Pledge Reward for each Pledgee will be assigned to the Validator. Please understand that the Validator may elect commissions at some time in the future without notice.
+- Storage Fund Reward: (storage_fund_reward_amount - storage_fund_reinvestment_amount) / number of Validators) in the Equity Pool, which needs to be accounted for in conjunction with the Equity Pool.

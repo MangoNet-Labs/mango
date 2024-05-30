@@ -1,0 +1,138 @@
+---
+title: Wallet Standard
+---
+
+The `@mgonetwork/wallet-standard` provides several types and utility classes that make building wallets simpler.
+
+## Creating a Wallet
+
+You can create a wallet class by implementing the `Wallet` interface from `@mgonetwork/wallet-standard`. As shown below:
+
+```tsx
+import { MGO_DEVNET_CHAIN, type Wallet } from '@mgonetwork/wallet-standard';
+
+class MgoWallet implements Wallet {
+	get version() {
+		return '1.0.0';
+	}
+	get name() {
+		return 'Wallet Name';
+	}
+	get icon() {
+		return 'icon-url';
+	}
+	get chains() {
+		return [MGO_DEVNET_CHAIN];
+	}
+}
+```
+
+## Implementation
+
+The following methods are some standard methods provided by the wallet specification that must be implemented:
+
+- `standard:connect`: A method to connect the wallet.
+- `standard:events`: A method to listen for changes occurring within the wallet, such as adding or removing accounts.
+- `mgo:signPersonalMessage`: A method for prompting the user to sign a message, returning the message signature to the dApp. This can be used to verify the user's public key.
+- `mgo:signTransactionBlock`: A method for prompting the user to sign a transaction block, and returning the serialized transaction block and signature to the dApp. This method does not submit the transaction block for execution.
+- `mgo:signAndExecuteTransactionBlock`: A method for prompting the user to sign a transaction and then submit it to the blockchain for execution.
+
+These functional methods can be implemented under the `features` method in the wallet class. Additionally, an `accounts` method needs to be exposed, which lists all accounts that the dApp is authorized to access. The return value of this method can be empty before connecting the wallet using `standard:connect`.
+
+```tsx
+import { MGO_DEVNET_CHAIN, type Wallet } from '@mgonetwork/wallet-standard';
+import { fromB64 } from '@mgonetwork/mango.js/utils';
+
+import {
+	type MgoFeatures,
+	type MgoSignAndExecuteTransactionBlockMethod,
+	type MgoSignPersonalMessageMethod,
+	type MgoSignTransactionBlockMethod,
+	type StandardConnectFeature,
+	type StandardConnectMethod,
+	type StandardEventsFeature,
+	type StandardEventsOnMethod,
+	type Wallet,
+	ReadonlyWalletAccount,
+} from '@mgonetwork/wallet-standard';
+
+class MgoWallet implements Wallet {
+
+	#accounts: ReadonlyWalletAccount[];
+
+	get features(): StandardConnectFeature &
+		StandardEventsFeature &
+		MgoFeatures &
+		MgoWalletStakeFeature &
+		QredoConnectFeature {
+		return {
+			'standard:connect': {
+				version: '1.0.0',
+				connect: this.#connect,
+			},
+			'standard:events': {
+				version: '1.0.0',
+				on: this.#on,
+			},
+			'mgo:signTransactionBlock': {
+				version: '1.0.0',
+				signTransactionBlock: this.#signTransactionBlock,
+			},
+			'mgo:signAndExecuteTransactionBlock': {
+				version: '1.0.0',
+				signAndExecuteTransactionBlock: this.#signAndExecuteTransactionBlock,
+			},
+			'mgo:signPersonalMessage': {
+				version: '1.0.0',
+				signPersonalMessage: this.#signPersonalMessage,
+			},
+		};
+	}
+
+  #on: StandardEventsOnMethod = () => {
+    // Your wallet's events on implementation.
+  };
+
+  #connect: StandardConnectMethod = () => {
+    // Your wallet's connect implementation
+  };
+
+	#signPersonalMessage: MgoSignPersonalMessageMethod = () => {
+    // Your wallet's signTransaction implementation
+  };
+
+  #signTransactionBlock: MgoSignTransactionBlockMethod = () => {
+    // Your wallet's signTransaction implementation
+  };
+
+  #signAndExecuteTransactionBlock: MgoSignAndExecuteTransactionBlockMethod = () => {
+    // Your wallet's signAndExecuteTransaction implementation
+  };
+  
+	get accounts() {
+		return this.#accounts;
+	}
+
+	#setAccounts(accounts) {
+		this.#accounts = accounts.map(
+			({ address, publicKey }) =>
+				new ReadonlyWalletAccount({
+					address,
+					publicKey: publicKey ? fromB64(publicKey) : new Uint8Array(),
+					chains: this.#activeChain ? [this.#activeChain] : [],
+					features: ['mgo:signAndExecuteTransaction'],
+				}),
+		);
+	}
+}
+```
+
+## Registration
+
+Once the wallet has implemented the necessary interfaces, it can be registered using the `registerWallet` method.
+
+```tsx
+import { registerWallet } from '@mgonetwork/wallet-standard';
+
+registerWallet(new YourWallet());
+```
