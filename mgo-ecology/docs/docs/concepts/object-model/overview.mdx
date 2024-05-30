@@ -1,0 +1,34 @@
+---
+title: Overview
+---
+
+The fundamental storage unit in Mango is the object, which has a unique ID on the blockchain. Mango utilizes an object-centric storage approach, differing from many account-centric blockchains.
+
+Smart contracts are also objects, termed Mango Move Package. A smart contract consists of a set of Mango Move bytecode modules. The module name is unique within each package. The package ID combined with the module name forms a unique identifier for that module. When deploying smart contracts, the package is the unit of deployment. Once deployed, package objects are immutable and cannot be deleted. Smart contracts can depend on other previously deployed smart contracts.
+
+## Attributes of Objects
+
+Each Mango object possesses the following metadata.
+
+- ID: A 32-byte globally unique identifier, derived from the transaction summary that created the object and a counter encoding the number of IDs generated from the transaction.
+- version: An 8-byte unsigned integer that increments with each modification.
+- digest: A 32-byte hash containing the last transaction of this object.
+- owner: A 33-byte identifier of the object's owner.
+
+## Referencing Blockchain Objects
+
+There are several different methods to concisely reference an object.
+
+- ID: The global unique identifier of the object.
+- ID, version: The version and ID describe the state of the object at a specific point in its history.
+- ID, version, object digest: The object digest is a hash of the object's content and metadata.
+
+## Relationship Between Transactions and Objects
+
+Transactions take objects as inputs, read or update them, and output the updated or newly created objects. Each object can identify the hash of the last transaction in which it was used as an input. This relationship can be represented using a Directed Acyclic Graph (DAG).
+
+The root of the DAG is the genesis transaction, which takes no inputs and generates the objects present in the system's initial state. The DAG can be expanded by identifying unspent transaction outputs that no committed transaction has yet consumed and submitting new transactions that take these outputs as inputs.
+
+The set of objects that can be inputs to transactions are active objects, and the global state maintained by Mango is composed of the aggregate of these objects. Each Mango address M’s active objects are all objects owned by M, as well as all shared and immutable objects in the system.
+
+When this DAG includes all committed transactions in the system, it forms a complete (and cryptographically auditable) view of the system's state and history.

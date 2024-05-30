@@ -1,0 +1,50 @@
+---
+title: Staker Income
+---
+
+Mango uses a Proxy Proof of Stake (DPoS) system to protect and operate the network, which means that the voting power of the verifiers in the network is determined by the number of stakes entrusted to them by the MGO token holders. The more shares entrusted to a validator, the more voting power they have. In exchange for processing transactions and enforcing consensus, validators receive rewards based on the Gas fees they collect. These rewards are then shared amongst the stakers as Stake Rewards.
+You can stake your MGO tokens by sending a transaction to the network that invokes the stake functionality implemented as part of the System Move package. The transaction wraps the MGO tokens in a self-hosted equity object. The entitlement object contains information such as the validator's entitlement pool ID and the entitlement activation epoch.
+
+## **Stake Rate**
+
+- **mgo_amount :** the number of all MGOs in this Stake Pool (Bonus Pool + all principal of StakedPool)
+- **pool_token_amount :** all StakedPools issued in this Stake Pool
+
+## Example
+
+Epoch 51, the user staked 6 MGO in the stake pool of validator0, activated at epoch 52, and withdrew the proceeds at epoch 480.
+It is known that the stake pool exchange rate for validator0 at epoch 52 is
+
+```json
+{
+    "mgo_amount": "28586737.137152044",
+    "pool_token_amount": "20150761.809349620"
+}
+```
+
+The validator0 exchange rate at Era 480 is
+
+```json
+{
+    "mgo_amount": "43235666.955292179",
+    "pool_token_amount": "21151430.306872625"
+}
+```
+
+After calculation, the user can withdraw funds at epoch 480 for 8.645309663.
+
+```rust
+let principal_amount = principal_withdraw = 6
+
+// Using the 52nd epoch rate
+let pool_token_withdraw_amount
+= pool_token_amount * principal_amount / mgo_amount
+= 20150761.809349620 * 6 / 28586737.137152044
+= 4.229393871
+
+// Using the 480nd epoch rate
+let total_mgo_withdraw_amount
+= mgo_amount * pool_token_withdraw_amount / pool_token_amount
+= 43235666.955292179 * 4.229393871 / 21151430.306872625
+= 8.645309663
+```

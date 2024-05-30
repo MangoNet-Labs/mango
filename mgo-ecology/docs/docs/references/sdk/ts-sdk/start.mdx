@@ -1,0 +1,100 @@
+---
+title: Start
+---
+
+The Mango TypeScript SDK is a modular tool library for interacting with the Mango blockchain. Use it to send queries to RPC nodes, build and sign transactions.
+
+## Install
+
+```bash
+# npm
+npm i @mgonetwork/mango.js
+
+# yarn
+yarn add @mgonetwork/mango.js
+
+# pnpm
+pnpm add @mgonetwork/mango.js
+```
+
+## Supported networks
+
+| Network | Full node | faucet |
+| --- | --- | --- |
+| devnet | https://fullnode.devnet.mangonetwork.io | https://faucet.devnet.mangonetwork.io/gas |
+
+## Module
+
+The SDK includes the following modules.
+
+- @mgonetwork/mango.js/client : client that interacts with Mango RPC nodes
+- @mgonetwork/mango.js/bcs : bcs generator
+- @mgonetwork/mango.js/keypairs: Account related methods
+- @mgonetwork/mango.js/verify: related methods for verification
+- @mgonetwork/mango.js/cryptography: encryption related methods
+- @mgonetwork/mango.js/multisig: Multi-signature related methods
+- @mgonetwork/mango.js/utils: Tool class related methods
+- @mgonetwork/mango.js/faucet: Faucet related methods to request MGO
+
+## Mango client
+
+```tsx
+import { getFullnodeUrl, MgoClient } from '@mgonetwork/mango.js/client';
+
+const client: MgoClient = new MgoClient({
+  url: getFullnodeUrl('devnet'),
+});
+
+// Manually calling unsupported rpc methods
+const committeeInfo = await client.call('<PRC_METHOD_NAME>', []);
+```
+
+## Get test coins
+
+```tsx
+import { getFaucetHost, requestMgoFromFaucetV0 } from "@mgonetwork/mango.js/faucet";
+
+const MY_ADDRESS = '';
+
+const mgoBefore = await client.getBalance({
+  owner: MY_ADDRESS,
+});
+
+await requestMgoFromFaucetV0({
+	host: getFaucetHost('devnet'),
+	recipient: MY_ADDRESS,
+});
+
+const mgoAfter = await client.getBalance({
+  owner: MY_ADDRESS,
+});
+
+console.log({ mgoBefore, mgoAfter });
+```
+
+## Get events
+
+`MgoClient` exposes a number of RPC methods that return paginated results. These methods return a result object with 3 fields:
+
+- data: the result list of the current page
+- nextCursor: the cursor pointing to the next page of results
+- hasNextPage: a Boolean value indicating whether there are more pages of results
+
+Some methods also support the use of the order field, which can be set to ascending or descending order.
+
+```tsx
+const page1 = await client.queryEvents({
+      query: {
+        MoveEventType: `${packageId}::${moduleName}::${methodName}`,
+      },
+      limit: 25,
+});
+
+const page2 = await client.queryEvents({
+      query: {
+        MoveEventType: `${packageId}::${moduleName}::${methodName}`,
+      },
+      limit: 25,
+      cursor: page1.nextCursor,
+});
+```

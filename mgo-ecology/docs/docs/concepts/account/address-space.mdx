@@ -1,0 +1,108 @@
+---
+title: Address Space
+---
+
+An address is a built-in type in Move used to represent locations in global storage. An address value is a 256-bit (32-byte) identifier.
+
+In Mgo, objects, accounts, and packages each have their own addresses for basic identification. Additionally, the address types are all the same, consisting of 64 characters in hexadecimal format. In Mgo, objects can be owned by other objects. For example, an account can own objects, and objects can also contain other objects.
+
+## Mgo Account Addresses
+
+Mgo follows widely accepted wallet specifications in the cryptocurrency industry, including BIP-32 (and its variant SLIP-0010), BIP-44, and BIP-39, to provide key management for users. Currently, Mgo supports pure Ed25519, ECDSA Secp256k1, ECDSA Secp256r1, and multi-signature for signing transactions.
+To derive a 32-byte Mgo address, Mgo uses the BLAKE2b (256-bit output) hash function to concatenate the signature scheme flag, which contains the public key bytes.
+
+## Mgo Non-Account Addresses
+
+### Pre-allocated Object Addresses in Mgo
+
+- System Address: 0x0
+- Mgo System State Object: 0x5
+- Clock Object: 0x6
+- AuthenticatorState Object: 0x7
+- Random Object: 0x8
+- DenyList Object: 0x403
+
+### Addresses for Standard Libraries and Official Packages in Mgo
+
+#### Mgo Move-Stdlib 0x1
+
+In Mgo, Move continues to use the address `0x1` as per Move language convention, named address `std`.
+
+Move-Stdlib mainly consists of basic definitions and functions for MgoMove, which is the core standard library from the upstream of Move.
+
+| Module Name        | Purpose                              |
+|--------------------|--------------------------------------|
+| address.move       | Length of addresses                  |
+| ascii.move         | ASCII-encoded strings                |
+| bcs.move           | Serialization to binary              |
+| bit_vector.move    | Arrays marked with bit flags         |
+| debug.move         | Code for debugging, printing outputs |
+| fixed_point32.move | Fixed-point numbers                  |
+| hash.move          | Hash functions                       |
+| option.move        | Optional values                      |
+| string.move        | UTF-8 encoded strings                |
+| type_name.move     | Get the type of a structure          |
+| unit_test.move     | Generate test signers for unit tests |
+| vector.move        | Arrays                               |
+
+#### Mgo Framework 0x2
+
+Mgo Framework is the standard library of MgoMove, with the convention address `0x2`, named address `mgo`.
+
+| Module Name               | Purpose                                                                     |
+|---------------------------|-----------------------------------------------------------------------------|
+| kiosk directory           | Basic utility classes for NFT transactions                                  |
+| crypto directory          | High-level cryptographic algorithms                                         |
+| address.move              | Provides conversions for some addresses and other types                     |
+| authenticator_state.move  | Module for storing authenticator state                                      |
+| bag.move                  | Map structure where values can be of different types                        |
+| balance.move              | Can be used to implement custom coins with "supply" and "balance"           |
+| bcs.move                  | Supplement to the core standard library                                     |
+| borrow.move               | Support for hot-potato-locked borrowing mechanism                           |
+| clock.move                | Get blockchain time                                                         |
+| coin.move                 | Similar to ERC20 standard                                                   |
+| deny_list.move            | Related to "DenyList" shared objects                                        |
+| display.move              | NFT display standard                                                        |
+| dynamic_field.move        | Dynamic properties                                                          |
+| dynamic_object_field.move | Dynamic object properties                                                   |
+| event.move                | Logging events                                                              |
+| hex.move                  | Hex encoding                                                                |
+| linked_table.move         | A type of table                                                             |
+| math.move                 | Common mathematical utility functions                                       |
+| mgo.move                  | Definitions for MGO                                                         |
+| object.move               | Object utility library                                                      |
+| object_bag.move           | Map structure where values are objects and can be of different types        |
+| object_table.move         | Map structure where values are objects and must be of the same type         |
+| package.move              | Package management and upgrades                                             |
+| pay.move                  | Convenience functions for Coins                                             |
+| priority_queue.move       | Priority queue implemented using max heap                                   |
+| prover.move               | Provides verification capabilities                                          |
+| random.move               | Provides functionality for generating and using secure randomness           |
+| table.move                | Map structure where values must be of the same type                         |
+| table_vec.move            | Array implemented using tables                                              |
+| token                     | Token module for implementing closed-loop tokens with configurable policies |
+| transfer.move             | Transfer ownership of objects                                               |
+| tx_context.move           | Get context of current transaction wallet information                       |
+| types.move                | Type utilities, currently only for checking OWT types                       |
+| url.move                  | Standardized URL strings                                                    |
+| vec_map.move              | Map with vec array as the underlying structure                              |
+| vec_set.move              | Set with vec array as the underlying structure                              |
+| versioned.move            | Utility class for version management                                        |
+
+#### Mgo System 0x3
+
+Mgo System provides functions related to system state, with the convention address `0x3`, named address `mgo_system`.
+
+| Module Name                 | Purpose                            |
+|-----------------------------|------------------------------------|
+| genesis.move                | Metadata for genesis validators    |
+| mgo_system_state_inner.move | System configuration parameters    |
+| mgo_system.move             | System configuration parameters    |
+| stake_subsidy.move          | Stake subsidy                      |
+| staking_pool.move           | Staking pool                       |
+| storage_fund.move           | Structure for storing funds        |
+| validator_cap.move          | Validator capabilities             |
+| validator_set.move          | Validator configuration parameters |
+| validator_wrapper.move      | Validator wrapper                  |
+| validator.move              | Validator-related parameters       |
+| voting_power.move           | Voting power-related methods       |

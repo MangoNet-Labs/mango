@@ -1,0 +1,187 @@
+---
+title: Programmable Transaction Blocks
+---
+
+This article will introduce how to build a transaction block and submit the transaction.
+
+## Step
+
+```tsx
+import { TransactionBlock } from '@mgonetwork/mango.js/transactions';
+
+// 1. First instantiate a transaction block
+const txb = new TransactionBlock();
+
+// 2. Then add the transaction to the transaction block
+// Retain a copy of the coins as gas fee in the transaction and return the created new coins with a balance of 250
+const [coin] = txb.splitCoins(txb.gas, [250]);
+
+// Transfer split coins to a specific address
+txb.transferObjects([coin], '0xSomeAddress');
+
+// 3. Sign and execute the transaction
+client.signAndExecuteTransactionBlock({ signer: keypair, transactionBlock: txb });
+```
+
+## Supported methods
+
+Mango supports the following transactions:
+
+```tsx
+// Creates a new coin with a custom amount from the provided coin cut, returning the new coin so that it can be used by subsequent transactions.
+txb.splitCoins(coin, amounts)
+txb.splitCoins(txb.gas, [250, 500])
+
+// Merge source coins into target coins.
+txb.mergeCoins(destinationCoin, sourceCoins)
+txb.mergeCoins(txb.object(coin1), [txb.object(coin2), txb.object(coin3)])
+
+// Transfer the object list to the specified address
+txb.transferObjects(objects, address)
+txb.transferObjects([txb.object(thing1), txb.object(thing2)], myAddress)
+
+// Call contract
+txb.moveCall({ target, arguments, typeArguments })
+
+// Construct a vector as an input parameter of the contract (vector cannot be used directly as a contract parameter)
+txb.makeMoveVec({ type, objects })
+txb.makeMoveVec({ objects: [txb.object(id1), txb.object(id2)] })
+```
+
+### Enter parameters
+
+For the input parameters of a specific transaction (`amounts` of `splitCoins` and `address` of `transferObjects`), the expected types are known, so the raw JavaScript values are passed directly when calling the method.
+
+```tsx
+const [coin] = txb.splitCoins(txb.gas, [250]);
+
+txb.transferObjects([coin], '0xSomeAddress');
+```
+
+If objects not on the chain are provided as input, these values must be serialized to bcs.
+
+You can use txb.pure for serialization, for example: `txb.pure.u64(number)` or `txb.pure(bcs.vector(bcs.U8).serialize(bytes))`
+
+```tsx
+const [coin1] = txb.splitCoins(txb.gas, [txb.pure.u64(250)]);
+const [coin2] = txb.splitCoins(txb.gas, [txb.pure(bcs.U64.serialize(250))]);
+
+txb.transferObjects([coin1], txb.pure.address('0xSomeAddress'));
+txb.transferObjects([coin2], txb.pure(bcs.Address.serialize('0xSomeAddress')));
+```
+
+### Return value
+
+The results of the transaction can be used as parameters in subsequent transactions. Each transaction method on the transaction builder returns a reference to the transaction result.
+
+```tsx
+const [coin] = txb.splitCoins(txb.gas, [250])
+
+txb.transferObjects([coin], address);
+```
+
+If a transaction returns multiple results, you can use destructuring or array indexing to access the result at a specific index position.
+
+```tsx
+const [object1, object2] = txb.moveCall({ target: '${packageId}::${moduleName}::${methodName}' });
+txb.transferObjects([object1, object2], address);
+
+const objects = txb.moveCall({ target: '${packageId}::${moduleName}::${methodName}' });
+txb.transferObjects([objects [0], objects [1]], address);
+```
+
+## Use
+
+MgoClient provides some methods for using transaction blocks.
+
+### `executeTransactionBlock`
+
+```tsx
+const txb = new TransactionBlock();
+
+const { bytes, signature } = txb.sign({ client, signer: keypair });
+
+const result = await client.executeTransactionBlock({
+	transactionBlock: bytes,
+	signature,
+	requestType: 'WaitForLocalExecution',
+	options: {
+		showEffects: true,
+	},
+});
+```
+
+parameter
+
+- `transactionBlock`: TransactionBlock or BCS serialized transaction data bytes as Uint8Array or Base-64 encoded string.
+- `signerKeypair`: `Keypair` used for signing.
+- `requestType`: `WaitForEffectsCertWaitForLocal` or `ExecutionWaitForLocalExecution`. How long to wait until the RPC node returns a response, defaults to `WaitForLocalExecution`.
+- `options`:
+  - `showBalanceChanges`: whether to display balance_changes. Default is False.
+  - `showEffects`: whether to display transaction effects. Default is False.
+  - `showEvents`: whether to display transaction events. Default is False.
+  - `showInput`: whether to display transaction input data. Default is False.
+  - `showObjectChanges`: Whether to display object_changes. Default is False.
+  - `showRawInput`: Whether to display bcs encoded transaction input data. Default is False.
+
+### **`signAndExecuteTransactionBlock`**
+
+```tsx
+const txb = new TransactionBlock();
+ 
+const result = await client.signAndExecuteTransactionBlock({
+	transactionBlock: txb,
+	signer: keypair,
+	requestType: 'WaitForLocalExecution',
+	options: {
+		showEffects: true,
+	},
+});
+```
+
+parameter
+
+- `transactionBlock`: BCS serialized transaction data bytes as a Uint8Array or base-64 encoded string.
+- `signature`: A signed message submitted as a base-64 encoded string.
+- `requestType`: `WaitForEffectsCert` or `WaitForLocalExecution`. How long to wait until the RPC node returns a response, defaults to `WaitForLocalExecution`.
+- `options:`
+  - `showBalanceChanges`: whether to display balance_changes. Default is False.
+  - `showEffects`: whether to display transaction effects. Default is False.
+  - `showEvents`: whether to display transaction events. Default is False.
+  - `showInput`: whether to display transaction input data. Default is False.
+  - `showObjectChanges`: Whether to display object_changes. Default is False.
+  - `showRawInput`: Whether to display bcs encoded transaction input data. Default is False.
+
+### **`waitForTransactionBlock`**
+
+Using this method will poll the getTransactionBlock method to obtain the results of the transaction block.
+
+```tsx
+const txb = new TransactionBlock();
+ 
+const result = await client.signAndExecuteTransactionBlock({
+	transactionBlock: txb,
+	signer: keypair,
+});
+ 
+const transactionBlock = await client.waitForTransactionBlock({
+	digest: result.digest,
+	options: {
+		showEffects: true,
+	},
+});
+```
+
+parameter
+
+- `digest`: Query the summary of the transaction.
+- `signal`: (optional) Termination signal, which can be used to cancel the request.
+- `timeout` - Time to wait for transaction block. Default is one minute.
+- `pollInterval` - Check the wait time between transaction blocks. Default is 2 seconds.
+- `option`:
+  - `showBalanceChanges` - Show balance changes: Whether to show balance changes. Default is False.
+  - `showEffects`: whether to display transaction effects: whether to display transaction effects. Default is False.
+  - `showEvents`: Whether to display transaction events. Default is False.
+  - `showInput`: Whether to display transaction input data. Default is False.
+  - `showObjectChanges`: Whether to display object changes. Default is False.
+  - `showRawInput`: Whether to display bcs encoded transaction input data. Default is False.

@@ -1,0 +1,65 @@
+---
+title: Witness Design Pattern
+---
+
+Next, we need to understand the witness design pattern, which clarifies how fungible tokens are implemented in Mgo Move.
+
+A witness is a design pattern used to ensure that a resource or type A, associated with the brief existence of a witness resource, can only be initiated once after the witness resource is consumed.
+
+The witness resource must be immediately consumed or discarded after use, ensuring that it cannot be reused to create multiple instances of A.
+
+## Example of the Witness Pattern
+
+In the example below, the witness resource is PEACE, and the type A that we aim to control instantiation of is Guardian.
+
+The witness resource type must have the `drop` keyword, allowing the resource to be discarded after being passed into a function. We see an instance of the PEACE resource being passed into the `create_guardian` method and discarded (note the underscore before witness), ensuring that only one instance of Guardian can be created.
+
+```move
+
+    module witness::peace {
+        use mgo::object::{Self, UID};
+        use mgo::transfer;
+        use mgo::tx_context::{Self, TxContext};
+
+        struct Guardian<phantom T: drop> has key, store {
+            id: UID
+        }
+
+        struct PEACE has drop {}
+
+        public fun create_guardian<T: drop>(
+            _witness: T, ctx: &mut TxContext
+        ): Guardian<T> {
+            Guardian { id: object::new(ctx) }
+        }
+
+        fun init(witness: PEACE, ctx: &mut TxContext) {
+            transfer::transfer(
+                create_guardian(witness, ctx),
+                tx_context::sender(ctx)
+            )
+        }
+    }
+```
+
+### Phantom
+
+In the example above, we want the Guardian type to have `key` and `store` capabilities so that it is an asset that can be transferred and persists in global storage.
+
+We also want to pass the witness resource PEACE into Guardian, but PEACE only has the `drop` capability. Recalling our previous discussion on capability constraints and inner types, the rule implies that PEACE should also have `key` and `storage` because the outer type Guardian does. However, in this case, we do not want to add unnecessary capabilities to our witness type, as doing so might lead to unintended behavior and vulnerabilities.
+
+We can use the `phantom` keyword to address this situation. When a type parameter is not used in the structure definition or is only used as a parameter to another `phantom` type parameter, the `phantom` keyword allows us to request that the Move type system relax the rules on capability constraints for inner types. We see that Guardian does not use the type T in any of its fields, so we can safely declare T as a `phantom` type.
+
+### One Time Witness
+
+One Time Witness (OTW) is a sub-pattern of the Witness pattern, where we utilize the module's `init` function to ensure that only one instance of a witness resource is created (thus guaranteeing that type A is unique).
+
+In Mgo Move, a type is considered an OTW if it has the following properties:
+
+- The type is named after the module's name but in uppercase.
+- The type only has the `drop` capability.
+
+To obtain an instance of this type, you need to add it as the first parameter to the module's `init` function, as shown in the example above. Then, the Mgo runtime automatically generates the OTW structure upon module publication.
+
+The example above uses the One Time Witness design pattern to ensure that Guardian is a singleton.
+
