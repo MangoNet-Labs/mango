@@ -23,6 +23,8 @@
     "@mui/material": "^5.14.8",
     "autoprefixer": "^10.4.15",
     "clsx": "^2.0.0",
+    "docusaurus-plugin-includes": "^1.1.5",
+    "lodash": "^4.17.21",
     "markdown-to-jsx": "^7.4.3",
     "prism-react-renderer": "^2.3.0",
     "react": "^18.0.0",
