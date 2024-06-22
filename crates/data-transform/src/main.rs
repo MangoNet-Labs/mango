@@ -108,13 +108,28 @@ impl ModuleResolver for GrootModuleResolver {
     fn get_module(&self, id: &ModuleId) -> Result<Option<Vec<u8>>, Self::Error> {
         let address = id.address();
         println!("address = {}", address);
-        let mapped_address = map_typus_address(address);
-        let module_id = ModuleId::new(mapped_address, id.name().to_owned());
-        if &module_id != id {
-            println!("remapped module from {:#?} to {:#?}", id, module_id);
+        if is_move_inscription(address) {
+            let module_name = id.name().to_string();
+            println!("i am groot, module_name: {}", module_name);
+            Ok(self.module_map.get(&module_name).cloned())
+        } else {
+            let mapped_address = map_typus_address(address);
+            let module_id = ModuleId::new(mapped_address, id.name().to_owned());
+            if &module_id != id {
+                println!("remapped module from {:#?} to {:#?}", id, module_id);
+            }
+            self.original.get_module(&module_id)
         }
-        self.original.get_module(&module_id)
     }
+}
+
+static MOVE_INSCRIPTION: Lazy<AccountAddress> = Lazy::new(|| {
+    AccountAddress::from_str("0x0000000000000000000000000000000000000000000000000000000000000004")
+        .unwrap()
+});
+
+fn is_move_inscription(address: &AccountAddress) -> bool {
+    address == &*MOVE_INSCRIPTION
 }
 
 static TYPUS_LATEST: Lazy<AccountAddress> = Lazy::new(|| {

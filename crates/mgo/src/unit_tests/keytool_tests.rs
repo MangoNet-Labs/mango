@@ -4,13 +4,14 @@
 use std::str::FromStr;
 
 use crate::key_identity::KeyIdentity;
-use crate::keytool::read_authority_keypair_from_file;
+use crate::keytool::{read_authority_keypair_from_file};
 use crate::keytool::read_keypair_from_file;
 use crate::keytool::CommandOutput;
 
 use super::write_keypair_to_file;
 use super::KeyToolCommand;
-use anyhow::Ok;
+use anyhow::{Ok};
+use bip32::{DerivationPath};
 use fastcrypto::ed25519::Ed25519KeyPair;
 use fastcrypto::encoding::Base64;
 use fastcrypto::encoding::Encoding;
@@ -42,6 +43,34 @@ use tempfile::TempDir;
 use tokio::test;
 
 const TEST_MNEMONIC: &str = "result crisp session latin must fruit genuine question prevent start coconut brave speak student dismiss";
+
+#[test]
+async fn test_private_key_to_address() -> Result<(), anyhow::Error> {
+
+    // let hex_prv_key = "b4ed9f3ad71d251ccd9ab288b3f559a64130584d3d62af335730c4e4bf0d7477";
+    // let decoded = Hex::decode(&hex_prv_key).unwrap();
+    // let mgo_key = MgoKeyPair::Ed25519(Ed25519KeyPair::from_bytes(&decoded)?);
+    // let key = Key::from(&mgo_key);
+    // println!("address:{}", key.mgo_address.to_string());
+
+    let mnemonic = "spice receive prosper hurdle turn two awake fee frown desert rent decide";
+    println!("mnemonic:{}", mnemonic);
+
+    let mut keystore = Keystore::from(InMemKeystore::new_insecure_for_tests(0));
+    let mgo_address = keystore.import_from_mnemonic(
+        mnemonic,
+        SignatureScheme::ED25519,
+        Some(DerivationPath::from_str("m/44'/938'/0'/0'/0'").unwrap()),
+    )?;
+    let mgo_kp = keystore.get_key(&mgo_address).unwrap();
+
+    let mgo_prefix_key = mgo_kp.encode().unwrap();
+    println!("mgo_prefix_key:{}", mgo_prefix_key.to_string());
+    let hex_prefix_key = Hex::encode(&mgo_kp.to_bytes()[1..]);
+    println!("hex_prefix_key:0x{}", hex_prefix_key);
+    println!("address:{}", mgo_address.to_string());
+    Ok(())
+}
 
 #[test]
 async fn test_addresses_command() -> Result<(), anyhow::Error> {
@@ -403,7 +432,7 @@ async fn test_invalid_derivation_path() -> Result<(), anyhow::Error> {
         alias: None,
         input_string: TEST_MNEMONIC.to_string(),
         key_scheme: SignatureScheme::ED25519,
-        derivation_path: Some("m/0'/784'/0'/0/0".parse().unwrap()),
+        derivation_path: Some("m/0'/938'/0'/0/0".parse().unwrap()),
     }
     .execute(&mut keystore)
     .await
@@ -413,7 +442,7 @@ async fn test_invalid_derivation_path() -> Result<(), anyhow::Error> {
         alias: None,
         input_string: TEST_MNEMONIC.to_string(),
         key_scheme: SignatureScheme::ED25519,
-        derivation_path: Some("m/54'/784'/0'/0/0".parse().unwrap()),
+        derivation_path: Some("m/54'/938'/0'/0/0".parse().unwrap()),
     }
     .execute(&mut keystore)
     .await
@@ -423,7 +452,7 @@ async fn test_invalid_derivation_path() -> Result<(), anyhow::Error> {
         alias: None,
         input_string: TEST_MNEMONIC.to_string(),
         key_scheme: SignatureScheme::Secp256k1,
-        derivation_path: Some("m/54'/784'/0'/0'/0'".parse().unwrap()),
+        derivation_path: Some("m/54'/938'/0'/0'/0'".parse().unwrap()),
     }
     .execute(&mut keystore)
     .await
@@ -433,7 +462,7 @@ async fn test_invalid_derivation_path() -> Result<(), anyhow::Error> {
         alias: None,
         input_string: TEST_MNEMONIC.to_string(),
         key_scheme: SignatureScheme::Secp256k1,
-        derivation_path: Some("m/44'/784'/0'/0/0".parse().unwrap()),
+        derivation_path: Some("m/44'/938'/0'/0/0".parse().unwrap()),
     }
     .execute(&mut keystore)
     .await
@@ -449,7 +478,7 @@ async fn test_valid_derivation_path() -> Result<(), anyhow::Error> {
         alias: None,
         input_string: TEST_MNEMONIC.to_string(),
         key_scheme: SignatureScheme::ED25519,
-        derivation_path: Some("m/44'/784'/0'/0'/0'".parse().unwrap()),
+        derivation_path: Some("m/44'/938'/0'/0'/0'".parse().unwrap()),
     }
     .execute(&mut keystore)
     .await
@@ -459,7 +488,7 @@ async fn test_valid_derivation_path() -> Result<(), anyhow::Error> {
         alias: None,
         input_string: TEST_MNEMONIC.to_string(),
         key_scheme: SignatureScheme::ED25519,
-        derivation_path: Some("m/44'/784'/0'/0'/1'".parse().unwrap()),
+        derivation_path: Some("m/44'/938'/0'/0'/1'".parse().unwrap()),
     }
     .execute(&mut keystore)
     .await
@@ -469,7 +498,7 @@ async fn test_valid_derivation_path() -> Result<(), anyhow::Error> {
         alias: None,
         input_string: TEST_MNEMONIC.to_string(),
         key_scheme: SignatureScheme::ED25519,
-        derivation_path: Some("m/44'/784'/1'/0'/1'".parse().unwrap()),
+        derivation_path: Some("m/44'/938'/1'/0'/1'".parse().unwrap()),
     }
     .execute(&mut keystore)
     .await
@@ -479,7 +508,7 @@ async fn test_valid_derivation_path() -> Result<(), anyhow::Error> {
         alias: None,
         input_string: TEST_MNEMONIC.to_string(),
         key_scheme: SignatureScheme::Secp256k1,
-        derivation_path: Some("m/54'/784'/0'/0/1".parse().unwrap()),
+        derivation_path: Some("m/54'/938'/0'/0/1".parse().unwrap()),
     }
     .execute(&mut keystore)
     .await
@@ -489,7 +518,7 @@ async fn test_valid_derivation_path() -> Result<(), anyhow::Error> {
         alias: None,
         input_string: TEST_MNEMONIC.to_string(),
         key_scheme: SignatureScheme::Secp256k1,
-        derivation_path: Some("m/54'/784'/1'/0/1".parse().unwrap()),
+        derivation_path: Some("m/54'/938'/1'/0/1".parse().unwrap()),
     }
     .execute(&mut keystore)
     .await

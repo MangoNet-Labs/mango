@@ -10,13 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Formatter;
 use mgo_types::base_types::ObjectRef;
 use mgo_types::storage::ObjectStore;
-use mgo_types::{
-    base_types::ObjectID,
-    digests::TransactionDigest,
-    move_package::MovePackage,
-    object::{Object, OBJECT_START_VERSION},
-    MOVE_STDLIB_PACKAGE_ID, MGO_FRAMEWORK_PACKAGE_ID, MGO_SYSTEM_PACKAGE_ID,
-};
+use mgo_types::{base_types::ObjectID, digests::TransactionDigest, move_package::MovePackage, object::{Object, OBJECT_START_VERSION}, MOVE_STDLIB_PACKAGE_ID, MGO_FRAMEWORK_PACKAGE_ID, MGO_SYSTEM_PACKAGE_ID, MGO_INSCRIPTION_PACKAGE_ID};
 use tracing::error;
 
 /// Represents a system package in the framework, that's built from the source code inside
@@ -115,6 +109,11 @@ impl BuiltInFramework {
             (
                 MGO_SYSTEM_PACKAGE_ID,
                 "mgo-system",
+                [MOVE_STDLIB_PACKAGE_ID, MGO_FRAMEWORK_PACKAGE_ID]
+            ),
+            (
+                MGO_INSCRIPTION_PACKAGE_ID,
+                "mgo-inscription",
                 [MOVE_STDLIB_PACKAGE_ID, MGO_FRAMEWORK_PACKAGE_ID]
             )
         ])

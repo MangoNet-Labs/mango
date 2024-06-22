@@ -88,8 +88,8 @@ pub enum KeyToolCommand {
         tx_bytes: Option<String>,
     },
     /// Generate a new keypair with key scheme flag {ed25519 | secp256k1 | secp256r1}
-    /// with optional derivation path, default to m/44'/784'/0'/0'/0' for ed25519 or
-    /// m/54'/784'/0'/0/0 for secp256k1 or m/74'/784'/0'/0/0 for secp256r1. Word
+    /// with optional derivation path, default to m/44'/938'/0'/0'/0' for ed25519 or
+    /// m/54'/938'/0'/0/0 for secp256k1 or m/74'/938'/0'/0/0 for secp256r1. Word
     /// length can be { word12 | word15 | word18 | word21 | word24} default to word12
     /// if not specified.
     ///
@@ -105,8 +105,8 @@ pub enum KeyToolCommand {
 
     /// Add a new key to Mgo CLI Keystore using either the input mnemonic phrase or a Bech32 encoded 33-byte
     /// `flag || privkey` starting with "mgoprivkey", the key scheme flag {ed25519 | secp256k1 | secp256r1}
-    /// and an optional derivation path, default to m/44'/784'/0'/0'/0' for ed25519 or m/54'/784'/0'/0/0
-    /// for secp256k1 or m/74'/784'/0'/0/0 for secp256r1. Supports mnemonic phrase of word length 12, 15,
+    /// and an optional derivation path, default to m/44'/938'/0'/0'/0' for ed25519 or m/54'/938'/0'/0/0
+    /// for secp256k1 or m/74'/938'/0'/0/0 for secp256r1. Supports mnemonic phrase of word length 12, 15,
     /// 18, 21, 24. Set an alias for the key with the --alias flag. If no alias is provided, the tool will
     /// automatically generate one.
     Import {
@@ -371,6 +371,7 @@ pub struct ConvertOutput {
     base64_with_flag: String, // Mgo Keystore storage format
     hex_without_flag: String, // Legacy Mgo Wallet format
     scheme: String,
+    address: String,
 }
 
 #[derive(Serialize)]
@@ -564,14 +565,6 @@ impl KeyToolCommand {
                 key_scheme,
                 derivation_path,
             } => {
-                if Hex::decode(&input_string).is_ok() {
-                    return Err(anyhow!(
-                        "Mgo Keystore and Mgo Wallet no longer support importing
-                    private key as Hex, if you are sure your private key is encoded in Hex, use 
-                    `mgo keytool convert $HEX` to convert first then import the Bech32 encoded 
-                    private key starting with `mgoprivkey`."
-                    ));
-                }
 
                 match MgoKeyPair::decode(&input_string) {
                     Ok(skp) => {
@@ -1233,11 +1226,14 @@ fn convert_private_key_to_bech32(value: String) -> Result<ConvertOutput, anyhow:
         },
     };
 
+    let key = Key::from(&skp);
+
     Ok(ConvertOutput {
         bech32_with_flag: skp.encode().map_err(|_| anyhow!("Cannot encode keypair"))?,
         base64_with_flag: skp.encode_base64(),
         hex_without_flag: Hex::encode(&skp.to_bytes()[1..]),
         scheme: skp.public().scheme().to_string(),
+        address: key.mgo_address.to_string()
     })
 }
 

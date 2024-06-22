@@ -11,7 +11,7 @@
 use fastcrypto::{
     bls12381, ed25519,
     error::FastCryptoError,
-    hash::{Blake2b256, HashFunction},
+    hash::{Keccak256, HashFunction},
     traits::{AggregateAuthenticator, Signer, VerifyingKey},
 };
 
@@ -52,7 +52,7 @@ pub type RandomnessPrivateKey =
 ////////////////////////////////////////////////////////////////////////
 
 // Type alias selecting the default hash function for the code base.
-pub type DefaultHashFunction = Blake2b256;
+pub type DefaultHashFunction = Keccak256;
 pub const DIGEST_LENGTH: usize = DefaultHashFunction::OUTPUT_SIZE;
 pub const INTENT_MESSAGE_LENGTH: usize = INTENT_PREFIX_LENGTH + DIGEST_LENGTH;
 

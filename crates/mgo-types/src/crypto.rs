@@ -49,7 +49,7 @@ use crate::mgo_serde::{Readable, MgoBitmap};
 pub use enum_dispatch::enum_dispatch;
 use fastcrypto::encoding::{Base64, Bech32, Encoding, Hex};
 use fastcrypto::error::FastCryptoError;
-use fastcrypto::hash::{Blake2b256, HashFunction};
+use fastcrypto::hash::{HashFunction, Keccak256};
 pub use fastcrypto::traits::Signer;
 use std::fmt::Debug;
 use tracing::{instrument, warn};
@@ -80,7 +80,7 @@ pub type NetworkKeyPair = Ed25519KeyPair;
 pub type NetworkPublicKey = Ed25519PublicKey;
 pub type NetworkPrivateKey = Ed25519PrivateKey;
 
-pub type DefaultHash = Blake2b256;
+pub type DefaultHash = Keccak256;
 
 pub const DEFAULT_EPOCH_ID: EpochId = 0;
 pub const MGO_PRIV_KEY_PREFIX: &str = "mgoprivkey";

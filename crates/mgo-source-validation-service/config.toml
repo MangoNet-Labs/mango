@@ -8,6 +8,7 @@ packages = [
     { path = "crates/mgo-framework/packages/move-stdlib", watch = "0x1" },
     { path = "crates/mgo-framework/packages/mgo-framework", watch = "0x2" },
     { path = "crates/mgo-framework/packages/mgo-system", watch = "0x3" },
+    { path = "crates/mgo-framework/packages/mgo-inscription", watch = "0x4"},
 ]
 
 [[packages]]
@@ -20,6 +21,7 @@ packages = [
     { path = "crates/mgo-framework/packages/move-stdlib", watch = "0x1" },
     { path = "crates/mgo-framework/packages/mgo-framework", watch = "0x2" },
     { path = "crates/mgo-framework/packages/mgo-system", watch = "0x3" },
+    { path = "crates/mgo-framework/packages/mgo-inscription", watch = "0x4"},
 ]
 
 [[packages]]
@@ -32,6 +34,7 @@ packages = [
     { path = "crates/mgo-framework/packages/move-stdlib", watch = "0x1" },
     { path = "crates/mgo-framework/packages/mgo-framework", watch = "0x2" },
     { path = "crates/mgo-framework/packages/mgo-system", watch = "0x3" },
+    { path = "crates/mgo-framework/packages/mgo-inscription", watch = "0x4"},
 ]
 
 [[packages]]

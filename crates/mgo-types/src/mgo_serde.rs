@@ -24,7 +24,7 @@ use mgo_protocol_config::ProtocolVersion;
 
 use crate::{
     parse_mgo_struct_tag, parse_mgo_type_tag, MGO_CLOCK_ADDRESS,
-    MGO_FRAMEWORK_ADDRESS, MGO_SYSTEM_ADDRESS, MGO_SYSTEM_STATE_ADDRESS,
+    MGO_FRAMEWORK_ADDRESS, MGO_SYSTEM_ADDRESS, MGO_INSCRIPTION_ADDRESS, MGO_SYSTEM_STATE_ADDRESS,
 };
 
 #[inline]
@@ -165,11 +165,12 @@ impl SerializeAs<StructTag> for MgoStructTag {
     }
 }
 
-const MGO_ADDRESSES: [AccountAddress; 6] = [
+const MGO_ADDRESSES: [AccountAddress; 7] = [
     AccountAddress::ZERO,
     AccountAddress::ONE,
     MGO_FRAMEWORK_ADDRESS,
     MGO_SYSTEM_ADDRESS,
+    MGO_INSCRIPTION_ADDRESS,
     MGO_SYSTEM_STATE_ADDRESS,
     MGO_CLOCK_ADDRESS,
 ];
