@@ -8,27 +8,27 @@ The Mango TypeScript SDK is a modular tool library for interacting with the Mang
 
 ```bash
 # npm
-npm i @mgonetwork/mango.js
+npm i @mgonetwork/mango.js@^1.0.0
 
 # yarn
-yarn add @mgonetwork/mango.js
+yarn add @mgonetwork/mango.js@^1.0.0
 
 # pnpm
-pnpm add @mgonetwork/mango.js
+pnpm add @mgonetwork/mango.js@^1.0.0
 ```
 
 ## Supported networks
 
-| Network | Full node | faucet |
-| --- | --- | --- |
-| devnet | https://fullnode.devnet.mangonetwork.io | https://faucet.devnet.mangonetwork.io/gas |
+| Network | Full node                               | faucet                                    |
+|---------|-----------------------------------------|-------------------------------------------|
+| devnet  | https://fullnode.devnet.mangonetwork.io | https://faucet.devnet.mangonetwork.io/gas |
 
 ## Module
 
 The SDK includes the following modules.
 
-- @mgonetwork/mango.js/client : client that interacts with Mango RPC nodes
-- @mgonetwork/mango.js/bcs : bcs generator
+- @mgonetwork/mango.js/client: client that interacts with Mango RPC nodes
+- @mgonetwork/mango.js/bcs: bcs generator
 - @mgonetwork/mango.js/keypairs: Account related methods
 - @mgonetwork/mango.js/verify: related methods for verification
 - @mgonetwork/mango.js/cryptography: encryption related methods
@@ -38,31 +38,64 @@ The SDK includes the following modules.
 
 ## Mango client
 
-```tsx
-import { getFullnodeUrl, MgoClient } from '@mgonetwork/mango.js/client';
+To establish a connection to a network, import MgoClient from @mgonetwork/mango.js/client and pass the relevant URL to the url parameter.
+
+```TypeScript
+import { getFullnodeUrl, MgoClient } from "@mgonetwork/mango.js/client";
 
 const client: MgoClient = new MgoClient({
-  url: getFullnodeUrl('devnet'),
+  url: getFullnodeUrl("devnet"),
 });
 
 // Manually calling unsupported rpc methods
-const committeeInfo = await client.call('<PRC_METHOD_NAME>', []);
+const committeeInfo = await client.call("<PRC_METHOD_NAME>", []);
+```
+
+## Get Balance
+
+Using the following method, you can get the balance of this account in the specified currency.
+
+```TypeScript
+import { getFullnodeUrl, MgoClient } from "@mgonetwork/mango.js/client";
+
+const MY_ADDRESS = "0xSomeAddress";
+
+const coinType = "0x2::mgo::MGO";
+
+const client: MgoClient = new MgoClient({ url: getFullnodeUrl("devnet") });
+
+const getBalance = async (owner: string, coinType: string) => {
+  return await client.getBalance({
+    owner,
+    coinType
+  });
+}
+
+getBalance(MY_ADDRESS, coinType)
+  .then((balance) => {
+    console.log({ balance });
+  })
+  .catch(({ message }) => {
+    console.log({ error: message });
+  });
 ```
 
 ## Get test coins
 
-```tsx
+The following example establishes a connection to Testnet and requests MGO from that network's faucet.
+
+```TypeScript
 import { getFaucetHost, requestMgoFromFaucetV0 } from "@mgonetwork/mango.js/faucet";
 
-const MY_ADDRESS = '';
+const MY_ADDRESS = "0xSomeAddress";
 
 const mgoBefore = await client.getBalance({
   owner: MY_ADDRESS,
 });
 
 await requestMgoFromFaucetV0({
-	host: getFaucetHost('devnet'),
-	recipient: MY_ADDRESS,
+  host: getFaucetHost("devnet"),
+  recipient: MY_ADDRESS,
 });
 
 const mgoAfter = await client.getBalance({
@@ -82,7 +115,7 @@ console.log({ mgoBefore, mgoAfter });
 
 Some methods also support the use of the order field, which can be set to ascending or descending order.
 
-```tsx
+```TypeScript
 const page1 = await client.queryEvents({
       query: {
         MoveEventType: `${packageId}::${moduleName}::${methodName}`,

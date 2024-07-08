@@ -8,9 +8,9 @@ To create a `MultiSigPublicKey`, you need to provide a `u16` type `threshold` an
 
 As shown in the following code, signing with either kp1 or kp2 alone will not meet the threshold as the total `weight` of valid signatures is insufficient, rendering the signature invalid. However, signing with both kp1 and kp2, or with kp3 alone, will make the signature valid.
 
-```tsx
-import { Ed25519Keypair } from '@mgonetwork/mango.js/keypairs/ed25519';
-import { MultiSigPublicKey } from '@mgonetwork/mango.js/multisig';
+```TypeScript
+import { Ed25519Keypair } from "@mgonetwork/mango.js/keypairs/ed25519";
+import { MultiSigPublicKey } from "@mgonetwork/mango.js/multisig";
 
 const kp1 = new Ed25519Keypair();
 const kp2 = new Ed25519Keypair();
@@ -41,8 +41,8 @@ const multisigAddress = multiSigPublicKey.toMgoAddress();
 
 To perform multi-signature verification, each keypair must sign, and use `multiSigPublicKey.combinePartialSignatures` to merge the individual signatures.
 
-```tsx
-const message = new TextEncoder().encode('Hello Mango');
+```TypeScript
+const message = new TextEncoder().encode("Hello Mango");
  
 const signature1 = (await kp1.signPersonalMessage(message)).signature;
 const signature2 = (await kp2.signPersonalMessage(message)).signature;

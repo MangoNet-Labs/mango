@@ -89,41 +89,41 @@ class MgoWallet implements Wallet {
 		};
 	}
 
-  #on: StandardEventsOnMethod = () => {
+    #on: StandardEventsOnMethod = () => {
     // Your wallet's events on implementation.
-  };
+    };
 
-  #connect: StandardConnectMethod = () => {
+    #connect: StandardConnectMethod = () => {
     // Your wallet's connect implementation
-  };
+    };
 
-	#signPersonalMessage: MgoSignPersonalMessageMethod = () => {
+    #signPersonalMessage: MgoSignPersonalMessageMethod = () => {
     // Your wallet's signTransaction implementation
-  };
+    };
 
-  #signTransactionBlock: MgoSignTransactionBlockMethod = () => {
+    #signTransactionBlock: MgoSignTransactionBlockMethod = () => {
     // Your wallet's signTransaction implementation
-  };
+    };
 
-  #signAndExecuteTransactionBlock: MgoSignAndExecuteTransactionBlockMethod = () => {
+    #signAndExecuteTransactionBlock: MgoSignAndExecuteTransactionBlockMethod = () => {
     // Your wallet's signAndExecuteTransaction implementation
-  };
-  
-	get accounts() {
-		return this.#accounts;
-	}
+    };
 
-	#setAccounts(accounts) {
-		this.#accounts = accounts.map(
-			({ address, publicKey }) =>
-				new ReadonlyWalletAccount({
-					address,
-					publicKey: publicKey ? fromB64(publicKey) : new Uint8Array(),
-					chains: this.#activeChain ? [this.#activeChain] : [],
-					features: ['mgo:signAndExecuteTransaction'],
-				}),
-		);
-	}
+    get accounts() {
+        return this.#accounts;
+    }
+
+    #setAccounts(accounts) {
+        this.#accounts = accounts.map(
+            ({ address, publicKey }) =>
+                new ReadonlyWalletAccount({
+                    address,
+                    publicKey: publicKey ? fromB64(publicKey) : new Uint8Array(),
+                    chains: this.#activeChain ? [this.#activeChain] : [],
+                    features: ['mgo:signAndExecuteTransaction'],
+                }),
+        );
+    }
 }
 ```
 

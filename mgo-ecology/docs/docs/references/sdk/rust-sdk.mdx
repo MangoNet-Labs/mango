@@ -1,0 +1,484 @@
+---
+title: Rust SDK
+---
+
+The Mango Rust SDK crate is in the [**crates\mgo-sdk** directory](https://github.com/MangoNet-Labs/mango/tree/main/crates/mgo-sdk) of the Mango repository.
+
+This crate provides the Mgo Rust SDK, containing APIs to interact with the Mango Network.
+
+You can get more detail about the Mango from [Mango Network](https://github.com/MangoNet-Labs/mango)
+
+## Quick Start
+
+In your cargo project, modify your `Cargo.toml` and add the `mgo-sdk` dependency as following:
+
+```toml
+[dependencies]
+mgo_sdk = { git = "https://github.com/MangoNet-Labs/mango", package = "mgo-sdk"}
+tokio = { version = "1.0.0", features = ["full"] }
+anyhow = "1.0"
+```
+
+In Mango Rust SDK, the most important structure is `MgoClientBuilder`,which helps us to do all kinds of interactions with the Mango Network.
+
+```rust
+// src/main.rs
+use mgo_sdk::MgoClientBuilder;
+
+#[tokio::main]
+async fn main() -> Result<(), anyhow::Error> {
+    let mgo_local = MgoClientBuilder::default()
+        .build("http://127.0.0.1:9000")
+        .await?;
+    println!("Mango local network version: {}", mgo_local.api_version());
+
+    // mgo devnet -- https://fullnode.devnet.mangonetwork.io:443
+    let mgo_devnet = MgoClientBuilder::default().build_devnet().await?;
+
+    println!("Mango devnet network version: {}", mgo_devnet.api_version());
+
+    Ok(())
+}
+```
+
+> One thing to note is that before you try to connect to the local network, make sure you have started the `Local` network service using `mgo start`.
+
+
+
+```
+Mango local network version: 1.0.0
+```
+
+## Basic Usage
+
+### Connecting to Mango Network
+
+`The `MgoClientBuilder` struct provides a connection to the JSON-RPC server that you use for all read-only operations. The default URLs to connect to the Mango Network are:
+
+- Local: [http://127.0.0.1:9000](http://127.0.0.1:9000/)
+- Devnet: [https://fullnode.devnet.mangonetwork.io:443](https://fullnode.devnet.mangonetwork.io/)
+- Testnet: [https://fullnode.testnet.mangonetwork.io:443](https://fullnode.testnet.mangonetwork.io/)
+
+You can choose to initialise MgoClient in different ways:
+
+```rust
+// src/main.rs
+use mgo_sdk::MgoClientBuilder;
+
+#[tokio::main]
+async fn main() -> Result<(), anyhow::Error> {
+    // mgo local -- http://127.0.0.1:9000
+    let mgo_local = MgoClientBuilder::default()
+        .build("http://127.0.0.1:9000")
+        .await?;
+    println!("Mango local network version: {}", mgo_local.api_version());
+
+    // mgo devnet -- https://fullnode.devnet.mangonetwork.io:443
+    let mgo_devnet = MgoClientBuilder::default().build_devnet().await?;
+    println!("Mango devnet network version: {}", mgo_devnet.api_version());
+
+    // mgo testnet -- https://fullnode.testnet.mangonetwork.io:443
+    let mgo_testnet = MgoClientBuilder::default().build_testnet().await?;
+    println!("Mango testnet network version: {}", mgo_testnet.api_version());
+
+
+    Ok(())
+}
+```
+
+### Get available methods to call for RPC
+
+```rust
+
+use mgo_sdk::MgoClientBuilder;
+
+#[tokio::main]
+async fn main() -> Result<(), anyhow::Error>{
+    // mgo devnet -- https://fullnode.devnet.mangonetwork.io:443
+    let mgo_devnet = MgoClientBuilder::default().build_devnet().await?;
+    println!("Mgo mgo_devnet version: {}", mgo_devnet.api_version());
+
+
+    let methods:&Vec<String> = mgo_devnet.available_rpc_methods();
+    println!("You can call methods: {:?}", methods);
+
+    Ok(())
+}
+```
+
+## Advanced Usage
+
+### Deriving from Private Key
+
+We'll use one that reads a private key from a file to build a key pair as an example.
+
+In your `base64_private_keys.txt`，the content is your base64 private key ：
+
+```txt
+[
+"ACx51JGDZh1cKjiu6bmodDS0MS0tO5iRM7tNZ49nhrR4"
+]
+```
+
+> When you use the command `mgo keytool generate ed25519`，you will get file `<ADDRESS_KEY>`.txt, in which is your base64 private key.
+
+Then you can convert to keypair
+
+```rust
+use mgo_keys::keystore::{AccountKeystore, FileBasedKeystore};
+
+use std::str::FromStr;
+#[tokio::main]
+async fn main() -> Result<(), anyhow::Error> {
+
+        // Convert to keypair from  base64_private_key
+        let mgo_keystore_path = &String::from_str("base64_private_keys.txt").unwrap();
+        let keystore = FileBasedKeystore::new(&mgo_keystore_path.into())?;
+        let my_address = keystore.addresses()[0];
+        println!("=== Your address: === \n{}", my_address);
+        let my_key_pair = keystore.key_pairs()[0];
+        println!("=== Your keypair: === \n{:#?}", my_key_pair);
+    Ok(())
+}
+
+```
+
+### Deriving from Private Key
+
+在 `Cargo.toml`中添加依赖：
+
+```toml
+
+[dependencies]
+mgo_keys = { git = "https://github.com/MangoNet-Labs/mango", package = "mgo-keys"}
+mgo_types = { git = "https://github.com/MangoNet-Labs/mango", package = "mgo-types"}
+mgo = { git = "https://github.com/MangoNet-Labs/mango", package = "mgo"}
+tokio = { version = "1.0.0", features = ["full"] }
+anyhow = "1.0.86"
+hex = "0.4.2"
+```
+
+Using the `Ed25519KeyPair` scheme as an example,build your `MgoKeyPair`：
+
+```rust
+use mgo::keytool::KeyToolCommand;
+use mgo_keys::keystore::{AccountKeystore, InMemKeystore, Keystore};
+use mgo_types::crypto::SignatureScheme;
+#[tokio::main]
+async fn main() -> Result<(), anyhow::Error> {
+    // 1. Define your mnemonic
+    let mnemonic: &str = "spring ....";
+
+    // 2. Convert to keypair
+    let mut keystore = Keystore::from(InMemKeystore::new_insecure_for_tests(0));
+    KeyToolCommand::Import {
+        alias: None,
+        input_string: mnemonic.to_string(),
+        key_scheme: SignatureScheme::ED25519,
+        derivation_path: None,
+    }
+    .execute(&mut keystore)
+    .await?;
+    println!("len of keystore is {}", keystore.addresses().len());
+    let addresses = keystore.addresses();
+    let mgo_address = addresses.get(0).unwrap();
+    println!("the mgo_address of mnemonic is : {}", mgo_address);
+    let key_pair = keystore.get_key(mgo_address).unwrap();
+
+    // 3. Use your keypair
+    // print the private key:
+    let hex_string = hex::encode(&key_pair.to_bytes());
+    println!("the private key of mnemonic is : {}", hex_string);
+
+    Ok(())
+}
+
+```
+
+
+
+
+
+### Get Balance
+
+```rust
+use mgo_sdk::{
+    types::base_types::MgoAddress,
+    MgoClientBuilder,
+};
+
+
+use std::str::FromStr;
+#[tokio::main]
+async fn main() -> Result<(), anyhow::Error> {
+    // 1. Set up your mgo client for the desired network, such as devnet
+    let mgo_devnet_client = MgoClientBuilder::default().build_devnet().await?;
+
+    // 2. Prepare your address to query
+    let my_address =
+        MgoAddress::from_str("0x31b526319dc7646aad7a3ca9d20e0bfd78c2eb240ff6bc677ac6ec4f13d58fbc")
+            .unwrap();
+    // 3. Execute your query
+    let balance = mgo_devnet_client
+        .coin_read_api()
+        .get_coins(my_address, None, None, None)
+        .await?;
+    let coin_balance = balance.data.into_iter().next().unwrap();
+    println!("=== MGO balance ===: \n{:?}", coin_balance);
+    Ok(())
+}
+```
+
+### Transfer(Build Transaction)
+
+Add the dependencies in your `Cargo.toml`
+
+```toml
+[dependencies]
+
+mgo_sdk = { git = "https://github.com/MangoNet-Labs/mango", package = "mgo-sdk"}
+mgo_keys = { git = "https://github.com/MangoNet-Labs/mango", package = "mgo-keys"}
+mgo_types = { git = "https://github.com/MangoNet-Labs/mango", package = "mgo-types"}
+mgo = { git = "https://github.com/MangoNet-Labs/mango", package = "mgo"}
+shared_crypto = { git = "https://github.com/MangoNet-Labs/mango", package = "shared-crypto"}
+tokio = { version = "1.0.0", features = ["full"] }
+anyhow = "1.0.86"
+```
+
+Build transfer transaction
+
+```rust
+use mgo_keys::keystore::{AccountKeystore, FileBasedKeystore};
+use mgo_sdk::rpc_types::MgoTransactionBlockResponseOptions;
+
+use mgo_sdk::{
+    rpc_types::{MgoObjectDataOptions, MgoObjectResponseQuery},
+    types::base_types::MgoAddress,
+    MgoClientBuilder,
+};
+
+use mgo_types::programmable_transaction_builder::ProgrammableTransactionBuilder;
+use mgo_types::quorum_driver_types::ExecuteTransactionRequestType;
+use mgo_types::transaction::Transaction;
+use mgo_types::transaction::TransactionData;
+use shared_crypto::intent::Intent;
+use std::str::FromStr;
+#[tokio::main]
+async fn main() -> Result<(), anyhow::Error> {
+    // 1. Set up your mgo client for the desired network, such as devnet
+    let mgo_devnet_client = MgoClientBuilder::default().build_devnet().await?;
+
+    // 2. Prepare your keystore, which contain keypair for signing
+    let mgo_keystore_path = &String::from_str("base64_private_keys.txt").unwrap();
+    let keystore = FileBasedKeystore::new(&mgo_keystore_path.into())?;
+    let my_address = keystore.addresses()[0];
+    println!("=== Your address: === \n{}", my_address);
+    let _my_key_pair = keystore.key_pairs()[0];
+
+    // 3. Connect to the Mango devnet to get Mango object
+    let coins_response = mgo_devnet_client
+        .read_api()
+        .get_owned_objects(
+            my_address,
+            Some(MgoObjectResponseQuery::new_with_options(
+                MgoObjectDataOptions::new().with_type(),
+            )),
+            None,
+            None,
+        )
+        .await?;
+
+    let coin = coins_response
+        .data
+        .iter()
+        .find(|obj| obj.data.as_ref().unwrap().is_gas_coin())
+        .unwrap();
+    let coin = coin.data.as_ref().unwrap();
+    println!(" ==== Wallet MGO coin ==== : \n{:?}", coin);
+
+    // 4. Define your recipient address
+    let recipient_str = "0xeae7a5da74dd6b422b2ea17a620c686884b6fac8470d5fa491d81a602a20338b";
+    let recipient = MgoAddress::from_str(recipient_str).unwrap();
+
+    // 5. Build your transaction (amount 1,000,000,000 = 1 MGO)
+    let pt = {
+        let mut builder = ProgrammableTransactionBuilder::new();
+        builder.pay_mgo(vec![recipient], vec![1000_000_000 / 10])?; // 0.1 MGO
+        builder.finish()
+    };
+    let gas_budget = 5_000_000;
+    let gas_price = mgo_devnet_client
+        .read_api()
+        .get_reference_gas_price()
+        .await?;
+    let tx_data = TransactionData::new_programmable(
+        my_address,
+        vec![coin.object_ref()],
+        pt,
+        gas_budget,
+        gas_price,
+    );
+
+    // 6. The most important think is signing  your data
+    let signature = keystore.sign_secure(&my_address, &tx_data, Intent::mgo_transaction())?;
+
+    // 7. Execute your transaction
+    let transaction_response = mgo_devnet_client
+        .quorum_driver_api()
+        .execute_transaction_block(
+            Transaction::from_data(tx_data, vec![signature]),
+            MgoTransactionBlockResponseOptions::full_content(),
+            Some(ExecuteTransactionRequestType::WaitForLocalExecution),
+        )
+        .await?;
+    println!(" === done! Transaction information: === ");
+    println!("{:?}", transaction_response);
+    Ok(())
+}
+```
+
+### Estimate the gas after building transaction
+
+Sometimes, fixing `gas budget` is not a good method, because different transactions, spend different gas. When we set too small, will be due to the `budget` insufficient to cause the transaction execution failure. So we want to be able to specify the appropriate `budget` according to different transactions, Mango supports you to do so. We call `gas` estimate , let's continue with the above transfer example, we make some changes:
+
+```rust
+use mgo_keys::keystore::{AccountKeystore, FileBasedKeystore};
+use mgo_sdk::rpc_types::MgoTransactionBlockResponseOptions;
+
+use mgo_sdk::{
+    rpc_types::{MgoObjectDataOptions, MgoObjectResponseQuery},
+    types::base_types::MgoAddress,
+    MgoClientBuilder,
+};
+
+use mgo_types::programmable_transaction_builder::ProgrammableTransactionBuilder;
+use mgo_types::quorum_driver_types::ExecuteTransactionRequestType;
+use mgo_types::transaction::Transaction;
+use mgo_types::transaction::TransactionData;
+use shared_crypto::intent::Intent;
+use std::str::FromStr;
+#[tokio::main]
+async fn main() -> Result<(), anyhow::Error> {
+    // 1. Set up your mgo client for the desired network, such as devnet
+    let mgo_devnet_client = MgoClientBuilder::default().build_devnet().await?;
+
+    // 2. Prepare your keystore, which contain keypair for signing
+    let mgo_keystore_path = &String::from_str("base64_private_keys.txt").unwrap();
+    let keystore = FileBasedKeystore::new(&mgo_keystore_path.into())?;
+    let my_address = keystore.addresses()[0];
+    println!("=== Your address: === \n{}", my_address);
+    let _my_key_pair = keystore.key_pairs()[0];
+
+    // 3. Connect to the Mango devnet to get Mango object
+    let coins_response = mgo_devnet_client
+        .read_api()
+        .get_owned_objects(
+            my_address,
+            Some(MgoObjectResponseQuery::new_with_options(
+                MgoObjectDataOptions::new().with_type(),
+            )),
+            None,
+            None,
+        )
+        .await?;
+
+    let coin = coins_response
+        .data
+        .iter()
+        .find(|obj| obj.data.as_ref().unwrap().is_gas_coin())
+        .unwrap();
+    let coin = coin.data.as_ref().unwrap();
+    println!(" ==== Wallet MGO coin ==== : \n{:?}", coin);
+
+    // 4. Define your recipient address
+    let recipient_str = "0xeae7a5da74dd6b422b2ea17a620c686884b6fac8470d5fa491d81a602a20338b";
+    let recipient = MgoAddress::from_str(recipient_str).unwrap();
+
+    // 5. Build your transaction (amount 1,000,000,000 = 1 MGO)
+    let pt = {
+        let mut builder = ProgrammableTransactionBuilder::new();
+        builder.pay_mgo(vec![recipient], vec![1000_000_000 / 10])?; // 0.1 MGO
+        builder.finish()
+    };
+
+    let reference_gas_price = mgo_devnet_client
+        .read_api()
+        .get_reference_gas_price()
+        .await?;
+    let gas_price = Some(BigInt::from(reference_gas_price));
+
+    // Estimate the gas of the transaction
+    let inspect_data = mgo_devnet_client
+        .read_api()
+        .dev_inspect_transaction_block(
+            my_address,
+            ProgrammableTransaction(pt.clone()),
+            gas_price,
+            None,
+            None,
+        )
+        .await?;
+
+    let effects = inspect_data.effects;
+    let gas_cost_summary = effects.gas_cost_summary();
+    let gas_used = gas_cost_summary.gas_used();
+    let gas_estimate = gas_used;
+
+    let tx_data = TransactionData::new_programmable(
+        my_address,
+        vec![coin.object_ref()],
+        pt,
+        gas_estimate,
+        reference_gas_price,
+    );
+
+    // 6. The most important think is signing  your data
+    let signature = keystore.sign_secure(&my_address, &tx_data, Intent::mgo_transaction())?;
+
+    // 7. Execute your transaction
+    let transaction_response = mgo_devnet_client
+        .quorum_driver_api()
+        .execute_transaction_block(
+            Transaction::from_data(tx_data, vec![signature]),
+            MgoTransactionBlockResponseOptions::full_content(),
+            Some(ExecuteTransactionRequestType::WaitForLocalExecution),
+        )
+        .await?;
+    println!(" === done! Transaction information: === ");
+    println!("{:?}", transaction_response);
+
+    Ok(())
+}
+```
+
+### Sign personal message
+
+```rust
+use std::str::FromStr;
+
+use mgo_keys::keystore::{AccountKeystore, FileBasedKeystore};
+use shared_crypto::intent::{Intent, PersonalMessage};
+
+
+#[tokio::main]
+async fn main() -> Result<(), anyhow::Error> {
+
+    // 1. Prepare your keystore, which contain keypair for signing
+    let mgo_keystore_path = &String::from_str("base64_private_keys.txt").unwrap();
+    let keystore = FileBasedKeystore::new(&mgo_keystore_path.into())?;
+    let my_address = keystore.addresses()[0];
+    println!("=== Your address: === \n{}", my_address);
+    let _my_key_pair = keystore.key_pairs()[0];
+
+    // 2. Prepare your message to sign
+    let message = "Hello Mango".as_bytes().to_vec();
+    let p_message = PersonalMessage { message };
+
+    let signature = keystore.sign_secure(&my_address, &p_message, Intent::personal_message())?;
+
+    println!("{:#?}", signature);
+
+    Ok(())
+}
+```
+
