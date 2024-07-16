@@ -1,0 +1,53 @@
+---
+title: Multi-Signature
+---
+
+## Creation
+
+To create a `MultiSigPublicKey`, you need to provide a `u16` type `threshold` and an array of public keys (each object in the array has a `publicKey` and a `u8` type `weight`). A transaction is considered valid by Mango if the total `weight` of valid signatures meets or exceeds the `threshold`.
+
+As shown in the following code, signing with either kp1 or kp2 alone will not meet the threshold as the total `weight` of valid signatures is insufficient, rendering the signature invalid. However, signing with both kp1 and kp2, or with kp3 alone, will make the signature valid.
+
+```TypeScript
+import { Ed25519Keypair } from "@mgonetwork/mango.js/keypairs/ed25519";
+import { MultiSigPublicKey } from "@mgonetwork/mango.js/multisig";
+
+const kp1 = new Ed25519Keypair();
+const kp2 = new Ed25519Keypair();
+const kp3 = new Ed25519Keypair();
+
+const multiSigPublicKey = MultiSigPublicKey.fromPublicKeys({
+	threshold: 4,
+	publicKeys: [
+		{
+			publicKey: kp1.getPublicKey(),
+			weight: 2,
+		},
+		{
+			publicKey: kp2.getPublicKey(),
+			weight: 2,
+		},
+		{
+			publicKey: kp3.getPublicKey(),
+			weight: 4,
+		},
+	],
+});
+
+const multisigAddress = multiSigPublicKey.toMgoAddress();
+```
+
+## Signing
+
+To perform multi-signature verification, each keypair must sign, and use `multiSigPublicKey.combinePartialSignatures` to merge the individual signatures.
+
+```TypeScript
+const message = new TextEncoder().encode("Hello Mango");
+ 
+const signature1 = (await kp1.signPersonalMessage(message)).signature;
+const signature2 = (await kp2.signPersonalMessage(message)).signature;
+ 
+const combinedSignature = multiSigPublicKey.combinePartialSignatures([signature1, signature2]);
+ 
+const isValid = await multiSigPublicKey.verifyPersonalMessage(message, combinedSignature);
+```

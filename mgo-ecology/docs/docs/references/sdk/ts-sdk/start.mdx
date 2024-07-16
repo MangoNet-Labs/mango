@@ -1,0 +1,133 @@
+---
+title: Start
+---
+
+The Mango TypeScript SDK is a modular tool library for interacting with the Mango blockchain. Use it to send queries to RPC nodes, build and sign transactions.
+
+## Install
+
+```bash
+# npm
+npm i @mgonetwork/mango.js@^1.0.0
+
+# yarn
+yarn add @mgonetwork/mango.js@^1.0.0
+
+# pnpm
+pnpm add @mgonetwork/mango.js@^1.0.0
+```
+
+## Supported networks
+
+| Network | Full node                               | faucet                                    |
+|---------|-----------------------------------------|-------------------------------------------|
+| devnet  | https://fullnode.devnet.mangonetwork.io | https://faucet.devnet.mangonetwork.io/gas |
+
+## Module
+
+The SDK includes the following modules.
+
+- @mgonetwork/mango.js/client: client that interacts with Mango RPC nodes
+- @mgonetwork/mango.js/bcs: bcs generator
+- @mgonetwork/mango.js/keypairs: Account related methods
+- @mgonetwork/mango.js/verify: related methods for verification
+- @mgonetwork/mango.js/cryptography: encryption related methods
+- @mgonetwork/mango.js/multisig: Multi-signature related methods
+- @mgonetwork/mango.js/utils: Tool class related methods
+- @mgonetwork/mango.js/faucet: Faucet related methods to request MGO
+
+## Mango client
+
+To establish a connection to a network, import MgoClient from @mgonetwork/mango.js/client and pass the relevant URL to the url parameter.
+
+```TypeScript
+import { getFullnodeUrl, MgoClient } from "@mgonetwork/mango.js/client";
+
+const client: MgoClient = new MgoClient({
+  url: getFullnodeUrl("devnet"),
+});
+
+// Manually calling unsupported rpc methods
+const committeeInfo = await client.call("<PRC_METHOD_NAME>", []);
+```
+
+## Get Balance
+
+Using the following method, you can get the balance of this account in the specified currency.
+
+```TypeScript
+import { getFullnodeUrl, MgoClient } from "@mgonetwork/mango.js/client";
+
+const MY_ADDRESS = "0xSomeAddress";
+
+const coinType = "0x2::mgo::MGO";
+
+const client: MgoClient = new MgoClient({ url: getFullnodeUrl("devnet") });
+
+const getBalance = async (owner: string, coinType: string) => {
+  return await client.getBalance({
+    owner,
+    coinType
+  });
+}
+
+getBalance(MY_ADDRESS, coinType)
+  .then((balance) => {
+    console.log({ balance });
+  })
+  .catch(({ message }) => {
+    console.log({ error: message });
+  });
+```
+
+## Get test coins
+
+The following example establishes a connection to Testnet and requests MGO from that network's faucet.
+
+```TypeScript
+import { getFaucetHost, requestMgoFromFaucetV0 } from "@mgonetwork/mango.js/faucet";
+
+const MY_ADDRESS = "0xSomeAddress";
+
+const mgoBefore = await client.getBalance({
+  owner: MY_ADDRESS,
+});
+
+await requestMgoFromFaucetV0({
+  host: getFaucetHost("devnet"),
+  recipient: MY_ADDRESS,
+});
+
+const mgoAfter = await client.getBalance({
+  owner: MY_ADDRESS,
+});
+
+console.log({ mgoBefore, mgoAfter });
+```
+
+## Get events
+
+`MgoClient` exposes a number of RPC methods that return paginated results. These methods return a result object with 3 fields:
+
+- data: the result list of the current page
+- nextCursor: the cursor pointing to the next page of results
+- hasNextPage: a Boolean value indicating whether there are more pages of results
+
+Some methods also support the use of the order field, which can be set to ascending or descending order.
+
+```TypeScript
+const page1 = await client.queryEvents({
+      query: {
+        MoveEventType: `${packageId}::${moduleName}::${methodName}`,
+      },
+      limit: 25,
+});
+
+const page2 = await client.queryEvents({
+      query: {
+        MoveEventType: `${packageId}::${moduleName}::${methodName}`,
+      },
+      limit: 25,
+      cursor: page1.nextCursor,
+});
+```

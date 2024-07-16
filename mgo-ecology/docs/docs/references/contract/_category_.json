@@ -1,0 +1,9 @@
+{
+    "label": "Contract",
+    "position": 2,
+    "link": {
+      "type": "generated-index",
+      "description": "Mango can support the issuance of its own tokens and NFTs on the chain."
+    }
+  }
+  

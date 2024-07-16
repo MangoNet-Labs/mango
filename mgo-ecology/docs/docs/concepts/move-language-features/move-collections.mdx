@@ -1,0 +1,251 @@
+---
+title: Collections
+---
+
+Move provides several modules that adhere to collection logic for handling data groups.
+
+## Dynamic_field
+
+In addition to the fields declared in its type definition, Mgo objects can also have dynamic fields that can be added after the object is constructed.
+Unlike regular field names (which are always statically declared identifiers), dynamic field names can be any value with "copy", "drop", and "store" capabilities, such as integers, boolean values, or strings.
+This allows Mango programmers to flexibly expand objects dynamically and also serves as building blocks for core collection types.
+
+```move
+    /// Internal object used to store fields and values
+    struct Field<Name: copy + drop + store, Value: store> has key {
+        /// Determined by the hash value of the object ID, field name value and its type,
+        /// i.e. hash(parent.id || name || Name)
+        id: UID,
+        /// The value of this field name
+        name: Name,
+        /// The value bound to this field
+        value: Value,
+    }
+
+    public fun add<Name: copy + drop + store, Value: store>(
+        object: &mut UID,
+        name: Name,
+        value: Value,
+    ) { ··· }
+```
+
+## Dynamic_object_field
+
+Similar to `Dynamic_field`, this module allows access to dynamic fields.
+However, unlike `Dynamic_field`, the values bound to these dynamic fields must be objects themselves.
+This allows the objects to still exist in storage, which may be important for external tools.
+Otherwise, the differences would not be observable in Move.
+
+Below is the definition of `key` in Dynamic_object_field:
+
+```move
+	/// Internal object used to store the field and the name associated with the value
+    /// The separate type is necessary to prevent key conflicts using dynamic_field directly
+    struct Wrapper<Name> has copy, drop, store {
+        name: Name,
+    }
+
+	public fun add<Name: copy + drop + store, Value: key + store>(
+        object: &mut UID,
+        name: Name,
+        value: Value,
+    ) { ··· }
+```
+
+## Table
+
+A Table is a map-like collection
+which is a homogeneous mapping, meaning all of its keys have the same type (K) and all of its values also have the same type (V).
+Its keys and values are not stored within the "Table" value itself,
+but rather, unlike traditional arrays, they are stored using Mango's object system.
+The "Table" structure merely acts as a handle for the object system to retrieve these keys and values.
+Note that this means at runtime, "Table" values with exactly the same key-value mappings will not be equal.
+
+```move
+    struct Table<phantom K: copy + drop + store, phantom V: store> has key, store {
+        /// table ID
+        id: UID,
+        /// The number of key-value pairs in the table
+        size: u64,
+    }
+
+	/// Create a new empty table
+    public fun new<K: copy + drop + store, V: store>(ctx: &mut TxContext): Table<K, V> {
+        Table {
+            id: object::new(ctx),
+            size: 0,
+        }
+    }
+	/// Add key-value pairs to table `table: &mut Table<K, V>`
+	public fun add<K: copy + drop + store, V: store>(table: &mut Table<K, V>, k: K, v: V) { ··· }
+```
+
+## Table_vec
+
+A basic extensible vector library implemented using `Table`.
+
+```move
+    struct TableVec<phantom Element: store> has store {
+        /// The contents of the table vector table vector.
+        contents: Table<u64, Element>,
+    }
+```
+
+## Object_table
+
+Like `Table`, `ObjectTable<K, V>` is a map-like collection.
+But unlike `Table`, the value bound to these dynamic fields must be the object itself.
+
+```move
+    struct ObjectTable<phantom K: copy + drop + store, phantom V: key + store> has key, store {
+        /// table ID
+        id: UID,
+        /// The number of key-value pairs in the table
+        size: u64,
+    }
+    /// Create a new empty table
+    public fun new<K: copy + drop + store, V: key + store>(ctx: &mut TxContext): ObjectTable<K, V> {
+        ObjectTable {
+            id: object::new(ctx),
+            size: 0,
+        }
+    }
+
+	/// Add key-value pairs to table `table: &mut ObjectTable<K, V>`
+    public fun add<K: copy + drop + store, V: key + store>(table: &mut ObjectTable<K, V>, k: K, v: V) { ··· }
+```
+
+## Linked_table
+
+Similar to `Table`, but values ​​are linked together, allowing ordered insertion and deletion
+
+```move
+    struct LinkedTable<K: copy + drop + store, phantom V: store> has key, store {
+        /// ID of table
+        id: UID,
+        /// The number of key-value pairs in the table table
+        size: u64,
+        /// The first element in the table
+        head: Option<K>,
+        /// The last element in the table
+        tail: Option<K>,
+    }
+	/// Create a new empty linkedTable
+	public fun new<K: copy + drop + store, V: store>(ctx: &mut TxContext): LinkedTable<K, V> {
+        LinkedTable {
+            id: object::new(ctx),
+            size: 0,
+            head: option::none(),
+            tail: option::none(),
+        }
+    }
+```
+
+## Bag
+
+Bag is a heterogeneous map-like collection.
+It can store Key-value pairs of different types.
+This collection is similar to `mgo::table`
+Its keys and values are not stored within the `Bag` value itself,
+but are instead stored using Mango's object system.
+The `Bag` structure merely acts as a handle for the object system to retrieve these keys and values.
+Note that this means "Bag" values with exactly the same key-value mappings will not be equal.
+
+```move
+    struct Bag has key, store {
+        /// Bag ID
+        id: UID,
+        /// Number of key-value pairs in Bag
+        size: u64,
+    }
+    /// Create a new empty bag
+    public fun new(ctx: &mut TxContext): Bag {
+        Bag {
+            id: object::new(ctx),
+            size: 0,
+        }
+    }
+
+    /// Add key-value pairs to bag `bag: &mut Bag`
+    public fun add<K: copy + drop + store, V: store>(bag: &mut Bag, k: K, v: V) { ··· }
+```
+
+## Object_bag
+
+Similar to `Bag`, `ObjectBag` is a heterogeneous map-like collection.
+But unlike `Bag`, the value bound to these dynamic fields must be the object itself.
+
+```move
+    struct ObjectBag has key, store {
+        /// the ID of this bag
+        id: UID,
+        /// the number of key-value pairs in the bag
+        size: u64,
+    }
+	/// Create a new empty bag
+    public fun new(ctx: &mut TxContext): ObjectBag {
+        ObjectBag {
+            id: object::new(ctx),
+            size: 0,
+        }
+    }
+	/// Add a key-value pair to bag `bag: &mut ObjectBag`
+    public fun add<K: copy + drop + store, V: key + store>(bag: &mut ObjectBag, k: K, v: V) { ··· }
+```
+
+## Priority_queue
+
+Priority queue implemented using max heap
+
+```move
+    struct PriorityQueue<T: drop> has store, drop {
+        entries: vector<Entry<T>>,
+    }
+	/// Create a new priority queue from the input element.
+    public fun new<T: drop>(entries: vector<Entry<T>>) : PriorityQueue<T> {
+        let len = vector::length(&entries);
+        let i = len / 2;
+        while (i > 0) {
+            i = i - 1;
+            max_heapify_recursive(&mut entries, len, i);
+        };
+        PriorityQueue { entries }
+    }
+    /// Insert new elements into the queue.
+    public fun insert<T: drop>(pq: &mut PriorityQueue<T>, priority: u64, value: T) { ··· }
+```
+
+## Vec_map
+
+A mapping data structure backed by vectors. The map is guaranteed not to contain duplicate keys, but entries are not sorted by keys, but in insertion order. All operations are done within O(N) of the map size, this data structure is intended only to provide programming convenience to the map API.
+
+```move
+    struct VecMap<K: copy, V> has copy, drop, store {
+        contents: vector<Entry<K, V>>,
+    }
+
+    struct Entry<K: copy, V> has copy, drop, store {
+        key: K,
+        value: V,
+    }
+
+    public fun empty<K: copy, V>(): VecMap<K,V> {
+        VecMap { contents: vector::empty() }
+    }
+
+    /// Insert element `key` |-> `value` into `self`.
+    public fun insert<K: copy, V>(self: &mut VecMap<K,V>, key: K, value: V) { ··· }
+```
+
+## Vec_set
+
+Collection data structure backed by vectors. Ensure that the set does not contain duplicate keys.
+
+```move
+    struct VecSet<K: copy + drop> has copy, drop, store {
+        contents: vector<K>,
+    }
+
+	/// Insert a `key` into self
+	public fun insert<K: copy + drop>(self: &mut VecSet<K>, key: K) { ··· }
+```

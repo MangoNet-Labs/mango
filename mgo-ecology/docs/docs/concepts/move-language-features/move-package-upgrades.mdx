@@ -1,0 +1,263 @@
+---
+title: Package Upgrades
+---
+
+In Mgo, a Move Package contains modules that define interactions with on-chain objects. You write these modules using Move and compile them into objects, which are then published on the Mgo network. Once published, package objects are permanently in existence and cannot be directly modified. Other packages can utilize the modules provided by your package. Although it is not possible to modify a published package, you can improve or extend functionality by creating new objects through an upgrade. When you upgrade a package, you are essentially creating a new object on the blockchain rather than modifying the original package.
+
+## Prerequisites for Upgrading
+
+You must possess the Cap object of the package to upgrade, as the Mgo network issues an UpgradeCaps object to the publisher's address upon package release.
+
+Your changes must be compatible with the previous version's layout:
+
+- The signatures of existing public functions must remain unchanged.
+- The layout of existing structures (including structural capabilities) must remain unchanged.
+- You can add new structures and functions.
+- You can remove generic type constraints from existing functions (public functions or others).
+- You can change the implementation of functions.
+- You can change the signatures of non-public functions, including friend functions and entry signatures.
+
+## How to Upgrade
+
+First, you need the old contract's PackageID `$PackageID`, and the UpgradeCaps `UPGRADE_CAP_ID` obtained when publishing the old contract.
+
+Your new contract must comply with the upgrade prerequisites mentioned.
+
+Edit the configuration file Move.toml
+
+```toml
+[package]
+name = "mgo_package"
+version = "0.0.1"
+published-at = "$PackageID"
+
+[addresses]
+mgo_package = "0x0"
+```
+
+Compiling through Contracts
+Upgrading Contracts
+
+```bash
+mgo client upgrade --gas-budget 10000000 --upgrade-capability $UPGRADE_CAP_ID
+```
+
+## Considerations for Upgrades
+
+- Init functions introduced during upgrades (for new or existing modules) will never run.
+- All packages on the network are immutable. Therefore, you cannot remove old packages from the chain.
+
+## Using Shared Objects to Control Versioning
+
+Use a constant `VERSION` within the current module of the contract to record the current version information.
+
+> Consider adding a version attribute to shared objects, restricting operations to only the new version of the contract. This breaks backward compatibility with shared objects, forcing users to opt for an upgrade.
+
+Ensure that all entry functions that call shared objects check to ensure that the version attribute `version` of the shared object matches the contract version `VERSION`.
+
+Make the operation of performing shared object version upgrades and data migration a proprietary operation, and allow it to be called only using `AdminCap`. For example:
+
+Before the upgrade:
+
+```move
+module counter::counter {
+    use mgo::object::{Self, UID};
+    use mgo::transfer;
+    use mgo::tx_context::TxContext;
+
+	// Version 1
+	const VERSION: u64 = 1;
+
+	// Global counter
+    struct Counter has key {
+        id: UID,
+		version: u64,
+		admin: ID,
+        value: u64,
+    }
+
+	// Cap authentication
+	struct AdminCap has key {
+        id: UID,
+    }
+
+	// errcode
+	const ENotAdmin: u64 = 0; // not a module administrator
+	const EWrongVersion: u64 = 1; // wrong wrapper version
+
+    fun init(ctx: &mut TxContext) {
+
+		let admin = AdminCap {
+            id: object::new(ctx),
+        };
+
+        transfer::share_object(Counter {
+            id: object::new(ctx),
+            version: VERSION,
+            admin: object::id(&admin),
+            value: 0,
+        });
+ 		transfer::transfer(admin, tx_context::sender(ctx));
+    }
+
+    public fun increment(c: &mut Counter) {
+		// Restrictions on the version of the calling method
+		assert!(c.version == VERSION, EWrongVersion);
+        c.value = c.value + 1;
+    }
+}
+
+```
+
+After an upgrade:
+
+```move
+module counter::counter {
+    use mgo::event;
+    use mgo::object::{Self, ID, UID};
+    use mgo::transfer;
+    use mgo::tx_context::{Self, TxContext};
+
+    // version 2
+    const VERSION: u64 = 2;
+
+    struct Counter has key {
+        id: UID,
+        version: u64,
+        admin: ID,
+        value: u64,
+    }
+
+    struct AdminCap has key {
+        id: UID,
+    }
+    
+	// upgrade part
+    struct Progress has copy, drop {
+        reached: u64,
+    }
+
+	// errcode
+    const ENotAdmin: u64 = 0;
+    const ENotUpgrade: u64 = 1;
+    const EWrongVersion: u64 = 2; // upgrade part
+
+    fun init(ctx: &mut TxContext) {
+        let admin = AdminCap {
+            id: object::new(ctx),
+        };
+
+        transfer::share_object(Counter {
+            id: object::new(ctx),
+            version: VERSION,
+            admin: object::id(&admin),
+            value: 0,
+        });
+
+        transfer::transfer(admin, tx_context::sender(ctx));
+    }
+
+    public entry fun increment(c: &mut Counter) {
+        assert!(c.version == VERSION, EWrongVersion);
+        c.value = c.value + 1;
+
+		// upgrade part
+        if (c.value % 10 == 0) {
+            event::emit(Progress { reached: c.value })
+        }
+    }
+
+	// Function that triggers contract package migration
+    entry fun migrate(c: &mut Counter, a: &AdminCap) {
+        assert!(c.admin == object::id(a), ENotAdmin);
+        assert!(c.version < VERSION, ENotUpgrade);
+        c.version = VERSION;
+    }
+}
+
+```
+
+By implementing version control on shared objects and function restrictions on versions, contract upgrades can be facilitated, leading to the deprecation of older versions.
+
+## Upgrade Strategy
+
+Using a single key to protect the upgrade capability of packages on the blockchain can pose security risks for several reasons:
+
+- The entity possessing the key might make changes that align with their own interests but not necessarily with the broader community.
+- Upgrades to the package might occur without giving users adequate time to discuss or deactivate the package if they disagree.
+- There is a risk of losing the key.
+
+To address the security risks associated with single-key upgrade ownership, while still providing the opportunity to upgrade existing packages, Mgo offers custom upgrade strategies. These strategies protect access to the UpgradeCap and issue UpgradeTicket objects, authorizing upgrades based on specific circumstances.
+
+### Upgrade Strategy Modes
+
+Note, modifications to a package's upgrade strategy can only become more stringent; changes from stringent to lenient are not possible.
+Here is a demonstration from strict to lenient strategies:
+
+| Strategy Mode | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| immutable     | No one can upgrade the package.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| DEP_ONLY      | You can only modify the package's dependencies.                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ADDITIVE      | You can add new features to the package (e.g., new public functions or structures) but cannot change any existing features (e.g., code within existing public functions).                                                                                                                                                                                                                                                                                                                                              |
+| COMPATIBLE    | The most lenient policy. In addition to what the stricter policies allow, in the upgraded version of the package:<br/>You can change the implementation of all functions. You can remove capability restrictions on generic type parameters in function signatures.<br/>You can change, delete, or create any private, public (friend), and entry function signatures.<br/>You cannot change public function signatures (except for the aforementioned capability restrictions).<br/>You cannot change existing types. |
+
+#### immutable
+
+You can make the package immutable at launch by using the Move mgo::package::make_immutable function to destroy its UpgradeCap. However, making a package immutable prevents future bug fixes and new features, which may not be practical or ideal.
+
+#### DEP_ONLY
+
+Use Move mgo::package::only_dep_upgrades to make the package upgrade support only modifications to dependencies.
+
+#### ADDITIVE
+
+Use Move mgo::package::only_additive_upgrades to make the package upgrade support only code additions or dependency changes.
+
+#### COMPATIBLE
+
+The package defaults to COMPATIBLE mode when not calling any strategy modification functions.
+
+### Example
+
+```move
+module upgrade_demo::demo{
+
+    use mgo::object::{Self, UID};
+    use mgo::transfer::{Self};
+    use mgo::tx_context::TxContext;
+    use mgo::package::{Self, UpgradeCap};
+
+    struct GlobalConfig has key{
+        id: UID,
+        version: u64,
+    }
+
+    fun init (ctx: &mut TxContext){
+        let global_config = GlobalConfig{
+            id: object::new(ctx),
+            version: CURRENT_VERSION,
+        };
+
+        transfer::share_object(global_config);
+    }
+
+    public entry fun set_upgrade_to_additive(
+        cap: &mut UpgradeCap,
+    ){
+        package::only_additive_upgrades(cap);
+    }
+
+    public entry fun set_upgrade_to_only_dep(
+        cap: &mut UpgradeCap,
+    ){
+        package::only_dep_upgrades(cap);
+    }
+
+    public entry fun set_upgrade_to_immutable(
+        cap: UpgradeCap,
+    ){
+        package::make_immutable(cap);
+    }
+
+}
+```

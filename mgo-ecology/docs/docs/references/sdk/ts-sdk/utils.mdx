@@ -1,0 +1,43 @@
+---
+title: Utils
+---
+
+This package contains several utility functions that simplify common operations when using the TypeScript SDK.
+
+## Constants
+
+- `MIST_PER_MGO`: The conversion rate from MANGO to MGO (1,000,000,000)
+- `MGO_DECIMALS`: The number of decimal places to move when converting MANGO values to MGO (9)
+- `MGO_ADDRESS_LENGTH`: The number of bytes in an Mgo address (32)
+- `MOVE_STDLIB_ADDRESS`: The address of the Mgo Move standard library
+- `MGO_FRAMEWORK_ADDRESS`: The address of the Mgo framework
+- `MGO_SYSTEM_ADDRESS`: The address of the Mgo system module
+- `MGO_CLOCK_OBJECT_ID`: The address of the `mgo::clock::Clock` object
+- `MGO_SYSTEM_STATE_OBJECT_ID`: The address of the `MgoSystemState` object
+
+## Formatting
+
+The following methods can be used to format various data:
+
+- `formatAddress`
+- `formatDigest`
+- `normalizeStructTag`
+- `normalizeMgoAddress`
+- `normalizeMgoObjectId`
+
+## Validation
+
+The following methods can be used to validate the format of various data:
+
+- `isValidMgoAddress`
+- `isValidMgoObjectId`
+- `isValidTransactionDigest`
+
+## Encoding
+
+The following methods can be used to transform encoding formats:
+
+- `fromHEX`: Serializes a Uint8Array into a hexadecimal string
+- `toHEX`: Deserializes a hexadecimal string into a Uint8Array
+- `fromB64`: Serializes a Uint8Array into a base64 string
+- `toB64`: Deserializes a base64 string into a Uint8Array

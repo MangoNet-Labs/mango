@@ -1,0 +1,10 @@
+[package]
+name = "Mango-AMM"
+version = "0.0.1"
+
+[dependencies]
+Mgo = { git = "https://github.com/Mangonet-labs/Mango.git", subdir = "crates/mgo-framework/packages/mgo-framework", rev = "framework/devnet" }
+
+[addresses]
+mango_amm = "0x0"
+mgo = "0x2"

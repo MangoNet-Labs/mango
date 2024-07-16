@@ -1,0 +1,72 @@
+---
+title: Basic Data Types
+---
+
+## Basic Types
+
+The basic data types in Move include: integers (u8, u32, u64, u128, u258), boolean, and address.
+
+Move does not support strings and floating-point numbers.
+
+```move
+module ch02::int {
+    fun main() {
+        // Define an empty variable and set the value later
+        let a: u8;
+        a = 10;
+
+        let a = 1u32;
+
+        // Define variables and set types
+        let a: u64 = 10;
+
+        // Finally, simple allocation
+        let a = 10;
+
+        // Simple assignment with defined value type
+        let a = 10u64;
+
+        // Integers can be used as constant values ​​in function calls or expressions
+        if (a < 10) {};
+
+        // Or like this, use type
+        if (a < 10u64) {}; // Usually no need to specify the type
+
+        let b = 1u256;
+
+        // Or like this, use type
+        if (b < 10u256) {}; // Usually no need to specify the type
+    }
+}
+```
+
+In Mango Move, when you declare an integer without explicitly specifying the type, it defaults to `u64`. For example, `let a = 10` is equivalent to both `let a: u64 = 10` and `let a = 10u64`.
+
+## Boolean Type
+
+The boolean type in programming languages contains two values: `false` and `true`.
+
+```move
+module book::boolean {
+    fun main() {
+        let b : bool; b = true;
+        let b : bool = true;
+        let b = true;
+        let b = false;
+    }
+}
+```
+
+## Address
+
+The address is an identifier for transaction senders in the blockchain, essential for basic operations such as transfers and importing modules.
+
+```move
+module book::addr {
+    fun main() {
+        let addr: address; // Type Identifier
+
+        addr = @ch02;
+    }
+}
+```

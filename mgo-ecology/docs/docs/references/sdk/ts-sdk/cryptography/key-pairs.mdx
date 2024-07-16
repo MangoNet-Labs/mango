@@ -1,0 +1,138 @@
+---
+title: Key-Pairs
+---
+
+Accounts can be generated using three key schemes: `Ed25519Keypair`, `Secp256k1Keypair`, and `Secp256r1Keypair`.
+
+```TypeScript
+import { Ed25519Keypair } from "@mgonetwork/mango.js/keypairs/ed25519";
+import { Secp256k1Keypair } from "@mgonetwork/mango.js/keypairs/secp256k1";
+import { Secp256r1Keypair } from "@mgonetwork/mango.js/keypairs/secp256r1";
+```
+
+The following will illustrate using the Ed25519 scheme as an example:
+
+## Creating a keyPair
+
+There are three ways to create a keypair.
+
+```TypeScript
+// Create a new keypair
+const keypair = new Ed25519Keypair();
+
+// Keypair from an existing mnemonic
+const keypair = Ed25519Keypair.deriveKeypair(MNEMONIC);
+
+// Keypair from an existing private key (Uint8Array type)
+const keypair = Ed25519Keypair.fromSecretKey(SECRET);
+```
+
+## Deriving from a mnemonic
+
+Using the following method, a keypair can be derived from a mnemonic.
+
+```TypeScript
+import { Ed25519Keypair } from "@mgonetwork/mango.js/keypairs/ed25519";
+
+const MNEMONIC = "world world world world ...";
+
+const keyPair = Ed25519Keypair.deriveKeypair(MNEMONIC);
+```
+
+## Deriving from a hexadecimal encoded string type secret key
+
+Using the following method, a hexadecimal encoded string type private key can be converted into Uint8Array type and used as an argument for fromSecretKey to derive a keypair.
+
+```TypeScript
+import { Ed25519Keypair } from '@mgonetwork/mango.js/keypairs/ed25519';
+import { fromHEX } from '@mgonetwork/mango.js/utils';
+ 
+const secret = '0x...';
+
+const keypair = Ed25519Keypair.fromSecretKey(fromHEX(secret));
+```
+
+## Deriving a hexadecimal encoded string type secret key from a mnemonic
+
+Using the following method, a hexadecimal encoded string type secret key can be derived from a mnemonic.
+
+```TypeScript
+import { Ed25519Keypair } from "@mgonetwork/mango.js";
+import { fromB64 } from "@mgonetwork/mango.js";
+import { toHEX } from "@mgonetwork/mango.js/utils";
+
+const MNEMONIC = "world world world world ...";
+
+/**
+ * Derive Ed25519 keypair from mnemonics and path. The mnemonics must be normalized
+ * and validated against the english wordlist.
+ *
+ * If path is none, it will default to m/44'/784'/0'/0'/0',
+ * otherwise the path must be compliant to SLIP-0010 in form
+ * m/44'/784'/{account_index}'/{change_index}'/{address_index}'.
+ */
+const keypair1 = Ed25519Keypair.deriveKeypair(MNEMONIC, "m/44'/784'/0'/0'/0'");
+const keypair2 = Ed25519Keypair.deriveKeypair(MNEMONIC, "m/44'/784'/1'/0'/0'");
+
+const getSecretKey = (keypair: Ed25519Keypair): string => {
+  return "0x" + toHEX(fromB64(keypair.export().privateKey));
+};
+
+console.log({
+  privateKey1: getSecretKey(keypair1),
+  privateKey2: getSecretKey(keypair2),
+});
+```
+
+## Deriving an address from a hexadecimal encoded string type secret key
+
+Using the following method, an address can be derived from a hexadecimal encoded string type secret key
+
+```TypeScript
+import { Ed25519Keypair } from "@mgonetwork/mango.js";
+import { fromHEX } from "@mgonetwork/mango.js/utils";
+import { decodeMgoPrivateKey } from "@mgonetwork/mango.js/cryptography";
+
+// Keypair from an existing secret key
+const keypair = Ed25519Keypair.fromSecretKey(fromHEX(SECRET));
+
+const address = keypair.toMgoAddress();
+
+console.log({ address });
+```
+
+## Keypair Signing and public key verification
+
+Once you have created the pairing key, you can use it to sign transactions, such as the following code, which creates and signs a personal message, and you can use the public key to verify that the signature is correct.
+
+```TypeScript
+import {
+  Ed25519Keypair,
+  Ed25519PublicKey,
+} from "@mgonetwork/mango.js/keypairs/ed25519";
+
+const keypair = new Ed25519Keypair();
+
+// Method 1
+const bytes = keypair.getPublicKey().toBytes();
+const publicKey = new Ed25519PublicKey(bytes);
+
+// Method 2
+const publicKey = keypair.getPublicKey();
+
+const signAndVerify = async () => {
+  // Encoding the message
+  const message = new TextEncoder().encode("Hello Mango");
+  // Signing
+  const {signature} = await keypair.signPersonalMessage(message);
+  // Verifying the signature
+  const isValid = await publicKey.verifyPersonalMessage(message, signature);
+
+  console.log({ isValid });
+}
+
+signAndVerify()
+  .catch(({ message }) => {
+    console.log({ error: message });
+  });
+```

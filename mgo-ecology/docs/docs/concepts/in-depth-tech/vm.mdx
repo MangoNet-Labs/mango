@@ -1,0 +1,154 @@
+---
+title: Mango Move Virtual Machine
+---
+
+Mgo Move runs on a virtual machine based on Move.
+
+## Main Structure of the Virtual Machine
+
+### Stack Frame
+
+In the Move virtual machine, the execution of functions is managed through stack frames. A stack frame is a data structure that holds the necessary information for a function during execution. It includes various pieces of information needed for function execution, such as the current instruction pointer (pc) and local variables.
+
+Specifically, the fields in the stack frame (Frame) structure have the following meanings:
+
+- **pc**: The index of the current executing instruction, indicating the position where the function execution is at.
+- **locals**: An array that stores the local variables of the function. Local variables are variables declared within the function and are used during function execution.
+- **function**: Holds information about the currently executing function, typically a reference to the function definition.
+- **ty_args**: Stores an array of type parameters passed during function invocation.
+
+```rust
+struct Frame {
+    pc: u16,
+    locals: Locals,
+    function: Arc<Function>,
+    ty_args: Vec<Type>,
+}
+```
+
+### Call Stack
+
+During the process of function invocation, there may be nested calls between multiple functions. In such cases, each function's execution requires its own stack frame to store relevant information. These stack frames are managed through a call stack (CallStack), where each stack frame represents the execution context of a function.
+
+The CallStack structure is a vector (Vec) used to store multiple stack frames (Frame). CallStack provides methods such as push and pop, which are used to add and remove stack frames from the call stack when entering and exiting function calls. The push method adds a new stack frame to the top of the call stack, while the pop method removes and returns the top stack frame from the call stack.
+
+Through the call stack, the virtual machine can effectively manage the execution flow of function calls, ensuring correct nesting and execution order of functions.
+
+```rust
+/// Call stack.
+struct CallStack(Vec<Frame>);
+```
+
+### Interpreter
+
+The Interpreter is a crucial component of the Move virtual machine, responsible for executing the sequence of instructions in Move bytecode. In the design of the Move virtual machine, the interpreter's role is to interpret and execute bytecode instructions, manage the operand stack, and function call stack, and maintain the execution state of functions.
+
+In a given Move virtual machine interpreter, key fields include:
+
+- **operand_stack**: The operand stack, used to store temporary data during instruction execution. The operand stack is typically used to store data, intermediate results, etc., generated during instruction execution.
+- **call_stack**: The function call stack, used to manage the execution context of functions. The function call stack holds relevant information during function execution, such as the current instruction pointer, local variables, etc.
+
+The main functionalities of the interpreter include:
+
+1. Interpreting bytecode instructions: The interpreter is responsible for interpreting and executing the sequence of instructions in Move bytecode. It executes corresponding operations based on the type and operands of the current instruction, such as arithmetic operations, logical operations, function calls, etc.
+2. Managing the operand stack: The interpreter accesses data through the operand stack while executing instructions. It can push data onto the top of the stack, pop data from the top of the stack, and manipulate data in the stack during instruction execution.
+3. Maintaining the function call stack: The interpreter manages the execution context of functions during function calls. It creates new stack frames to hold the necessary information for function execution and removes stack frames from the call stack after function execution completes.
+
+```rust
+pub(crate) struct Interpreter {
+    /// Operand stack, storing Move "Value" for stack operations.
+    operand_stack: Stack,
+    /// Stack of active functions.
+    call_stack: CallStack,
+    /// Runtime limits imposed.
+    runtime_limits_config: VMRuntimeLimitsConfig,
+}
+```
+
+## Virtual Machine OpCodes
+
+```rust
+pub enum Opcodes {
+    POP                         = 0x01,
+    RET                         = 0x02,
+    BR_TRUE                     = 0x03,
+    BR_FALSE                    = 0x04,
+    BRANCH                      = 0x05,
+    LD_U64                      = 0x06,
+    LD_CONST                    = 0x07,
+    LD_TRUE                     = 0x08,
+    LD_FALSE                    = 0x09,
+    COPY_LOC                    = 0x0A,
+    MOVE_LOC                    = 0x0B,
+    ST_LOC                      = 0x0C,
+    MUT_BORROW_LOC              = 0x0D,
+    IMM_BORROW_LOC              = 0x0E,
+    MUT_BORROW_FIELD            = 0x0F,
+    IMM_BORROW_FIELD            = 0x10,
+    CALL                        = 0x11,
+    PACK                        = 0x12,
+    UNPACK                      = 0x13,
+    READ_REF                    = 0x14,
+    WRITE_REF                   = 0x15,
+    ADD                         = 0x16,
+    SUB                         = 0x17,
+    MUL                         = 0x18,
+    MOD                         = 0x19,
+    DIV                         = 0x1A,
+    BIT_OR                      = 0x1B,
+    BIT_AND                     = 0x1C,
+    XOR                         = 0x1D,
+    OR                          = 0x1E,
+    AND                         = 0x1F,
+    NOT                         = 0x20,
+    EQ                          = 0x21,
+    NEQ                         = 0x22,
+    LT                          = 0x23,
+    GT                          = 0x24,
+    LE                          = 0x25,
+    GE                          = 0x26,
+    ABORT                       = 0x27,
+    NOP                         = 0x28,
+    // Gap for deprecated opcodes, see bottom of the enum
+    FREEZE_REF                  = 0x2E,
+    SHL                         = 0x2F,
+    SHR                         = 0x30,
+    LD_U8                       = 0x31,
+    LD_U128                     = 0x32,
+    CAST_U8                     = 0x33,
+    CAST_U64                    = 0x34,
+    CAST_U128                   = 0x35,
+    MUT_BORROW_FIELD_GENERIC    = 0x36,
+    IMM_BORROW_FIELD_GENERIC    = 0x37,
+    CALL_GENERIC                = 0x38,
+    PACK_GENERIC                = 0x39,
+    UNPACK_GENERIC              = 0x3A,
+    VEC_PACK                    = 0x40,
+    VEC_LEN                     = 0x41,
+    VEC_IMM_BORROW              = 0x42,
+    VEC_MUT_BORROW              = 0x43,
+    VEC_PUSH_BACK               = 0x44,
+    VEC_POP_BACK                = 0x45,
+    VEC_UNPACK                  = 0x46,
+    VEC_SWAP                    = 0x47,
+    LD_U16                      = 0x48,
+    LD_U32                      = 0x49,
+    LD_U256                     = 0x4A,
+    CAST_U16                    = 0x4B,
+    CAST_U32                    = 0x4C,
+    CAST_U256                   = 0x4D,
+
+    // ******** Deprecated Opcodes ********
+    // Global storage opcodes are unused and deprecated
+    EXISTS_DEPRECATED                       = 0x29,
+    MUT_BORROW_GLOBAL_DEPRECATED            = 0x2A,
+    IMM_BORROW_GLOBAL_DEPRECATED            = 0x2B,
+    MOVE_FROM_DEPRECATED                    = 0x2C,
+    MOVE_TO_DEPRECATED                      = 0x2D,
+    EXISTS_GENERIC_DEPRECATED               = 0x3B,
+    MUT_BORROW_GLOBAL_GENERIC_DEPRECATED    = 0x3C,
+    IMM_BORROW_GLOBAL_GENERIC_DEPRECATED    = 0x3D,
+    MOVE_FROM_GENERIC_DEPRECATED            = 0x3E,
+    MOVE_TO_GENERIC_DEPRECATED              = 0x3F,
+}
+```

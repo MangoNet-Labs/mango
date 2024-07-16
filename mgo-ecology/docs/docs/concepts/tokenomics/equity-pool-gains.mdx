@@ -1,0 +1,77 @@
+---
+title: Equity Pool Gains
+---
+
+At the end of each epoch: the Protocol distributes stake rewards to the participants of the DPoS mechanism.
+
+The formula for calculating equity awards is as follows:
+
+`reward_amount = voting_power / total_voting_power * computation_reward_amount`
+
+## Parameter description
+
+Voting rights, calculated as follows:
+
+`let threadhold = min(10000,max(1000, 10000 / <Number_Of_Validators>));`
+
+`voting_power = min(<Equity_Pool_Balance_Of_Validators> / <Total_Equity_Pool_Balance> * 10000, threadhold);`
+
+### Total Voting Power
+
+The total voting power is a fixed value of 10,000.
+
+### **Computation Reward Amount**
+
+computation_reward_amount = computation_charge(computation charge charged by current epoch) + stake_subsidy(equity subsidy for current epoch) - storage_fund_reward_amount(storage_fund_reward_amount)
+
+storage_fund_reward_amount = total_storage_charge(storage_charge charged by all objects in the current chain) x computation_charge(computation_charge charged by the current epoch) / total_stake(total amount of MGOs in the current pool of all verifier pledges + total_storage_charge)
+
+storage_fund_reinvestment_amount(storage_fund_reinvestment_reward_amount) = storage_fund_reward_amount x storage_fund_reinvestment_rate(storage_fund_reward_share reinvested in the storage fund, default 5%)
+
+## Equity Subsidy
+
+- Initial subsidy = 1000000 (1st epoch subsidy)
+- Decay Period = 10 epochs (decay every 10 epochs)
+- Decay rate = 10%
+
+That is, current epoch subsidy amount = initial subsidy * (1 - decay ratio) ^ (epoch ~/ decay period) *,* i.e.  1000000 * 0.9 ^ (epoch ~/ 10).
+
+| Epoch | Subsidy |
+| --- | --- |
+| 0~9 | 1,000,000 |
+| 10~19 | 900,000 |
+| 20~29 | 810,000 |
+| … | … |
+| 240~249 | 797,600 |
+
+## Examples
+
+At the end of the 92nd epoch
+
+- computation_charge = 5.455
+- storage_charge = 1084.76
+- total_storage_charge = 2180.53(total_storage_charge of the previous epoch + storage_charge of the current epoch)
+- total_stake = 172780089.689269653
+
+storage_fund_reward_amount
+= total_storage_charge x computation_charge / total_stake
+= 2180.53 x 5.455 / 172780089.689269653
+= 0.000068843
+
+storage_fund_reinvestment_amount
+= storage_fund_reward_amount x 5%
+= 0.000068843 x 5%
+= 0.000003442
+
+computation_reward_amount
+= computation_charge + stake_subsidy - storage_fund_reward_amount
+= 5.455 + (1000000 x 0.9^(92~/10)) - 0.000068843;
+= 5.455 + (1000000 x 0.9^9) - 0.000068843
+= 5.455 + (1000000 x 0.387420489) - 0.000068843
+= 5.455 + 387420.489 - 0.000068843
+= 387425.943931157
+
+reward_amount
+= voting_power / total_voting_power * computation_reward_amount
+= 2000 / 10000 * 387425.943931157
+= 77485.1887862314

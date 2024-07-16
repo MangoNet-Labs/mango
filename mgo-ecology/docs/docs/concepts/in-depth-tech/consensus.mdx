@@ -1,0 +1,179 @@
+---
+title: Consensus
+---
+
+MGO consensus consists of two main parts: Narwhal and BullShark.
+
+Narwhal ensures the availability of data submitted to the consensus.
+
+BullShark achieves specific ordering of data.
+
+## Main Structures
+
+### MgoNode / Validator
+
+MgoNode is the main structure supporting MGO, serving as validator nodes in the system. It includes one Primary and multiple Workers.
+
+### Primary
+
+Primary is the consensus unit of MGO, primarily responsible for maintaining consensus and handling complex transactions. Stake is an important attribute in Primary voting, representing its weight in the entire system.
+
+Primary mainly consists of the following structures:
+
+- `Consensus`: Responsible for consensus and leader election.
+- `Executor`: Module for executing transactions.
+- `Synchronizer`: Module responsible for synchronization.
+- `Certifier`: Responsible for proposing headers to peers, collecting votes, and validating headers as Certificates.
+- `CertificateFetcher`: Responsible for fetching missing Certificates.
+- `Proposer`: Module responsible for sending headers to the Certifier.
+- `StateHandler`: Module that tracks the latest DKG round and maintains consensus.
+
+### Worker
+
+The worker node is responsible for processing `transactions` packaging and `batch` communication.
+
+Worker nodes are responsible for transaction packaging and batch communication.
+
+- `BatchFetcher`: Fetches Certificates from other Workers.
+- `BatchMaker`: Responsible for packaging Transactions into batches and sending them to the QuorumWaiter module.
+- `QuorumWaiter`: Responsible for sending batches to other nodes and collecting responses.
+
+## Objects
+
+The basic unit stored in MGO, each object has a globally unique ID. Each object is owned by an address, and each address can own any number of objects. Classified as owned objects (owned by addresses), shared objects (shared by multiple parties), and immutable objects (accessible by anyone).
+
+## Transactions
+
+Transactions are the main objects of consensus. Transactions can be categorized into `simple transactions` and `complex transactions`. Different strategies are adopted for consensus based on the type of transaction content.
+
+### Simple Transactions
+
+Simple transactions involve objects that are exclusively owned. On-chain transactions do not have complex dependencies. For example, fund transfers only require updating the owner of funds, so transactions can skip consensus and be broadcasted using Byzantine fault-tolerant algorithms.
+
+### Complex Transactions
+
+Complex smart contracts typically involve shared objects, so more than one user can initiate changes to them. Therefore, two rounds of consensus are required to complete transactions.
+
+## Concepts of Consensus
+
+### Operational Objects
+
+#### Batch
+
+A structure that carries transactions, consisting of two parts:
+
+1. transactions: an array of transactions, mainly storing pending transactions.
+2. Metadata: Stores metadata related to the batch.
+
+#### Header
+
+A proposal structure for transaction blocks, used to initiate voting to other Primaries. Mainly stores transaction digests, certificate digests, current committee index, and current epoch round parameters.
+
+#### Certificate
+
+The body of the DAG, where transactions are finally stored. Mainly consists of Header and SignatureVerificationState.
+
+### Abstract Concepts
+
+#### Round
+
+The progression of consensus occurs in rounds. Rounds start from 0, and Certificate index starts from 1.
+
+#### Leader
+
+The leader is a special status of the Primary. Only one leader exists in the same round state. The leader is responsible for the following tasks:
+
+1. Initializing and progressing the DKG protocol.
+2. Collecting and sending partial signatures.
+3. Receiving full random signatures.
+   Leader election is handled by BullShark consensus. Leader election occurs every even round.
+
+### Algorithm Concepts
+
+#### DKG
+
+DKG (Distributed Key Generation) provides a decentralized method for generating shared keys among participants in an untrusted environment, ensuring secure communication and confidentiality of multiparty participation.
+
+#### DAG
+
+The concept of a DAG is a directed acyclic graph. In MGO, the DAG is a single-directional graph structure composed of references to Certificates. Each Primary node maintains a local DAG, which consists of a unidirectional graph composed of Certificates. Each Certificate references the digests of previous round Certificates, forming a complex linear relationship that ensures the reliability and stability of the DAG.
+
+#### Consensus/BullShark
+
+Consensus is the main body of consensus execution, initiated with the start of Primary nodes (code-wise, it belongs to the Primary node, different threads of the program). Communication between Primary nodes is done through channels.
+
+## Narwhal Consensus Process
+
+<div align="center">
+<img src="https://image.devnet.mangonetwork.io/img/doc/ConsensusProcess.svg" width="70%" />
+</div>
+
+### Simple Transactions
+
+Transaction Process:
+
+1. The transaction initiator broadcasts a transaction to all MGO validators.
+2. Each MGO validator independently votes on the transaction, with voting weight based on the staking amount.
+3. The initiator collects majority votes into a Certificate and broadcasts it to all MGO validators to finalize the transaction and determine finality.
+
+<div align="center">
+    <img src="https://image.devnet.mangonetwork.io/img/doc/SimpleTransaction.svg" width="20%" />
+</div>
+
+### Complex Transactions
+
+Transaction Process:
+
+1. The transaction initiator broadcasts a transaction to all MGO validators.
+2. Each MGO validator independently votes on the transaction, with voting weight based on the staking amount.
+3. The initiator collects majority votes into a Certificate and broadcasts it to all MGO validators, but the Certificate needs to go through consensus.
+4. Once the transaction is successfully ordered, the initiator broadcasts the Certificate to validators for settlement.
+
+<div align="center">
+    <img src="https://image.devnet.mangonetwork.io/img/doc/ComplexTransaction.svg" width="60%" />
+</div>
+
+#### MgoNode/Validator
+
+MgoNode categorizes transactions and sends complex transactions to Workers for processing.
+
+#### Worker
+
+Upon receiving Transactions submitted by MgoNode, either when the accumulated number of Transactions reaches a certain threshold or when a timer triggers, nodes process them and package them into batches to send to the QuorumWaiter module of Worker nodes. Through listening, batches are continuously broadcasted to other Worker nodes from the QuorumWaiter queue. Other Worker nodes respond, and when acknowledgments from 2f nodes are received, digests are wrapped and sent to the Primary node (included in the DAG).
+
+#### Primary
+
+Upon receiving the digest, the Primary organizes the content and sends it to the channel. The Proposer module receives the digest through the channel, checks if there are enough Certificates, and if there are no parent blocks being received or if it's ready to accept a new header proposal. If all conditions are met, a new header is created.
+
+The current round is incremented, and relevant parameters are updated. The round is sent to the Narwhal round update channel, and the generated header is passed to the Certifier module through the channel. The Certifier module generates a Certificate based on the header, broadcasts it to other Primaries for voting. Upon receiving responses from other Primaries, the Certificate is sent to the consensus layer through the Synchronizer module.
+
+When a Certificate is received, the consensus layer inserts the Certificate into the local store and enters BullShark consensus processing.
+
+After processing the Certificate, the Certificate is sent to the StateHandler module to update the Randomness_state status.
+When triggering the advancement of the Round, the random number generation operation is triggered, and the DKG random number distribution key generation protocol is advanced.
+
+As a Primary node, upon receiving a vote request from another node, it verifies the Certificate, validates and accepts the parent Certificate, synchronizes referenced batches, and checks if it has voted. If there is no vote, it returns a vote response.
+
+## BullShark Consensus Process
+
+Whenever a Certificate is received from Narwhal, the BullShark consensus processing logic is triggered. Rounds and leader elections progress with the increase in Certificates.
+
+Leader election occurs every even round.
+
+The logic is as follows:
+
+<div align="center">
+    <img src="https://image.devnet.mangonetwork.io/img/doc/BullShark.svg" width="100%" />
+</div>
+
+1. In round 0, no leader is calculated.
+2. In odd rounds (1, 3, ...), Certificates are continued to be received.
+3. In even rounds (2, 4, ...), if the number of Certificates received exceeds n > f + 1, and the index of the previous round's submitted DAG is 0, initialize scores to 0, 0, 0, 0. Calculate the leader based on the scores, and select the Certificate based on the previous round's leader. Update the scores based on references to the previous leader. Record the DAG and update last_committed_sub_dag = 1.
+
+Repeat the above steps. Due to asynchronous issues, there may be inconsistencies in the DAG view among nodes. As long as the consistency of the leader is ensured, the reference path in the view will be consistent. The consistency of the leader is managed by Narwhal's DKG.
+
+## Summary
+
+Consensus mainly consists of two parts:
+Narwhal ensures agreement among various Primaries using DKG.
+BullShark ensures consensus among Primaries.
