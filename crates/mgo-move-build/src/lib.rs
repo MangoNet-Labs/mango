@@ -48,7 +48,7 @@ use mgo_types::{
     error::{MgoError, MgoResult},
     is_system_package,
     move_package::{FnInfo, FnInfoKey, FnInfoMap, MovePackage},
-    MOVE_STDLIB_ADDRESS, MGO_FRAMEWORK_ADDRESS, MGO_SYSTEM_ADDRESS,
+    MOVE_STDLIB_ADDRESS, MGO_FRAMEWORK_ADDRESS, MGO_SYSTEM_ADDRESS, MGO_INSCRIPTION_ADDRESS
 };
 use mgo_verifier::{default_verifier_config, verifier as mgo_bytecode_verifier};
 
@@ -401,6 +401,12 @@ impl CompiledPackage {
             .values()
             .map(|object_id| object_id.to_hex_uncompressed())
             .collect()
+    }
+
+    /// Get bytecode modules from the Mgo inscription that are used by this package
+    pub fn get_mgo_inscription_modules(&self) -> impl Iterator<Item = &CompiledModule> {
+        self.get_modules_and_deps()
+            .filter(|m| *m.self_id().address() == MGO_INSCRIPTION_ADDRESS)
     }
 
     /// Get bytecode modules from the Mgo System that are used by this package

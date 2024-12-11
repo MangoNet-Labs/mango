@@ -20,8 +20,10 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     let packages_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("packages");
 
+    let mgo_inscription_path = packages_path.join("mgo-inscription");
     let mgo_system_path = packages_path.join("mgo-system");
     let mgo_framework_path = packages_path.join("mgo-framework");
+    let mgo_inscription_path_clone = mgo_inscription_path.clone();
     let mgo_system_path_clone = mgo_system_path.clone();
     let mgo_framework_path_clone = mgo_framework_path.clone();
     let move_stdlib_path = packages_path.join("move-stdlib");
@@ -30,6 +32,7 @@ fn main() {
         .stack_size(16 * 1024 * 1024) // build_packages require bigger stack size on windows.
         .spawn(move || {
             build_packages(
+                mgo_inscription_path_clone,
                 mgo_system_path_clone,
                 mgo_framework_path_clone,
                 out_dir,
@@ -40,6 +43,14 @@ fn main() {
         .unwrap();
 
     println!("cargo:rerun-if-changed=build.rs");
+    println!(
+        "cargo:return-if-changed={}",
+        mgo_inscription_path.join("Move.toml").display()
+    );
+    println!(
+        "cargo:return-if-changed={}",
+        mgo_inscription_path.join("sources").display()
+    );
     println!(
         "cargo:rerun-if-changed={}",
         mgo_system_path.join("Move.toml").display()
@@ -67,6 +78,7 @@ fn main() {
 }
 
 fn build_packages(
+    mgo_inscription_path: PathBuf,
     mgo_system_path: PathBuf,
     mgo_framework_path: PathBuf,
     out_dir: PathBuf,
@@ -80,9 +92,11 @@ fn build_packages(
     };
     debug_assert!(!config.test_mode);
     build_packages_with_move_config(
+        mgo_inscription_path.clone(),
         mgo_system_path.clone(),
         mgo_framework_path.clone(),
         out_dir.clone(),
+        "mgo-inscription",
         "mgo-system",
         "mgo-framework",
         "move-stdlib",
@@ -98,9 +112,11 @@ fn build_packages(
         ..Default::default()
     };
     build_packages_with_move_config(
+        mgo_inscription_path,
         mgo_system_path,
         mgo_framework_path,
         out_dir,
+        "mgo-inscription-test",
         "mgo-system-test",
         "mgo-framework-test",
         "move-stdlib-test",
@@ -110,9 +126,11 @@ fn build_packages(
 }
 
 fn build_packages_with_move_config(
+    mgo_inscription_path: PathBuf,
     mgo_system_path: PathBuf,
     mgo_framework_path: PathBuf,
     out_dir: PathBuf,
+    mgo_inscription_dir: &str,
     system_dir: &str,
     framework_dir: &str,
     stdlib_dir: &str,
@@ -124,26 +142,43 @@ fn build_packages_with_move_config(
         run_bytecode_verifier: true,
         print_diags_to_stderr: false,
     }
-    .build(mgo_framework_path)
-    .unwrap();
+        .build(mgo_framework_path)
+        .unwrap();
     let system_pkg = BuildConfig {
         config: config.clone(),
         run_bytecode_verifier: true,
         print_diags_to_stderr: false,
     }
-    .build(mgo_system_path)
-    .unwrap();
+        .build(mgo_system_path)
+        .unwrap();
+
+    let mgo_inscription_pkg = BuildConfig {
+        config,
+        run_bytecode_verifier: true,
+        print_diags_to_stderr: false,
+    }
+        .build(mgo_inscription_path)
+        .unwrap();
 
     let mgo_system = system_pkg.get_mgo_system_modules();
     let mgo_framework = framework_pkg.get_mgo_framework_modules();
+    let mgo_inscription = mgo_inscription_pkg.get_mgo_inscription_modules();
     let move_stdlib = framework_pkg.get_stdlib_modules();
 
     serialize_modules_to_file(mgo_system, &out_dir.join(system_dir)).unwrap();
     serialize_modules_to_file(mgo_framework, &out_dir.join(framework_dir)).unwrap();
+    serialize_modules_to_file(mgo_inscription, &out_dir.join(mgo_inscription_dir)).unwrap();
     serialize_modules_to_file(move_stdlib, &out_dir.join(stdlib_dir)).unwrap();
     // write out generated docs
     // TODO: remove docs of deleted files
     if write_docs {
+        for (fname, doc) in mgo_inscription_pkg.package.compiled_docs.unwrap() {
+            let mut dst_path = PathBuf::from(DOCS_DIR);
+            dst_path.push(mgo_inscription_dir);
+            dst_path.push(fname);
+            fs::create_dir_all(dst_path.parent().unwrap()).unwrap();
+            fs::write(dst_path, doc).unwrap();
+        }
         for (fname, doc) in system_pkg.package.compiled_docs.unwrap() {
             let mut dst_path = PathBuf::from(DOCS_DIR);
             dst_path.push(system_dir);
@@ -162,7 +197,7 @@ fn build_packages_with_move_config(
 }
 
 fn serialize_modules_to_file<'a>(
-    modules: impl Iterator<Item = &'a CompiledModule>,
+    modules: impl Iterator<Item=&'a CompiledModule>,
     file: &Path,
 ) -> Result<()> {
     let mut serialized_modules = Vec::new();

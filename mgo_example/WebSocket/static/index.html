@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE-edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #title {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        #log {
+            width: 80%;
+            height: 200px;
+            margin-top: 20px;
+            overflow: auto;
+        }
+
+        #btn {
+            color: black;
+            background-color: aqua;
+        }
+    </style>
+</head>
+
+<body>
+<div id="title">WebSocket</div>
+<div>
+    <input id="input" type="text" placeholder="Input Message" maxlength="40">
+    <button id="btn">Send Message</button>
+</div>
+<textarea id="log">History Message:</textarea>
+<script src="./main.js"></script>
+</body>
+
+</html>

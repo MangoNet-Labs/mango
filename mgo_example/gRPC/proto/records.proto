@@ -1,0 +1,27 @@
+/* 
+* Define the gRPC service interface
+* gRPC function: it takes the request and returns a string to the client
+* proto file is used to define the structure of service and message, mainly for serializing structured data 
+*/
+
+syntax = "proto3";
+package records;
+
+/* Define service Recorder*/
+service Recorder { 
+    rpc SendMessage(RecordRequest) 
+    returns (RecordResponse);
+}
+
+/* Defines request and response data structures */
+message RecordRequest {
+    string user_name = 1;
+    uint32 user_age = 2;
+}
+
+
+message RecordResponse {
+    bool successful = 1; // Flag success
+   
+    string message = 2; // A combination of user_name and user_age
+}

@@ -98,6 +98,11 @@ pub const MGO_FRAMEWORK_PACKAGE_ID: ObjectID = ObjectID::from_address(MGO_FRAMEW
 pub const MGO_SYSTEM_ADDRESS: AccountAddress = address_from_single_byte(3);
 pub const MGO_SYSTEM_PACKAGE_ID: ObjectID = ObjectID::from_address(MGO_SYSTEM_ADDRESS);
 
+/// 0x4-- account address where mgo inscription modules are stored
+/// Same as the ObjectID
+pub const MGO_INSCRIPTION_ADDRESS: AccountAddress = address_from_single_byte(4);
+pub const MGO_INSCRIPTION_PACKAGE_ID: ObjectID = ObjectID::from_address(MGO_INSCRIPTION_ADDRESS);
+
 /// 0x5: hardcoded object ID for the singleton mgo system state object.
 pub const MGO_SYSTEM_STATE_ADDRESS: AccountAddress = address_from_single_byte(5);
 pub const MGO_SYSTEM_STATE_OBJECT_ID: ObjectID = ObjectID::from_address(MGO_SYSTEM_STATE_ADDRESS);
@@ -128,7 +133,7 @@ pub const MGO_DENY_LIST_OBJECT_ID: ObjectID = ObjectID::from_address(MGO_DENY_LI
 pub fn is_system_package(addr: impl Into<AccountAddress>) -> bool {
     matches!(
         addr.into(),
-        MOVE_STDLIB_ADDRESS | MGO_FRAMEWORK_ADDRESS | MGO_SYSTEM_ADDRESS
+        MOVE_STDLIB_ADDRESS | MGO_FRAMEWORK_ADDRESS | MGO_SYSTEM_ADDRESS | MGO_INSCRIPTION_ADDRESS
     )
 }
 
@@ -153,7 +158,7 @@ pub fn mgo_framework_address_concat_string(suffix: &str) -> String {
 /// Parses `s` as an address. Valid formats for addresses are:
 ///
 /// - A 256bit number, encoded in decimal, or hexadecimal with a leading "0x" prefix.
-/// - One of a number of pre-defined named addresses: std, mgo, mgo_system.
+/// - One of a number of pre-defined named addresses: std, mgo, mgo_system, mgo_inscription.
 ///
 /// Parsing succeeds if and only if `s` matches one of these formats exactly, with no remaining
 /// suffix. This function is intended for use within the authority codebases.
@@ -201,6 +206,7 @@ pub fn parse_mgo_type_tag(s: &str) -> anyhow::Result<TypeTag> {
 /// Resolve well-known named addresses into numeric addresses.
 fn resolve_address(addr: &str) -> Option<AccountAddress> {
     match addr {
+        "mgo_inscription" => Some(MGO_INSCRIPTION_ADDRESS),
         "std" => Some(MOVE_STDLIB_ADDRESS),
         "mgo" => Some(MGO_FRAMEWORK_ADDRESS),
         "mgo_system" => Some(MGO_SYSTEM_ADDRESS),

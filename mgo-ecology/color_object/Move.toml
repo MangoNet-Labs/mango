@@ -1,0 +1,10 @@
+[package]
+name = "color_object"
+version = "0.0.1"
+edition = "2024.alpha"
+
+[dependencies]
+Mgo = { git = "https://github.com/MangoNetworkOs/Mango.git", subdir = "crates/mgo-framework/packages/mgo-framework", rev = "framework/devnet" }
+
+[addresses]
+color_object = "0x0"

@@ -12,7 +12,7 @@ use tracing::{info, warn};
 
 /// The minimum and maximum protocol versions supported by this build.
 const MIN_PROTOCOL_VERSION: u64 = 1;
-const MAX_PROTOCOL_VERSION: u64 = 2;
+const MAX_PROTOCOL_VERSION: u64 = 3;
 
 // Record history of protocol version allocations here:
 //
@@ -1171,18 +1171,18 @@ impl ProtocolConfig {
             // All flags are disabled in V1
             feature_flags: Default::default(),
 
-            max_tx_size_bytes: Some(512 * 1024),
+            max_tx_size_bytes: Some(128 * 1024),
             // We need this number to be at least 100x less than `max_serialized_tx_effects_size_bytes`otherwise effects can be huge
-            max_input_objects: Some(4096),
+            max_input_objects: Some(2048),
             max_serialized_tx_effects_size_bytes: Some(512 * 1024),
             max_serialized_tx_effects_size_bytes_system_tx: Some(512 * 1024 * 16),
             max_gas_payment_objects: Some(256),
             max_modules_in_publish: Some(128),
-            max_arguments: Some(2048),
+            max_arguments: Some(512),
             max_type_arguments: Some(16),
             max_type_argument_depth: Some(16),
             max_pure_argument_size: Some(16 * 1024),
-            max_programmable_tx_commands: Some(4096),
+            max_programmable_tx_commands: Some(1024),
             move_binary_format_version: Some(6),
             max_move_object_size: Some(250 * 1024),
             max_move_package_size: Some(100 * 1024),
@@ -1648,6 +1648,9 @@ impl ProtocolConfig {
 
                     cfg.consensus_max_transaction_size_bytes = Some(256 * 1024); // 256KB
                     cfg.consensus_max_transactions_in_block_bytes = Some(6 * 1_024 * 1024);
+                }
+                3 => {
+
                 }
                 _ => panic!("unsupported version {:?}", version),
             }

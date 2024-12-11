@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use std::{fs, io::Read, path::PathBuf};
 use mgo_framework::SystemPackage;
 use mgo_types::base_types::ObjectID;
-use mgo_types::{MOVE_STDLIB_PACKAGE_ID, MGO_FRAMEWORK_PACKAGE_ID, MGO_SYSTEM_PACKAGE_ID, };
+use mgo_types::{MOVE_STDLIB_PACKAGE_ID, MGO_FRAMEWORK_PACKAGE_ID, MGO_SYSTEM_PACKAGE_ID, MGO_INSCRIPTION_PACKAGE_ID};
 
 pub type SnapshotManifest = BTreeMap<u64, SingleSnapshot>;
 
@@ -22,6 +22,7 @@ const SYSTEM_PACKAGE_PUBLISH_ORDER: &[ObjectID] = &[
     MOVE_STDLIB_PACKAGE_ID,
     MGO_FRAMEWORK_PACKAGE_ID,
     MGO_SYSTEM_PACKAGE_ID,
+    MGO_INSCRIPTION_PACKAGE_ID,
 ];
 
 pub fn load_bytecode_snapshot_manifest() -> SnapshotManifest {
