@@ -71,6 +71,7 @@ use mgo_types::storage::ObjectStore;
 use mgo_types::storage::ReadStore;
 use mgo_types::transaction::Command;
 use mgo_types::transaction::ProgrammableTransaction;
+use mgo_types::MGO_INSCRIPTION_PACKAGE_ID;
 use mgo_types::MOVE_STDLIB_PACKAGE_ID;
 use mgo_types::MGO_SYSTEM_ADDRESS;
 use mgo_types::{
@@ -91,7 +92,7 @@ use mgo_types::{
     programmable_transaction_builder::ProgrammableTransactionBuilder, MGO_FRAMEWORK_PACKAGE_ID,
 };
 use mgo_types::{utils::to_sender_signed_transaction, MGO_SYSTEM_PACKAGE_ID};
-use mgo_types::{MGO_DENY_LIST_OBJECT_ID};
+use mgo_types::{MGO_INSCRIPTION_ADDRESS, MGO_DENY_LIST_OBJECT_ID};
 use tempfile::NamedTempFile;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
@@ -106,6 +107,7 @@ const WELL_KNOWN_OBJECTS: &[ObjectID] = &[
     MOVE_STDLIB_PACKAGE_ID,
     MGO_FRAMEWORK_PACKAGE_ID,
     MGO_SYSTEM_PACKAGE_ID,
+    MGO_INSCRIPTION_PACKAGE_ID,
     MGO_SYSTEM_STATE_OBJECT_ID,
     MGO_CLOCK_OBJECT_ID,
     MGO_DENY_LIST_OBJECT_ID,
@@ -1744,6 +1746,13 @@ static NAMED_ADDRESSES: Lazy<BTreeMap<String, NumericalAddress>> = Lazy::new(|| 
             move_compiler::shared::NumberFormat::Hex,
         ),
     );
+    map.insert(
+        "mgo_inscription".to_string(),
+        NumericalAddress::new(
+            MGO_INSCRIPTION_ADDRESS.into_bytes(),
+            move_compiler::shared::NumberFormat::Hex,
+        ),
+    );
     map
 });
 
@@ -1765,10 +1774,15 @@ pub static PRE_COMPILED: Lazy<FullyCompiledProgram> = Lazy::new(|| {
         buf.extend(["packages", "move-stdlib", "sources"]);
         buf.to_string_lossy().to_string()
     };
+    let mgo_inscription_deps = {
+        let mut buf = mgo_files.to_path_buf();
+        buf.extend(["packages", "mgo-inscription", "sources"]);
+        buf.to_string_lossy().to_string()
+    };
     let fully_compiled_res = move_compiler::construct_pre_compiled_lib(
         vec![PackagePaths {
             name: None,
-            paths: vec![mgo_system_sources, mgo_sources, mgo_deps],
+            paths: vec![mgo_system_sources, mgo_sources, mgo_deps, mgo_inscription_deps],
             named_address_map: NAMED_ADDRESSES.clone(),
         }],
         None,

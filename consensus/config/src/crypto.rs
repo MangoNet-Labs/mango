@@ -3,7 +3,7 @@
 
 use fastcrypto::{
     bls12381, ed25519,
-    hash::{Blake2b256, HashFunction},
+    hash::{Keccak256, HashFunction},
 };
 use shared_crypto::intent::INTENT_PREFIX_LENGTH;
 
@@ -31,6 +31,6 @@ pub type ProtocolPrivateKey = bls12381::min_sig::BLS12381PrivateKey;
 pub type ProtocolKeyPair = bls12381::min_sig::BLS12381KeyPair;
 
 /// For block digest.
-pub type DefaultHashFunction = Blake2b256;
+pub type DefaultHashFunction = Keccak256;
 pub const DIGEST_LENGTH: usize = DefaultHashFunction::OUTPUT_SIZE;
 pub const INTENT_MESSAGE_LENGTH: usize = INTENT_PREFIX_LENGTH + DIGEST_LENGTH;

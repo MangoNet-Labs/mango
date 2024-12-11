@@ -24,6 +24,7 @@ Move.lock
 !crates/mgo-framework/packages/move-stdlib/Move.lock
 !crates/mgo-framework/packages/mgo-framework/Move.lock
 !crates/mgo-framework/packages/mgo-system/Move.lock
+!crates/mgo-framework/packages/mgo-inscription/Move.lock
 .trace
 .coverage_map.mvcov
 

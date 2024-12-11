@@ -64,6 +64,7 @@ use mgo_types::{
         ObjectReadResultKind, SenderSignedData, Transaction, TransactionData, TransactionDataAPI,
         TransactionKind, VerifiedCertificate, VerifiedTransaction,
     },
+    MGO_INSCRIPTION_PACKAGE_ID
 };
 use tracing::{error, info, trace, warn};
 
@@ -1017,8 +1018,11 @@ impl LocalExec {
         }
     }
 
-    fn system_package_ids(_protocol_version: u64) -> Vec<ObjectID> {
-        let ids = BuiltInFramework::all_package_ids();
+    fn system_package_ids(protocol_version: u64) -> Vec<ObjectID> {
+        let mut ids = BuiltInFramework::all_package_ids();
+        if protocol_version < 3 {
+            ids.retain(|id| *id != MGO_INSCRIPTION_PACKAGE_ID)
+        }
         ids
     }
 

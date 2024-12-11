@@ -16,6 +16,7 @@ mod tests {
     use mgo_graphql_rpc::config::ConnectionConfig;
     use mgo_graphql_rpc::test_infra::cluster::DEFAULT_INTERNAL_DATA_SOURCE_PORT;
     use mgo_types::digests::ChainIdentifier;
+    use mgo_types::MGO_INSCRIPTION_ADDRESS;
     use mgo_types::MGO_FRAMEWORK_ADDRESS;
     use tokio::time::sleep;
 
@@ -84,7 +85,7 @@ mod tests {
             Arc::new(sim),
             None,
         )
-        .await;
+            .await;
 
         let query = r#"
             {
@@ -116,7 +117,7 @@ mod tests {
             Arc::new(sim),
             None,
         )
-        .await;
+            .await;
 
         let query = r#"
             {
@@ -158,14 +159,20 @@ mod tests {
             Arc::new(sim),
             None,
         )
-        .await;
+            .await;
 
-        let query = r#"{obj1: object(address: $framework_addr) {address}}"#;
+        let query = r#"{obj1: object(address: $framework_addr) {address}
+            obj2: object(address: $inscription_addr) {address}}"#;
         let variables = vec![
             GraphqlQueryVariable {
                 name: "framework_addr".to_string(),
                 ty: "MgoAddress!".to_string(),
                 value: json!("0x2"),
+            },
+            GraphqlQueryVariable {
+                name: "inscription_addr".to_string(),
+                ty: "MgoAddress!".to_string(),
+                value: json!("0x4"),
             },
         ];
         let res = cluster
@@ -186,12 +193,31 @@ mod tests {
                 .unwrap(),
             MGO_FRAMEWORK_ADDRESS.to_canonical_string(true)
         );
+        assert_eq!(
+            data.get("obj2")
+                .unwrap()
+                .get("address")
+                .unwrap()
+                .as_str()
+                .unwrap(),
+            MGO_INSCRIPTION_ADDRESS.to_canonical_string(true)
+        );
 
         let bad_variables = vec![
             GraphqlQueryVariable {
                 name: "framework_addr".to_string(),
                 ty: "MgoAddress!".to_string(),
                 value: json!("0x2"),
+            },
+            GraphqlQueryVariable {
+                name: "inscription_addr".to_string(),
+                ty: "MgoAddress!".to_string(),
+                value: json!("0x4"),
+            },
+            GraphqlQueryVariable {
+                name: "inscription_addr".to_string(),
+                ty: "MgoAddress!".to_string(),
+                value: json!("0x46666666"),
             },
         ];
         let res = cluster
@@ -206,6 +232,16 @@ mod tests {
                 name: "framework_addr".to_string(),
                 ty: "MgoAddress!".to_string(),
                 value: json!("0x2"),
+            },
+            GraphqlQueryVariable {
+                name: "inscription_addr".to_string(),
+                ty: "MgoAddress!".to_string(),
+                value: json!("0x4"),
+            },
+            GraphqlQueryVariable {
+                name: "inscription_addr".to_string(),
+                ty: "MgoAddressP!".to_string(),
+                value: json!("0x4"),
             },
         ];
         let res = cluster
@@ -221,6 +257,26 @@ mod tests {
                 ty: "MgoAddress!".to_string(),
                 value: json!("0x2"),
             },
+            GraphqlQueryVariable {
+                name: " inscription_addr".to_string(),
+                ty: "MgoAddress!".to_string(),
+                value: json!("0x4"),
+            },
+            GraphqlQueryVariable {
+                name: "4inscription_addr".to_string(),
+                ty: "MgoAddressP!".to_string(),
+                value: json!("0x4"),
+            },
+            GraphqlQueryVariable {
+                name: "".to_string(),
+                ty: "MgoAddress!".to_string(),
+                value: json!("0x4"),
+            },
+            GraphqlQueryVariable {
+                name: " ".to_string(),
+                ty: "MgoAddress!".to_string(),
+                value: json!("0x4"),
+            },
         ];
 
         for var in bad_variables {
@@ -233,8 +289,8 @@ mod tests {
             assert!(
                 res.unwrap_err().to_string()
                     == ClientError::InvalidVariableName {
-                        var_name: var.name.clone()
-                    }
+                    var_name: var.name.clone()
+                }
                     .to_string()
             );
         }

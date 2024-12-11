@@ -1,0 +1,11 @@
+[package]
+name = "MgoInscription"
+version = "0.0.1"
+published-at = "0x4"
+
+[dependencies]
+MoveStdlib = { local = "../move-stdlib" }
+Mgo = { local = "../mgo-framework" }
+
+[addresses]
+mgo_inscription = "0x4"
