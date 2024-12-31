@@ -8,7 +8,7 @@ use std::path::PathBuf;
 const MGO_PKG_NAME: &str = "Mgo";
 
 // Use testnet by default. Probably want to add options to make this configurable later
-const MGO_PKG_PATH: &str = "{ git = \"https://github.com/MangoNetworkOs/Mango.git\", subdir = \"crates/mgo-framework/packages/mgo-framework\", rev = \"framework/testnet\" }";
+const MGO_PKG_PATH: &str = "{ git = \"https://github.com/MangoNet-Labs/mango.git\", subdir = \"crates/mgo-framework/packages/mgo-framework\", rev = \"testnet\" }";
 
 #[derive(Parser)]
 #[group(id = "mgo-move-new")]
