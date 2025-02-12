@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /// Coin<MGO> is the token used to pay for gas in Mgo.
-/// It has 9 decimals, and the smallest unit (10^-9) is called "mist".
+/// It has 9 decimals, and the smallest unit (10^-9) is called "mango".
 module mgo::mgo {
     use std::option;
     use mgo::tx_context::{Self, TxContext};
@@ -15,16 +15,16 @@ module mgo::mgo {
     const ENotSystemAddress: u64 = 1;
 
     #[allow(unused_const)]
-    /// The amount of Mist per Mgo token based on the the fact that mist is
+    /// The amount of Mango per Mgo token based on the the fact that mango is
     /// 10^-9 of a Mgo token
-    const MIST_PER_MGO: u64 = 1_000_000_000;
+    const MANGO_PER_MGO: u64 = 1_000_000_000;
 
     #[allow(unused_const)]
     /// The total supply of Mgo denominated in whole Mgo tokens (10 Billion)
     const TOTAL_SUPPLY_MGO: u64 = 10_000_000_000;
 
-    /// The total supply of Mgo denominated in Mist (10 Billion * 10^9)
-    const TOTAL_SUPPLY_MIST: u64 = 10_000_000_000_000_000_000;
+    /// The total supply of Mgo denominated in Mango (10 Billion * 10^9)
+    const TOTAL_SUPPLY_MANGO: u64 = 10_000_000_000_000_000_000;
 
     /// Name of the coin
     struct MGO has drop {}
@@ -48,7 +48,7 @@ module mgo::mgo {
         );
         transfer::public_freeze_object(metadata);
         let supply = coin::treasury_into_supply(treasury);
-        let total_mgo = balance::increase_supply(&mut supply, TOTAL_SUPPLY_MIST);
+        let total_mgo = balance::increase_supply(&mut supply, TOTAL_SUPPLY_MANGO);
         balance::destroy_supply(supply);
         total_mgo
     }

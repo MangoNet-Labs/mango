@@ -51,7 +51,7 @@ pub const MGO_FAUCET: &str = "https://faucet.testnet.mangonetwork.io/v1/gas"; //
 /// e.g., transferring objects from one address to another.
 pub async fn setup_for_write() -> Result<(MgoClient, MgoAddress, MgoAddress), anyhow::Error> {
     let (client, active_address) = setup_for_read().await?;
-    // make sure we have some MGO (5_000_000 MIST) on this address
+    // make sure we have some MGO (5_000_000 MANGO) on this address
     let coin = fetch_coin(&client, &active_address).await?;
     if coin.is_none() {
         request_tokens_from_faucet(active_address, &client).await?;
@@ -179,7 +179,7 @@ pub async fn request_tokens_from_faucet(
     Ok(())
 }
 
-/// Return the coin owned by the address that has at least 5_000_000 MIST, otherwise returns None
+/// Return the coin owned by the address that has at least 5_000_000 MANGO, otherwise returns None
 pub async fn fetch_coin(
     mgo: &MgoClient,
     sender: &MgoAddress,
@@ -224,7 +224,7 @@ pub async fn split_coin_digest(
 
     // now we programmatically build the transaction through several commands
     let mut ptb = ProgrammableTransactionBuilder::new();
-    // first, we want to split the coin, and we specify how much MGO (in MIST) we want
+    // first, we want to split the coin, and we specify how much MGO (in MANGO) we want
     // for the new coin
     let split_coin_amount = ptb.pure(1000u64)?; // note that we need to specify the u64 type here
     ptb.command(Command::SplitCoins(

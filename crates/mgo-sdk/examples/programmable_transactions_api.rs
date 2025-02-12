@@ -19,7 +19,7 @@ use utils::setup_for_write;
 // actions into one transaction. Specifically, the example retrieves two addresses
 // from the local wallet, and then
 // 1) finds a coin from the active address that has Mgo,
-// 2) splits the coin into one coin of 1000 MIST and the rest,
+// 2) splits the coin into one coin of 1000 MANGO and the rest,
 // 3  transfers the split coin to second Mgo address,
 // 4) signs the transaction,
 // 5) executes it.
@@ -46,7 +46,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let mut ptb = ProgrammableTransactionBuilder::new();
 
     // 2) split coin
-    // the amount we want in the new coin, 1000 MIST
+    // the amount we want in the new coin, 1000 MANGO
     let split_coint_amount = ptb.pure(1000u64)?; // note that we need to specify the u64 type
     ptb.command(Command::SplitCoins(
         Argument::GasCoin,

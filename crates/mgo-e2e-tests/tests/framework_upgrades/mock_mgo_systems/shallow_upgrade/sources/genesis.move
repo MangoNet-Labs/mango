@@ -53,13 +53,13 @@ module mgo_system::genesis {
     }
 
     struct TokenDistributionSchedule has drop {
-        stake_subsidy_fund_mist: u64,
+        stake_subsidy_fund_mango: u64,
         allocations: vector<TokenAllocation>,
     }
 
     struct TokenAllocation has drop {
         recipient_address: address,
-        amount_mist: u64,
+        amount_mango: u64,
         staked_with_validator: Option<address>,
     }
 

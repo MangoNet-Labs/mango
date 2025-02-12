@@ -208,7 +208,7 @@ impl ValidatorGenesisConfigBuilder {
             narwhal_worker_address,
             consensus_address,
             consensus_internal_worker_address: None,
-            stake: mgo_types::governance::VALIDATOR_LOW_STAKE_THRESHOLD_MIST,
+            stake: mgo_types::governance::VALIDATOR_LOW_STAKE_THRESHOLD_MANGO,
             name: None,
         }
     }
@@ -250,7 +250,7 @@ impl GenesisConfig {
             account.gas_amounts.iter().for_each(|a| {
                 allocations.push(TokenAllocation {
                     recipient_address: address,
-                    amount_mist: *a,
+                    amount_mango: *a,
                     staked_with_validator: None,
                 });
             });
@@ -269,7 +269,7 @@ fn default_multiaddr_address() -> Multiaddr {
 }
 
 fn default_stake() -> u64 {
-    mgo_types::governance::VALIDATOR_LOW_STAKE_THRESHOLD_MIST
+    mgo_types::governance::VALIDATOR_LOW_STAKE_THRESHOLD_MANGO
 }
 
 fn default_bls12381_key_pair() -> AuthorityKeyPair {

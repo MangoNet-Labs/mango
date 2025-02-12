@@ -252,7 +252,7 @@
 
 <dl>
 <dt>
-<code>stake_subsidy_fund_mist: u64</code>
+<code>stake_subsidy_fund_mango: u64</code>
 </dt>
 <dd>
 
@@ -291,7 +291,7 @@
 
 </dd>
 <dt>
-<code>amount_mist: u64</code>
+<code>amount_mango: u64</code>
 </dt>
 <dd>
 
@@ -362,13 +362,13 @@ all the information we need in the system.
     <b>assert</b>!(<a href="dependencies/mgo-framework/tx_context.md#0x2_tx_context_epoch">tx_context::epoch</a>(ctx) == 0, <a href="genesis.md#0x3_genesis_ENotCalledAtGenesis">ENotCalledAtGenesis</a>);
 
     <b>let</b> <a href="genesis.md#0x3_genesis_TokenDistributionSchedule">TokenDistributionSchedule</a> {
-        stake_subsidy_fund_mist,
+        stake_subsidy_fund_mango,
         allocations,
     } = token_distribution_schedule;
 
     <b>let</b> subsidy_fund = <a href="dependencies/mgo-framework/balance.md#0x2_balance_split">balance::split</a>(
         &<b>mut</b> mgo_supply,
-        stake_subsidy_fund_mist,
+        stake_subsidy_fund_mango,
     );
     <b>let</b> <a href="storage_fund.md#0x3_storage_fund">storage_fund</a> = <a href="dependencies/mgo-framework/balance.md#0x2_balance_zero">balance::zero</a>();
 
@@ -500,11 +500,11 @@ all the information we need in the system.
     <b>while</b> (!<a href="dependencies/move-stdlib/vector.md#0x1_vector_is_empty">vector::is_empty</a>(&allocations)) {
         <b>let</b> <a href="genesis.md#0x3_genesis_TokenAllocation">TokenAllocation</a> {
             recipient_address,
-            amount_mist,
+            amount_mango,
             staked_with_validator,
         } = <a href="dependencies/move-stdlib/vector.md#0x1_vector_pop_back">vector::pop_back</a>(&<b>mut</b> allocations);
 
-        <b>let</b> allocation_balance = <a href="dependencies/mgo-framework/balance.md#0x2_balance_split">balance::split</a>(&<b>mut</b> mgo_supply, amount_mist);
+        <b>let</b> allocation_balance = <a href="dependencies/mgo-framework/balance.md#0x2_balance_split">balance::split</a>(&<b>mut</b> mgo_supply, amount_mango);
 
         <b>if</b> (<a href="dependencies/move-stdlib/option.md#0x1_option_is_some">option::is_some</a>(&staked_with_validator)) {
             <b>let</b> validator_address = <a href="dependencies/move-stdlib/option.md#0x1_option_destroy_some">option::destroy_some</a>(staked_with_validator);

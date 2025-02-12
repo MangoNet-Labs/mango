@@ -12,7 +12,7 @@ use tracing::{info, warn};
 
 /// The minimum and maximum protocol versions supported by this build.
 const MIN_PROTOCOL_VERSION: u64 = 1;
-const MAX_PROTOCOL_VERSION: u64 = 3;
+const MAX_PROTOCOL_VERSION: u64 = 4;
 
 // Record history of protocol version allocations here:
 //
@@ -415,7 +415,7 @@ pub struct ProtocolConfig {
     /// Maximum number of gas units that a single MoveCall transaction can use. Enforced by the Mgo adapter.
     max_tx_gas: Option<u64>,
 
-    /// Maximum amount of the proposed gas price in MIST (defined in the transaction).
+    /// Maximum amount of the proposed gas price in MANGO (defined in the transaction).
     max_gas_price: Option<u64>,
 
     /// The max computation bucket for gas. This is the max that can be charged for computation.
@@ -584,7 +584,7 @@ pub struct ProtocolConfig {
     /// In basis point.
     reward_slashing_rate: Option<u64>,
 
-    /// Unit gas price, Mist per internal gas unit.
+    /// Unit gas price, Mango per internal gas unit.
     storage_gas_price: Option<u64>,
 
     /// === Core Protocol ===
@@ -1650,6 +1650,9 @@ impl ProtocolConfig {
                     cfg.consensus_max_transactions_in_block_bytes = Some(6 * 1_024 * 1024);
                 }
                 3 => {
+
+                }
+                4 => {
 
                 }
                 _ => panic!("unsupported version {:?}", version),

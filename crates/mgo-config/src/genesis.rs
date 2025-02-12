@@ -13,7 +13,7 @@ use mgo_types::committee::CommitteeWithNetworkMetadata;
 use mgo_types::crypto::DefaultHash;
 use mgo_types::deny_list::{get_coin_deny_list, PerTypeDenyList};
 use mgo_types::effects::{TransactionEffects, TransactionEvents};
-use mgo_types::gas_coin::TOTAL_SUPPLY_MIST;
+use mgo_types::gas_coin::TOTAL_SUPPLY_MANGO;
 use mgo_types::messages_checkpoint::{
     CertifiedCheckpointSummary, CheckpointContents, CheckpointSummary, VerifiedCheckpoint,
 };
@@ -431,7 +431,7 @@ impl GenesisCeremonyParameters {
 
     fn default_initial_stake_subsidy_distribution_amount() -> u64 {
         // 1M Mgo
-        1_000_000 * mgo_types::gas_coin::MIST_PER_MGO
+        1_000_000 * mgo_types::gas_coin::MANGO_PER_MGO
     }
 
     fn default_stake_subsidy_period_length() -> u64 {
@@ -455,11 +455,11 @@ impl GenesisCeremonyParameters {
             stake_subsidy_period_length: self.stake_subsidy_period_length,
             stake_subsidy_decrease_rate: self.stake_subsidy_decrease_rate,
             max_validator_count: mgo_types::governance::MAX_VALIDATOR_COUNT,
-            min_validator_joining_stake: mgo_types::governance::MIN_VALIDATOR_JOINING_STAKE_MIST,
+            min_validator_joining_stake: mgo_types::governance::MIN_VALIDATOR_JOINING_STAKE_MANGO,
             validator_low_stake_threshold:
-                mgo_types::governance::VALIDATOR_LOW_STAKE_THRESHOLD_MIST,
+                mgo_types::governance::VALIDATOR_LOW_STAKE_THRESHOLD_MANGO,
             validator_very_low_stake_threshold:
-                mgo_types::governance::VALIDATOR_VERY_LOW_STAKE_THRESHOLD_MIST,
+                mgo_types::governance::VALIDATOR_VERY_LOW_STAKE_THRESHOLD_MANGO,
             validator_low_stake_grace_period:
                 mgo_types::governance::VALIDATOR_LOW_STAKE_GRACE_PERIOD,
         }
@@ -475,20 +475,20 @@ impl Default for GenesisCeremonyParameters {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct TokenDistributionSchedule {
-    pub stake_subsidy_fund_mist: u64,
+    pub stake_subsidy_fund_mango: u64,
     pub allocations: Vec<TokenAllocation>,
 }
 
 impl TokenDistributionSchedule {
     pub fn validate(&self) {
-        let mut total_mist = self.stake_subsidy_fund_mist;
+        let mut total_mango = self.stake_subsidy_fund_mango;
 
         for allocation in &self.allocations {
-            total_mist += allocation.amount_mist;
+            total_mango += allocation.amount_mango;
         }
 
-        if total_mist != TOTAL_SUPPLY_MIST {
-            panic!("TokenDistributionSchedule adds up to {total_mist} and not expected {TOTAL_SUPPLY_MIST}");
+        if total_mango != TOTAL_SUPPLY_MANGO {
+            panic!("TokenDistributionSchedule adds up to {total_mango} and not expected {TOTAL_SUPPLY_MANGO}");
         }
     }
 
@@ -510,13 +510,13 @@ impl TokenDistributionSchedule {
                 *validators
                     .get_mut(staked_with_validator)
                     .expect("allocation must be staked with valid validator") +=
-                    allocation.amount_mist;
+                    allocation.amount_mango;
             }
         }
 
         // Check that all validators have sufficient stake allocated to ensure they meet the
         // minimum stake threshold
-        let minimum_required_stake = mgo_types::governance::VALIDATOR_LOW_STAKE_THRESHOLD_MIST;
+        let minimum_required_stake = mgo_types::governance::VALIDATOR_LOW_STAKE_THRESHOLD_MANGO;
         for (validator, stake) in validators {
             if stake < minimum_required_stake {
                 panic!("validator {validator} has '{stake}' stake and does not meet the minimum required stake threshold of '{minimum_required_stake}'");
@@ -527,8 +527,8 @@ impl TokenDistributionSchedule {
     pub fn new_for_validators_with_default_allocation<I: IntoIterator<Item = MgoAddress>>(
         validators: I,
     ) -> Self {
-        let mut supply = TOTAL_SUPPLY_MIST;
-        let default_allocation = mgo_types::governance::VALIDATOR_LOW_STAKE_THRESHOLD_MIST;
+        let mut supply = TOTAL_SUPPLY_MANGO;
+        let default_allocation = mgo_types::governance::VALIDATOR_LOW_STAKE_THRESHOLD_MANGO;
 
         let allocations = validators
             .into_iter()
@@ -536,14 +536,14 @@ impl TokenDistributionSchedule {
                 supply -= default_allocation;
                 TokenAllocation {
                     recipient_address: a,
-                    amount_mist: default_allocation,
+                    amount_mango: default_allocation,
                     staked_with_validator: Some(a),
                 }
             })
             .collect();
 
         let schedule = Self {
-            stake_subsidy_fund_mist: supply,
+            stake_subsidy_fund_mango: supply,
             allocations,
         };
 
@@ -563,8 +563,8 @@ impl TokenDistributionSchedule {
         let mut allocations: Vec<TokenAllocation> =
             reader.deserialize().collect::<Result<_, _>>()?;
         assert_eq!(
-            TOTAL_SUPPLY_MIST,
-            allocations.iter().map(|a| a.amount_mist).sum::<u64>(),
+            TOTAL_SUPPLY_MANGO,
+            allocations.iter().map(|a| a.amount_mango).sum::<u64>(),
             "Token Distribution Schedule must add up to 10B Mgo",
         );
         let stake_subsidy_fund_allocation = allocations.pop().unwrap();
@@ -581,7 +581,7 @@ impl TokenDistributionSchedule {
         );
 
         let schedule = Self {
-            stake_subsidy_fund_mist: stake_subsidy_fund_allocation.amount_mist,
+            stake_subsidy_fund_mango: stake_subsidy_fund_allocation.amount_mango,
             allocations,
         };
 
@@ -598,7 +598,7 @@ impl TokenDistributionSchedule {
 
         writer.serialize(TokenAllocation {
             recipient_address: MgoAddress::default(),
-            amount_mist: self.stake_subsidy_fund_mist,
+            amount_mango: self.stake_subsidy_fund_mango,
             staked_with_validator: None,
         })?;
 
@@ -610,7 +610,7 @@ impl TokenDistributionSchedule {
 #[serde(rename_all = "kebab-case")]
 pub struct TokenAllocation {
     pub recipient_address: MgoAddress,
-    pub amount_mist: u64,
+    pub amount_mango: u64,
 
     /// Indicates if this allocation should be staked at genesis and with which validator
     pub staked_with_validator: Option<MgoAddress>,
@@ -626,7 +626,7 @@ impl TokenDistributionScheduleBuilder {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
-            pool: TOTAL_SUPPLY_MIST,
+            pool: TOTAL_SUPPLY_MANGO,
             allocations: vec![],
         }
     }
@@ -635,25 +635,25 @@ impl TokenDistributionScheduleBuilder {
         &mut self,
         validators: I,
     ) {
-        let default_allocation = mgo_types::governance::VALIDATOR_LOW_STAKE_THRESHOLD_MIST;
+        let default_allocation = mgo_types::governance::VALIDATOR_LOW_STAKE_THRESHOLD_MANGO;
 
         for validator in validators {
             self.add_allocation(TokenAllocation {
                 recipient_address: validator,
-                amount_mist: default_allocation,
+                amount_mango: default_allocation,
                 staked_with_validator: Some(validator),
             });
         }
     }
 
     pub fn add_allocation(&mut self, allocation: TokenAllocation) {
-        self.pool = self.pool.checked_sub(allocation.amount_mist).unwrap();
+        self.pool = self.pool.checked_sub(allocation.amount_mango).unwrap();
         self.allocations.push(allocation);
     }
 
     pub fn build(&self) -> TokenDistributionSchedule {
         let schedule = TokenDistributionSchedule {
-            stake_subsidy_fund_mist: self.pool,
+            stake_subsidy_fund_mango: self.pool,
             allocations: self.allocations.clone(),
         };
 

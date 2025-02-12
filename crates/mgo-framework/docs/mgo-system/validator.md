@@ -638,7 +638,7 @@ Validator Metadata is too long
 
 <a name="0x3_validator_MAX_VALIDATOR_GAS_PRICE"></a>
 
-Max gas price a validator can set is 100K MIST.
+Max gas price a validator can set is 100K MANGO.
 
 
 <pre><code><b>const</b> <a href="validator.md#0x3_validator_MAX_VALIDATOR_GAS_PRICE">MAX_VALIDATOR_GAS_PRICE</a>: u64 = 100000;

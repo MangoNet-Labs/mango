@@ -327,20 +327,20 @@ type ChangeEpochTransaction {
 	"""
 	protocolVersion: Int!
 	"""
-	The total amount of gas charged for storage during the previous epoch (in MIST).
+	The total amount of gas charged for storage during the previous epoch (in MANGO).
 	"""
 	storageCharge: BigInt!
 	"""
-	The total amount of gas charged for computation during the previous epoch (in MIST).
+	The total amount of gas charged for computation during the previous epoch (in MANGO).
 	"""
 	computationCharge: BigInt!
 	"""
-	The MGO returned to transaction senders for cleaning up objects (in MIST).
+	The MGO returned to transaction senders for cleaning up objects (in MANGO).
 	"""
 	storageRebate: BigInt!
 	"""
 	The total gas retained from storage fees, that will not be returned by storage rebates when
-	the relevant objects are cleaned up (in MIST).
+	the relevant objects are cleaned up (in MANGO).
 	"""
 	nonRefundableStorageFee: BigInt!
 	"""
@@ -1008,11 +1008,11 @@ type Epoch {
 	"""
 	totalTransactions: Int
 	"""
-	The total amount of gas fees (in MIST) that were paid in this epoch.
+	The total amount of gas fees (in MANGO) that were paid in this epoch.
 	"""
 	totalGasFees: BigInt
 	"""
-	The total MIST rewarded as stake.
+	The total MANGO rewarded as stake.
 	"""
 	totalStakeRewards: BigInt
 	"""
@@ -1261,22 +1261,22 @@ Breakdown of gas costs in effects.
 """
 type GasCostSummary {
 	"""
-	Gas paid for executing this transaction (in MIST).
+	Gas paid for executing this transaction (in MANGO).
 	"""
 	computationCost: BigInt
 	"""
-	Gas paid for the data stored on-chain by this transaction (in MIST).
+	Gas paid for the data stored on-chain by this transaction (in MANGO).
 	"""
 	storageCost: BigInt
 	"""
 	Part of storage cost that can be reclaimed by cleaning up data created by this transaction
 	(when objects are deleted or an object is modified, which is treated as a deletion followed
-	by a creation) (in MIST).
+	by a creation) (in MANGO).
 	"""
 	storageRebate: BigInt
 	"""
 	Part of storage cost that is not reclaimed when data created by this transaction is cleaned
-	up (in MIST).
+	up (in MANGO).
 	"""
 	nonRefundableStorageFee: BigInt
 }
@@ -1303,7 +1303,7 @@ type GasInput {
 	gasPayment(first: Int, after: String, last: Int, before: String): ObjectConnection!
 	"""
 	An unsigned integer specifying the number of native tokens per gas unit this transaction
-	will pay (in MIST).
+	will pay (in MANGO).
 	"""
 	gasPrice: BigInt
 	"""

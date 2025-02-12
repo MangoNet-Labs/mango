@@ -562,7 +562,7 @@ async fn prepare_new_signer_and_coins(
     // 2. gas fee for splitting the primary coin into `num_coins`
     let required_balance = pay_amount + gas_fee_for_split + gas_fee_for_pay_mgo;
     if required_balance > balance {
-        panic!("Current balance {balance} is smaller than require amount of MIST to fund the operation {required_balance}");
+        panic!("Current balance {balance} is smaller than require amount of MANGO to fund the operation {required_balance}");
     }
 
     // There is a limit for the number of new objects in a transactions, therefore we need

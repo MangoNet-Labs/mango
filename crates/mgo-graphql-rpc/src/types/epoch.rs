@@ -111,12 +111,12 @@ impl Epoch {
         Ok(self.stored.epoch_total_transactions.map(|v| v as u64))
     }
 
-    /// The total amount of gas fees (in MIST) that were paid in this epoch.
+    /// The total amount of gas fees (in MANGO) that were paid in this epoch.
     async fn total_gas_fees(&self) -> Option<BigInt> {
         self.stored.total_gas_fees.map(BigInt::from)
     }
 
-    /// The total MIST rewarded as stake.
+    /// The total MANGO rewarded as stake.
     async fn total_stake_rewards(&self) -> Option<BigInt> {
         self.stored
             .total_stake_rewards_distributed

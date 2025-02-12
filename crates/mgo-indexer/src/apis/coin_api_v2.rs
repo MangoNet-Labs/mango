@@ -12,7 +12,7 @@ use mgo_json_rpc_types::{Balance, CoinPage, Page, MgoCoinMetadata};
 use mgo_open_rpc::Module;
 use mgo_types::balance::Supply;
 use mgo_types::base_types::{ObjectID, MgoAddress};
-use mgo_types::gas_coin::{GAS, TOTAL_SUPPLY_MIST};
+use mgo_types::gas_coin::{GAS, TOTAL_SUPPLY_MANGO};
 
 pub(crate) struct CoinReadApiV2 {
     inner: IndexerReader,
@@ -131,7 +131,7 @@ impl CoinReadApiServer for CoinReadApiV2 {
         let coin_struct = parse_to_struct_tag(&coin_type)?;
         if GAS::is_gas(&coin_struct) {
             Ok(Supply {
-                value: TOTAL_SUPPLY_MIST,
+                value: TOTAL_SUPPLY_MANGO,
             })
         } else {
             self.inner

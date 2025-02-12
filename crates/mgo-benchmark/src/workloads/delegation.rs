@@ -17,7 +17,7 @@ use mgo_core::test_utils::make_transfer_mgo_transaction;
 use mgo_test_transaction_builder::TestTransactionBuilder;
 use mgo_types::base_types::{ObjectRef, MgoAddress};
 use mgo_types::crypto::{get_key_pair, AccountKeyPair};
-use mgo_types::gas_coin::MIST_PER_MGO;
+use mgo_types::gas_coin::MANGO_PER_MGO;
 use mgo_types::transaction::Transaction;
 use tracing::error;
 
@@ -70,7 +70,7 @@ impl Payload for DelegationTestPayload {
             None => make_transfer_mgo_transaction(
                 self.gas,
                 self.sender,
-                Some(MIST_PER_MGO),
+                Some(MANGO_PER_MGO),
                 self.sender,
                 &self.keypair,
                 self.system_state_observer

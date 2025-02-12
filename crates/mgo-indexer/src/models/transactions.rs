@@ -80,7 +80,7 @@ impl TryFrom<TemporaryTransactionBlockResponseStore> for Transaction {
             gas_object_sequence: effects.gas_object().reference.version.value() as i64,
             gas_object_digest: effects.gas_object().reference.digest.base58_encode(),
             // NOTE: cast u64 to i64 here is safe because
-            // max value of i64 is 9223372036854775807 MISTs, which is 9223372036.85 MGO, which is way bigger than budget or cost constant already.
+            // max value of i64 is 9223372036854775807 MANGOs, which is 9223372036.85 MGO, which is way bigger than budget or cost constant already.
             gas_budget: transaction.data.gas_data().budget as i64,
             gas_price: transaction.data.gas_data().price as i64,
             total_gas_cost: (computation_cost + storage_cost) as i64 - (storage_rebate as i64),

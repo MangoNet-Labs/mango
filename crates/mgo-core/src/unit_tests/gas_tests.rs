@@ -73,7 +73,7 @@ async fn test_tx_more_than_maximum_gas_budget() {
 // - computation ok, OOG for storage, OOG for minimal storage (e.g. computation is entire budget)
 //
 // With multiple gas coins is practically impossible to fail storage cost because we
-// get a significant among of MIST back from smashing. So we try:
+// get a significant among of MANGO back from smashing. So we try:
 // - OOG computation, storage ok
 //
 // impossible scenarios:

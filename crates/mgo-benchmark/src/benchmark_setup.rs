@@ -17,7 +17,7 @@ use mgo_types::base_types::ConciseableName;
 use mgo_types::base_types::ObjectID;
 use mgo_types::base_types::MgoAddress;
 use mgo_types::crypto::{deterministic_random_account_key, AccountKeyPair};
-use mgo_types::gas_coin::TOTAL_SUPPLY_MIST;
+use mgo_types::gas_coin::TOTAL_SUPPLY_MANGO;
 use mgo_types::object::Owner;
 use test_cluster::TestClusterBuilder;
 use tokio::runtime::Builder;
@@ -100,8 +100,8 @@ impl Env {
                 let cluster = TestClusterBuilder::new()
                     .with_accounts(vec![AccountConfig {
                         address: Some(primary_gas_owner),
-                        // We can't use TOTAL_SUPPLY_MIST because we need to account for validator stakes in genesis allocation.
-                        gas_amounts: vec![TOTAL_SUPPLY_MIST / 2],
+                        // We can't use TOTAL_SUPPLY_MANGO because we need to account for validator stakes in genesis allocation.
+                        gas_amounts: vec![TOTAL_SUPPLY_MANGO / 2],
                     }])
                     .with_num_validators(committee_size)
                     .build()
