@@ -21,7 +21,7 @@ Mango is the only blockchain today that can scale with the growth of web3 while 
 
 ![Mango Architecture](https://image.devnet.mangonetwork.io/img/mango-white.jpg)
 
-## Mango Network Introduce
+## Mango Network Introduction
 
 Mango Network is a Layer1 blockchain, written in rust, based on the Dpos consensus mechanism and supported by Move, to build a transaction-based omni-chain infrastructure network.
 
