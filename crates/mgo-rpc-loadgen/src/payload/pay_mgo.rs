@@ -33,7 +33,7 @@ impl<'a> ProcessPayload<'a, &'a PayMgo> for RpcCommandProcessor {
             MgoKeyPair::decode_base64(&encoded_keypair).expect("Decoding keypair should not fail");
 
         debug!(
-            "Transfer Mgo {} time to {recipient} with {amount} MIST with {gas_payments:?}",
+            "Transfer Mgo {} time to {recipient} with {amount} MANGO with {gas_payments:?}",
             gas_payments.len()
         );
 

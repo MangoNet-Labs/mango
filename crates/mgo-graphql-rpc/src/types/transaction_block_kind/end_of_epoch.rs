@@ -139,23 +139,23 @@ impl ChangeEpochTransaction {
         self.native.protocol_version.as_u64()
     }
 
-    /// The total amount of gas charged for storage during the previous epoch (in MIST).
+    /// The total amount of gas charged for storage during the previous epoch (in MANGO).
     async fn storage_charge(&self) -> BigInt {
         BigInt::from(self.native.storage_charge)
     }
 
-    /// The total amount of gas charged for computation during the previous epoch (in MIST).
+    /// The total amount of gas charged for computation during the previous epoch (in MANGO).
     async fn computation_charge(&self) -> BigInt {
         BigInt::from(self.native.computation_charge)
     }
 
-    /// The MGO returned to transaction senders for cleaning up objects (in MIST).
+    /// The MGO returned to transaction senders for cleaning up objects (in MANGO).
     async fn storage_rebate(&self) -> BigInt {
         BigInt::from(self.native.storage_rebate)
     }
 
     /// The total gas retained from storage fees, that will not be returned by storage rebates when
-    /// the relevant objects are cleaned up (in MIST).
+    /// the relevant objects are cleaned up (in MANGO).
     async fn non_refundable_storage_fee(&self) -> BigInt {
         BigInt::from(self.native.non_refundable_storage_fee)
     }

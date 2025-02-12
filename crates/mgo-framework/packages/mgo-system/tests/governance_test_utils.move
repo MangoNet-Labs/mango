@@ -22,7 +22,7 @@ module mgo_system::governance_test_utils {
     use mgo::test_utils;
     use mgo::balance::Balance;
 
-    const MIST_PER_MGO: u64 = 1_000_000_000;
+    const MANGO_PER_MGO: u64 = 1_000_000_000;
 
     public fun create_validator_for_testing(
         addr: address, init_stake_amount_in_mgo: u64, ctx: &mut TxContext
@@ -41,7 +41,7 @@ module mgo_system::governance_test_utils {
             b"/ip4/127.0.0.1/udp/80",
             b"/ip4/127.0.0.1/udp/80",
             b"/ip4/127.0.0.1/udp/80",
-            option::some(balance::create_for_testing<MGO>(init_stake_amount_in_mgo * MIST_PER_MGO)),
+            option::some(balance::create_for_testing<MGO>(init_stake_amount_in_mgo * MANGO_PER_MGO)),
             1,
             0,
             true,
@@ -78,7 +78,7 @@ module mgo_system::governance_test_utils {
         );
 
         let stake_subsidy = stake_subsidy::create(
-            balance::create_for_testing<MGO>(mgo_supply_amount * MIST_PER_MGO), // mgo_supply
+            balance::create_for_testing<MGO>(mgo_supply_amount * MANGO_PER_MGO), // mgo_supply
             0,   // stake subsidy initial distribution amount
             10,  // stake_subsidy_period_length
             0,   // stake_subsidy_decrease_rate
@@ -88,7 +88,7 @@ module mgo_system::governance_test_utils {
         mgo_system::create(
             object::new(ctx), // it doesn't matter what ID mgo system state has in tests
             validators,
-            balance::create_for_testing<MGO>(storage_fund_amount * MIST_PER_MGO), // storage_fund
+            balance::create_for_testing<MGO>(storage_fund_amount * MANGO_PER_MGO), // storage_fund
             1,   // protocol version
             0,   // chain_start_timestamp_ms
             system_parameters,
@@ -138,7 +138,7 @@ module mgo_system::governance_test_utils {
     public fun advance_epoch_with_reward_amounts(
         storage_charge: u64, computation_charge: u64, scenario: &mut Scenario
     ) {
-        let storage_rebate = advance_epoch_with_reward_amounts_return_rebate(storage_charge * MIST_PER_MGO, computation_charge * MIST_PER_MGO, 0, 0, scenario);
+        let storage_rebate = advance_epoch_with_reward_amounts_return_rebate(storage_charge * MANGO_PER_MGO, computation_charge * MANGO_PER_MGO, 0, 0, scenario);
         test_utils::destroy(storage_rebate)
     }
 
@@ -155,7 +155,7 @@ module mgo_system::governance_test_utils {
         let ctx = test_scenario::ctx(scenario);
 
         let storage_rebate = mgo_system::advance_epoch_for_testing(
-            &mut system_state, new_epoch, 1, storage_charge * MIST_PER_MGO, computation_charge * MIST_PER_MGO, 0, 0, 0, reward_slashing_rate, 0, ctx
+            &mut system_state, new_epoch, 1, storage_charge * MANGO_PER_MGO, computation_charge * MANGO_PER_MGO, 0, 0, 0, reward_slashing_rate, 0, ctx
         );
         test_utils::destroy(storage_rebate);
         test_scenario::return_shared(system_state);
@@ -170,7 +170,7 @@ module mgo_system::governance_test_utils {
 
         let ctx = test_scenario::ctx(scenario);
 
-        mgo_system::request_add_stake(&mut system_state, coin::mint_for_testing(amount * MIST_PER_MGO, ctx), validator, ctx);
+        mgo_system::request_add_stake(&mut system_state, coin::mint_for_testing(amount * MANGO_PER_MGO, ctx), validator, ctx);
         test_scenario::return_shared(system_state);
     }
 
@@ -210,7 +210,7 @@ module mgo_system::governance_test_utils {
             0,
             ctx
         );
-        mgo_system::request_add_stake(&mut system_state, coin::mint_for_testing<MGO>(init_stake_amount * MIST_PER_MGO, ctx), validator, ctx);
+        mgo_system::request_add_stake(&mut system_state, coin::mint_for_testing<MGO>(init_stake_amount * MANGO_PER_MGO, ctx), validator, ctx);
         mgo_system::request_add_validator_for_testing(&mut system_state, 0, ctx);
         test_scenario::return_shared(system_state);
     }

@@ -8,7 +8,7 @@ use mgo_types::mgo_system_state::MgoValidatorGenesis;
 use mgo_types::{
     base_types::ObjectID,
     coin::CoinMetadata,
-    gas_coin::{GasCoin, MIST_PER_MGO, TOTAL_SUPPLY_MIST},
+    gas_coin::{GasCoin, MANGO_PER_MGO, TOTAL_SUPPLY_MANGO},
     governance::StakedMgo,
     move_package::MovePackage,
     object::{MoveObject, Owner},
@@ -265,21 +265,21 @@ fn examine_total_supply(
         if print {
             println!("Owner {:?}", owner);
             println!(
-                "Total Amount of Mgo/StakedMgo Owned: {amount_sum} MIST or {} MGO:",
-                amount_sum / MIST_PER_MGO
+                "Total Amount of Mgo/StakedMgo Owned: {amount_sum} MANGO or {} MGO:",
+                amount_sum / MANGO_PER_MGO
             );
             println!("{:#?}\n", coins);
         }
     }
-    assert_eq!(total_mgo, TOTAL_SUPPLY_MIST);
+    assert_eq!(total_mgo, TOTAL_SUPPLY_MANGO);
     // Always print this.
     println!(
-        "Total Supply of Mgo: {total_mgo} MIST or {} MGO",
-        total_mgo / MIST_PER_MGO
+        "Total Supply of Mgo: {total_mgo} MANGO or {} MGO",
+        total_mgo / MANGO_PER_MGO
     );
     println!(
-        "Total Amount of StakedMgo: {total_staked_mgo} MIST or {} MGO\n",
-        total_staked_mgo / MIST_PER_MGO
+        "Total Amount of StakedMgo: {total_staked_mgo} MANGO or {} MGO\n",
+        total_staked_mgo / MANGO_PER_MGO
     );
     if print {
         print_divider("Mgo Distribution");

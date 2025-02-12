@@ -341,7 +341,7 @@ async fn test_consume_oracle_data() {
     // call simple_fx_ptb
     let test_module = Identifier::from_str("test_module").unwrap();
     let simple_fx_ptb = Identifier::from_str("simple_fx_ptb").unwrap();
-    let mist_amount = builder
+    let mango_amount = builder
         .input(CallArg::Pure(bcs::to_bytes(&10000000u64).unwrap()))
         .unwrap();
     builder.programmable_move_call(
@@ -349,12 +349,12 @@ async fn test_consume_oracle_data() {
         test_module.clone(),
         simple_fx_ptb,
         vec![],
-        vec![data, mist_amount],
+        vec![data, mango_amount],
     );
 
     // call simple_fx
     let simple_fx = Identifier::from_str("simple_fx").unwrap();
-    let mist_amount = builder
+    let mango_amount = builder
         .input(CallArg::Pure(bcs::to_bytes(&10000000u64).unwrap()))
         .unwrap();
 
@@ -363,7 +363,7 @@ async fn test_consume_oracle_data() {
         test_module.clone(),
         simple_fx,
         vec![],
-        vec![simple_oracle, mist_amount],
+        vec![simple_oracle, mango_amount],
     );
 
     // Call trusted_fx
@@ -386,7 +386,7 @@ async fn test_consume_oracle_data() {
         test_module,
         trusted_fx,
         vec![],
-        vec![oracles[0], oracles[1], oracles[2], mist_amount],
+        vec![oracles[0], oracles[1], oracles[2], mango_amount],
     );
 
     let pt = builder.finish();

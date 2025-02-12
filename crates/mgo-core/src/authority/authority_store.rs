@@ -41,7 +41,7 @@ use super::authority_store_tables::LiveObject;
 use super::{authority_store_tables::AuthorityPerpetualTables, *};
 use mango_common::sync::notify_read::NotifyRead;
 use mgo_types::effects::{TransactionEffects, TransactionEvents};
-use mgo_types::gas_coin::TOTAL_SUPPLY_MIST;
+use mgo_types::gas_coin::TOTAL_SUPPLY_MANGO;
 use typed_store::rocks::util::is_ref_count_value;
 
 const NUM_SHARDS: usize = 4096;
@@ -1549,7 +1549,7 @@ impl AuthorityStore {
             .set(imbalance);
         self.metrics
             .mgo_conservation_imbalance
-            .set((total_mgo as i128 - TOTAL_SUPPLY_MIST as i128) as i64);
+            .set((total_mgo as i128 - TOTAL_SUPPLY_MANGO as i128) as i64);
 
         if let Some(expected_imbalance) = self
             .perpetual_tables

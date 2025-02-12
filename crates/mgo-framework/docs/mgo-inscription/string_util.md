@@ -32,7 +32,7 @@
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_is_empty_str">is_empty_str</a>(input: &<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>): bool
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_is_empty_str">is_empty_str</a>(input: &<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>): bool
 </code></pre>
 
 
@@ -41,7 +41,7 @@
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_is_empty_str">is_empty_str</a>(input: &String): bool {
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_is_empty_str">is_empty_str</a>(input: &String): bool {
     <a href="string_util.md#0x4_string_util_is_empty">is_empty</a>(<a href="dependencies/move-stdlib/string.md#0x1_string_bytes">string::bytes</a>(input))
 }
 </code></pre>
@@ -56,7 +56,7 @@
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_is_empty">is_empty</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): bool
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_is_empty">is_empty</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): bool
 </code></pre>
 
 
@@ -65,7 +65,7 @@
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_is_empty">is_empty</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): bool {
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_is_empty">is_empty</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): bool {
     <a href="dependencies/move-stdlib/vector.md#0x1_vector_is_empty">vector::is_empty</a>(input)
 }
 </code></pre>
@@ -80,7 +80,7 @@
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_is_tick_valid">is_tick_valid</a>(input: &<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>): bool
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_is_tick_valid">is_tick_valid</a>(input: &<a href="dependencies/move-stdlib/string.md#0x1_string_String">string::String</a>): bool
 </code></pre>
 
 
@@ -89,7 +89,7 @@
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_is_tick_valid">is_tick_valid</a>(input: &String): bool {
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_is_tick_valid">is_tick_valid</a>(input: &String): bool {
     <b>let</b> bytes = <a href="dependencies/move-stdlib/string.md#0x1_string_bytes">string::bytes</a>(input);
     <b>let</b> len = <a href="dependencies/move-stdlib/vector.md#0x1_vector_length">vector::length</a>(bytes);
     <b>let</b> i = 0;
@@ -116,7 +116,7 @@
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_to_uppercase">to_uppercase</a>(input: &<b>mut</b> <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;)
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_to_uppercase">to_uppercase</a>(input: &<b>mut</b> <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;)
 </code></pre>
 
 
@@ -125,7 +125,7 @@
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_to_uppercase">to_uppercase</a>(input: &<b>mut</b> <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;) {
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_to_uppercase">to_uppercase</a>(input: &<b>mut</b> <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;) {
     <b>let</b> length = <a href="dependencies/move-stdlib/vector.md#0x1_vector_length">vector::length</a>(input);
     <b>let</b> i = 0;
     <b>while</b> (i &lt; length) {
@@ -148,7 +148,7 @@
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_to_lowercase">to_lowercase</a>(input: &<b>mut</b> <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;)
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_to_lowercase">to_lowercase</a>(input: &<b>mut</b> <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;)
 </code></pre>
 
 
@@ -157,7 +157,7 @@
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_to_lowercase">to_lowercase</a>(input: &<b>mut</b> <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;) {
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_to_lowercase">to_lowercase</a>(input: &<b>mut</b> <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;) {
     <b>let</b> length = <a href="dependencies/move-stdlib/vector.md#0x1_vector_length">vector::length</a>(input);
     <b>let</b> i = 0;
     <b>while</b> (i &lt; length) {
@@ -180,7 +180,7 @@
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_is_number">is_number</a>(letter: u8): bool
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_is_number">is_number</a>(letter: u8): bool
 </code></pre>
 
 
@@ -189,7 +189,7 @@
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_is_number">is_number</a>(letter: u8): bool {
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_is_number">is_number</a>(letter: u8): bool {
     letter &gt;= 48 && letter &lt;= 57
 }
 </code></pre>
@@ -204,7 +204,7 @@
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_is_lowercase">is_lowercase</a>(letter: u8): bool
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_is_lowercase">is_lowercase</a>(letter: u8): bool
 </code></pre>
 
 
@@ -213,7 +213,7 @@
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_is_lowercase">is_lowercase</a>(letter: u8): bool {
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_is_lowercase">is_lowercase</a>(letter: u8): bool {
     letter &gt;= 97 && letter &lt;= 122
 }
 </code></pre>
@@ -228,7 +228,7 @@
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_is_uppercase">is_uppercase</a>(letter: u8): bool
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_is_uppercase">is_uppercase</a>(letter: u8): bool
 </code></pre>
 
 
@@ -237,7 +237,7 @@
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_is_uppercase">is_uppercase</a>(letter: u8): bool {
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_is_uppercase">is_uppercase</a>(letter: u8): bool {
     letter &gt;= 65 && letter &lt;= 90
 }
 </code></pre>
@@ -252,7 +252,7 @@
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_starts_with">starts_with</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, prefix: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): bool
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_starts_with">starts_with</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, prefix: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): bool
 </code></pre>
 
 
@@ -261,7 +261,7 @@
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_starts_with">starts_with</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, prefix: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): bool {
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_starts_with">starts_with</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, prefix: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): bool {
     <b>let</b> input_length = <a href="dependencies/move-stdlib/vector.md#0x1_vector_length">vector::length</a>(input);
     <b>let</b> prefix_length = <a href="dependencies/move-stdlib/vector.md#0x1_vector_length">vector::length</a>(prefix);
     <b>if</b> (input_length &lt; prefix_length) {
@@ -289,7 +289,7 @@
 Returns if the input contains the search string and the index of the first match
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_index_of">index_of</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, search: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): (bool, u64)
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_index_of">index_of</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, search: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): (bool, u64)
 </code></pre>
 
 
@@ -298,11 +298,14 @@ Returns if the input contains the search string and the index of the first match
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_index_of">index_of</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, search: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): (bool, u64) {
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_index_of">index_of</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, search: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): (bool, u64) {
     <b>let</b> input_length = <a href="dependencies/move-stdlib/vector.md#0x1_vector_length">vector::length</a>(input);
     <b>let</b> search_length = <a href="dependencies/move-stdlib/vector.md#0x1_vector_length">vector::length</a>(search);
     <b>if</b> (input_length &lt; search_length) {
         <b>return</b> (<b>false</b>, 0)
+    };
+    <b>if</b> (input_length == 0 && input_length == search_length) {
+        <b>return</b> (<b>true</b>, 0)
     };
     <b>let</b> i = 0;
     <b>while</b> (i &lt; input_length) {
@@ -337,7 +340,7 @@ Returns if the input contains the search string and the index of the first match
 Returns if the input contains the search string and the index of the last match
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_last_index_of">last_index_of</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, search: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): (bool, u64)
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_last_index_of">last_index_of</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, search: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): (bool, u64)
 </code></pre>
 
 
@@ -346,11 +349,14 @@ Returns if the input contains the search string and the index of the last match
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_last_index_of">last_index_of</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, search: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): (bool, u64) {
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_last_index_of">last_index_of</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, search: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): (bool, u64) {
     <b>let</b> input_length = <a href="dependencies/move-stdlib/vector.md#0x1_vector_length">vector::length</a>(input);
     <b>let</b> search_length = <a href="dependencies/move-stdlib/vector.md#0x1_vector_length">vector::length</a>(search);
     <b>if</b> (input_length &lt; search_length) {
         <b>return</b> (<b>false</b>, 0)
+    };
+    <b>if</b> (input_length == 0 && input_length == search_length) {
+        <b>return</b> (<b>true</b>, 0)
     };
     <b>let</b> i = input_length - search_length;
     <b>while</b> (i &gt;= 0) {
@@ -387,7 +393,7 @@ Returns if the input contains the search string and the index of the last match
 
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_substring">substring</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, start: u64, end: u64): <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_substring">substring</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, start: u64, end: u64): <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;
 </code></pre>
 
 
@@ -396,7 +402,7 @@ Returns if the input contains the search string and the index of the last match
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_substring">substring</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, start: u64, end: u64): <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt; {
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_substring">substring</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, start: u64, end: u64): <a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt; {
     <b>let</b> length = <a href="dependencies/move-stdlib/vector.md#0x1_vector_length">vector::length</a>(input);
     <b>if</b> (start &gt;= length) {
         <b>return</b> <a href="dependencies/move-stdlib/vector.md#0x1_vector_empty">vector::empty</a>()
@@ -427,7 +433,7 @@ Returns if the input contains the search string and the index of the last match
 Returns if the input contains any of the chars
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_contains_any">contains_any</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, chars: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): bool
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_contains_any">contains_any</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, chars: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): bool
 </code></pre>
 
 
@@ -436,9 +442,12 @@ Returns if the input contains any of the chars
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="string_util.md#0x4_string_util_contains_any">contains_any</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, chars: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): bool {
+<pre><code><b>public</b>(<b>friend</b>) <b>fun</b> <a href="string_util.md#0x4_string_util_contains_any">contains_any</a>(input: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;, chars: &<a href="dependencies/move-stdlib/vector.md#0x1_vector">vector</a>&lt;u8&gt;): bool {
     <b>let</b> length = <a href="dependencies/move-stdlib/vector.md#0x1_vector_length">vector::length</a>(input);
     <b>let</b> chars_length = <a href="dependencies/move-stdlib/vector.md#0x1_vector_length">vector::length</a>(chars);
+    <b>if</b> (length == 0 && length == chars_length) {
+        <b>return</b> <b>true</b>
+    };
     <b>let</b> i = 0;
     <b>while</b> (i &lt; length) {
         <b>let</b> j = 0;

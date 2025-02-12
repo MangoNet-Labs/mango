@@ -15,7 +15,7 @@ use std::sync::Arc;
 use mgo_core::test_utils::make_pay_mgo_transaction;
 use mgo_types::base_types::{ObjectID, SequenceNumber};
 use mgo_types::digests::ObjectDigest;
-use mgo_types::gas_coin::MIST_PER_MGO;
+use mgo_types::gas_coin::MANGO_PER_MGO;
 use mgo_types::object::Owner;
 use mgo_types::{
     base_types::{ObjectRef, MgoAddress},
@@ -24,12 +24,12 @@ use mgo_types::{
 };
 use tracing::{debug, error};
 
-/// Value of each address's "primary coin" in mist. The first transaction gives
+/// Value of each address's "primary coin" in mango. The first transaction gives
 /// each address a coin worth PRIMARY_COIN_VALUE, and all subsequent transfers
 /// send TRANSFER_AMOUNT coins each time
-const PRIMARY_COIN_VALUE: u64 = 100 * MIST_PER_MGO;
+const PRIMARY_COIN_VALUE: u64 = 100 * MANGO_PER_MGO;
 
-/// Number of mist sent to each address on each batch transfer
+/// Number of mango sent to each address on each batch transfer
 const BATCH_TRANSFER_AMOUNT: u64 = 1;
 
 const DUMMY_GAS: ObjectRef = (ObjectID::ZERO, SequenceNumber::MIN, ObjectDigest::MIN);

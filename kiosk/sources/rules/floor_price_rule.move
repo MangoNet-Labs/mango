@@ -5,7 +5,7 @@
 /// This module defines a Rule which sets the floor price for items of type T.
 ///
 /// Configuration:
-/// - floor_price - the floor price in MIST.
+/// - floor_price - the floor price in MANGO.
 ///
 /// Use cases:
 /// - Defining a floor price for all trades of type T.

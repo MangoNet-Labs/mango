@@ -4,7 +4,7 @@
 # Module `0x2::mgo`
 
 Coin<MGO> is the token used to pay for gas in Mgo.
-It has 9 decimals, and the smallest unit (10^-9) is called "mist".
+It has 9 decimals, and the smallest unit (10^-9) is called "mango".
 
 
 -  [Struct `MGO`](#0x2_mgo_MGO)
@@ -75,13 +75,23 @@ Sender is not @0x0 the system address.
 
 
 
-<a name="0x2_mgo_MIST_PER_MGO"></a>
+<a name="0x2_mgo_MANGO_PER_MGO"></a>
 
-The amount of Mist per Mgo token based on the the fact that mist is
+The amount of Mango per Mgo token based on the the fact that mango is
 10^-9 of a Mgo token
 
 
-<pre><code><b>const</b> <a href="mgo.md#0x2_mgo_MIST_PER_MGO">MIST_PER_MGO</a>: u64 = 1000000000;
+<pre><code><b>const</b> <a href="mgo.md#0x2_mgo_MANGO_PER_MGO">MANGO_PER_MGO</a>: u64 = 1000000000;
+</code></pre>
+
+
+
+<a name="0x2_mgo_TOTAL_SUPPLY_MANGO"></a>
+
+The total supply of Mgo denominated in Mango (10 Billion * 10^9)
+
+
+<pre><code><b>const</b> <a href="mgo.md#0x2_mgo_TOTAL_SUPPLY_MANGO">TOTAL_SUPPLY_MANGO</a>: u64 = 10000000000000000000;
 </code></pre>
 
 
@@ -92,16 +102,6 @@ The total supply of Mgo denominated in whole Mgo tokens (10 Billion)
 
 
 <pre><code><b>const</b> <a href="mgo.md#0x2_mgo_TOTAL_SUPPLY_MGO">TOTAL_SUPPLY_MGO</a>: u64 = 10000000000;
-</code></pre>
-
-
-
-<a name="0x2_mgo_TOTAL_SUPPLY_MIST"></a>
-
-The total supply of Mgo denominated in Mist (10 Billion * 10^9)
-
-
-<pre><code><b>const</b> <a href="mgo.md#0x2_mgo_TOTAL_SUPPLY_MIST">TOTAL_SUPPLY_MIST</a>: u64 = 10000000000000000000;
 </code></pre>
 
 
@@ -139,7 +139,7 @@ This should be called only once during genesis creation.
     );
     <a href="transfer.md#0x2_transfer_public_freeze_object">transfer::public_freeze_object</a>(metadata);
     <b>let</b> supply = <a href="coin.md#0x2_coin_treasury_into_supply">coin::treasury_into_supply</a>(treasury);
-    <b>let</b> total_mgo = <a href="balance.md#0x2_balance_increase_supply">balance::increase_supply</a>(&<b>mut</b> supply, <a href="mgo.md#0x2_mgo_TOTAL_SUPPLY_MIST">TOTAL_SUPPLY_MIST</a>);
+    <b>let</b> total_mgo = <a href="balance.md#0x2_balance_increase_supply">balance::increase_supply</a>(&<b>mut</b> supply, <a href="mgo.md#0x2_mgo_TOTAL_SUPPLY_MANGO">TOTAL_SUPPLY_MANGO</a>);
     <a href="balance.md#0x2_balance_destroy_supply">balance::destroy_supply</a>(supply);
     total_mgo
 }
