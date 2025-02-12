@@ -41,7 +41,7 @@ module mgo_system::stake_tests {
     // Generated using [fn test_proof_of_possession]
     const NEW_VALIDATOR_POP: vector<u8> = x"8b93fc1b33379e2796d361c4056f0f04ad5aea7f4a8c02eaac57340ff09b6dc158eb1945eece103319167f420daf0cb3";
 
-    const MIST_PER_MGO: u64 = 1_000_000_000;
+    const MANGO_PER_MGO: u64 = 1_000_000_000;
 
     #[test]
     fun test_split_join_staked_mgo() {
@@ -55,7 +55,7 @@ module mgo_system::stake_tests {
         {
             let staked_mgo = test_scenario::take_from_sender<StakedMgo>(scenario);
             let ctx = test_scenario::ctx(scenario);
-            staking_pool::split_staked_mgo(&mut staked_mgo, 20 * MIST_PER_MGO, ctx);
+            staking_pool::split_staked_mgo(&mut staked_mgo, 20 * MANGO_PER_MGO, ctx);
             test_scenario::return_to_sender(scenario, staked_mgo);
         };
 
@@ -70,12 +70,12 @@ module mgo_system::stake_tests {
 
             let amount1 = staking_pool::staked_mgo_amount(&part1);
             let amount2 = staking_pool::staked_mgo_amount(&part2);
-            assert!(amount1 == 20 * MIST_PER_MGO || amount1 == 40 * MIST_PER_MGO, 102);
-            assert!(amount2 == 20 * MIST_PER_MGO || amount2 == 40 * MIST_PER_MGO, 103);
-            assert!(amount1 + amount2 == 60 * MIST_PER_MGO, 104);
+            assert!(amount1 == 20 * MANGO_PER_MGO || amount1 == 40 * MANGO_PER_MGO, 102);
+            assert!(amount2 == 20 * MANGO_PER_MGO || amount2 == 40 * MANGO_PER_MGO, 103);
+            assert!(amount1 + amount2 == 60 * MANGO_PER_MGO, 104);
 
             staking_pool::join_staked_mgo(&mut part1, part2);
-            assert!(staking_pool::staked_mgo_amount(&part1) == 60 * MIST_PER_MGO, 105);
+            assert!(staking_pool::staked_mgo_amount(&part1) == 60 * MANGO_PER_MGO, 105);
             test_scenario::return_to_sender(scenario, part1);
         };
         test_scenario::end(scenario_val);
@@ -120,7 +120,7 @@ module mgo_system::stake_tests {
             let staked_mgo = test_scenario::take_from_sender<StakedMgo>(scenario);
             let ctx = test_scenario::ctx(scenario);
             // The remaining amount after splitting is below the threshold so this should fail.
-            staking_pool::split_staked_mgo(&mut staked_mgo, 1 * MIST_PER_MGO + 1, ctx);
+            staking_pool::split_staked_mgo(&mut staked_mgo, 1 * MANGO_PER_MGO + 1, ctx);
             test_scenario::return_to_sender(scenario, staked_mgo);
         };
         test_scenario::end(scenario_val);
@@ -140,7 +140,7 @@ module mgo_system::stake_tests {
             let staked_mgo = test_scenario::take_from_sender<StakedMgo>(scenario);
             let ctx = test_scenario::ctx(scenario);
             // The remaining amount after splitting is below the threshold so this should fail.
-            let stake = staking_pool::split(&mut staked_mgo, 1 * MIST_PER_MGO + 1, ctx);
+            let stake = staking_pool::split(&mut staked_mgo, 1 * MANGO_PER_MGO + 1, ctx);
             test_utils::destroy(stake);
             test_scenario::return_to_sender(scenario, staked_mgo);
         };
@@ -162,10 +162,10 @@ module mgo_system::stake_tests {
 
             // Create a stake to VALIDATOR_ADDR_1.
             mgo_system::request_add_stake(
-                system_state_mut_ref, coin::mint_for_testing(60 * MIST_PER_MGO, ctx), VALIDATOR_ADDR_1, ctx);
+                system_state_mut_ref, coin::mint_for_testing(60 * MANGO_PER_MGO, ctx), VALIDATOR_ADDR_1, ctx);
 
-            assert!(mgo_system::validator_stake_amount(system_state_mut_ref, VALIDATOR_ADDR_1) == 100 * MIST_PER_MGO, 101);
-            assert!(mgo_system::validator_stake_amount(system_state_mut_ref, VALIDATOR_ADDR_2) == 100 * MIST_PER_MGO, 102);
+            assert!(mgo_system::validator_stake_amount(system_state_mut_ref, VALIDATOR_ADDR_1) == 100 * MANGO_PER_MGO, 101);
+            assert!(mgo_system::validator_stake_amount(system_state_mut_ref, VALIDATOR_ADDR_2) == 100 * MANGO_PER_MGO, 102);
 
             test_scenario::return_shared(system_state);
         };
@@ -176,21 +176,21 @@ module mgo_system::stake_tests {
         {
 
             let staked_mgo = test_scenario::take_from_sender<StakedMgo>(scenario);
-            assert!(staking_pool::staked_mgo_amount(&staked_mgo) == 60 * MIST_PER_MGO, 105);
+            assert!(staking_pool::staked_mgo_amount(&staked_mgo) == 60 * MANGO_PER_MGO, 105);
 
 
             let system_state = test_scenario::take_shared<MgoSystemState>(scenario);
             let system_state_mut_ref = &mut system_state;
 
-            assert!(mgo_system::validator_stake_amount(system_state_mut_ref, VALIDATOR_ADDR_1) == 160 * MIST_PER_MGO, 103);
-            assert!(mgo_system::validator_stake_amount(system_state_mut_ref, VALIDATOR_ADDR_2) == 100 * MIST_PER_MGO, 104);
+            assert!(mgo_system::validator_stake_amount(system_state_mut_ref, VALIDATOR_ADDR_1) == 160 * MANGO_PER_MGO, 103);
+            assert!(mgo_system::validator_stake_amount(system_state_mut_ref, VALIDATOR_ADDR_2) == 100 * MANGO_PER_MGO, 104);
 
             let ctx = test_scenario::ctx(scenario);
 
             // Unstake from VALIDATOR_ADDR_1
             mgo_system::request_withdraw_stake(system_state_mut_ref, staked_mgo, ctx);
 
-            assert!(mgo_system::validator_stake_amount(system_state_mut_ref, VALIDATOR_ADDR_1) == 160 * MIST_PER_MGO, 107);
+            assert!(mgo_system::validator_stake_amount(system_state_mut_ref, VALIDATOR_ADDR_1) == 160 * MANGO_PER_MGO, 107);
             test_scenario::return_shared(system_state);
         };
 
@@ -199,7 +199,7 @@ module mgo_system::stake_tests {
         test_scenario::next_tx(scenario, STAKER_ADDR_1);
         {
             let system_state = test_scenario::take_shared<MgoSystemState>(scenario);
-            assert!(mgo_system::validator_stake_amount(&mut system_state, VALIDATOR_ADDR_1) == 100 * MIST_PER_MGO, 107);
+            assert!(mgo_system::validator_stake_amount(&mut system_state, VALIDATOR_ADDR_1) == 100 * MANGO_PER_MGO, 107);
             test_scenario::return_shared(system_state);
         };
         test_scenario::end(scenario_val);
@@ -226,12 +226,12 @@ module mgo_system::stake_tests {
 
         governance_test_utils::assert_validator_total_stake_amounts(
             vector[VALIDATOR_ADDR_1, VALIDATOR_ADDR_2],
-            vector[200 * MIST_PER_MGO, 100 * MIST_PER_MGO],
+            vector[200 * MANGO_PER_MGO, 100 * MANGO_PER_MGO],
             scenario
         );
 
         if (should_distribute_rewards) {
-            // Each validator pool gets 30 MIST and each validator gets an additional 10 MIST.
+            // Each validator pool gets 30 MANGO and each validator gets an additional 10 MANGO.
             governance_test_utils::advance_epoch_with_reward_amounts(0, 80, scenario);
         } else {
             governance_test_utils::advance_epoch(scenario);
@@ -241,8 +241,8 @@ module mgo_system::stake_tests {
 
         governance_test_utils::advance_epoch(scenario);
 
-        let reward_amt = if (should_distribute_rewards) 15 * MIST_PER_MGO else 0;
-        let validator_reward_amt = if (should_distribute_rewards) 10 * MIST_PER_MGO else 0;
+        let reward_amt = if (should_distribute_rewards) 15 * MANGO_PER_MGO else 0;
+        let validator_reward_amt = if (should_distribute_rewards) 10 * MANGO_PER_MGO else 0;
 
         // Make sure stake withdrawal happens
         test_scenario::next_tx(scenario, STAKER_ADDR_1);
@@ -256,7 +256,7 @@ module mgo_system::stake_tests {
                     ), 0);
 
             let staked_mgo = test_scenario::take_from_sender<StakedMgo>(scenario);
-            assert_eq(staking_pool::staked_mgo_amount(&staked_mgo), 100 * MIST_PER_MGO);
+            assert_eq(staking_pool::staked_mgo_amount(&staked_mgo), 100 * MANGO_PER_MGO);
 
             // Unstake from VALIDATOR_ADDR_1
             assert_eq(total_mgo_balance(STAKER_ADDR_1, scenario), 0);
@@ -264,7 +264,7 @@ module mgo_system::stake_tests {
             mgo_system::request_withdraw_stake(system_state_mut_ref, staked_mgo, ctx);
 
             // Make sure they have all of their stake.
-            assert_eq(total_mgo_balance(STAKER_ADDR_1, scenario), 100 * MIST_PER_MGO + reward_amt);
+            assert_eq(total_mgo_balance(STAKER_ADDR_1, scenario), 100 * MANGO_PER_MGO + reward_amt);
 
             test_scenario::return_shared(system_state);
         };
@@ -275,7 +275,7 @@ module mgo_system::stake_tests {
         if (should_distribute_rewards) unstake(VALIDATOR_ADDR_1, 0, scenario);
 
         // Make sure have all of their stake. NB there is no epoch change. This is immediate.
-        assert_eq(total_mgo_balance(VALIDATOR_ADDR_1, scenario), 100 * MIST_PER_MGO + reward_amt + validator_reward_amt);
+        assert_eq(total_mgo_balance(VALIDATOR_ADDR_1, scenario), 100 * MANGO_PER_MGO + reward_amt + validator_reward_amt);
 
         test_scenario::end(scenario_val);
     }
@@ -296,10 +296,10 @@ module mgo_system::stake_tests {
         // this epoch, they should get the rewards from this epoch.
         advance_epoch_with_reward_amounts(0, 80, scenario);
 
-        // Each validator pool gets 30 MIST and validators shares the 20 MIST from the storage fund
-        // so validator gets another 10 MIST.
-        let reward_amt = 15 * MIST_PER_MGO;
-        let validator_reward_amt = 10 * MIST_PER_MGO;
+        // Each validator pool gets 30 MANGO and validators shares the 20 MANGO from the storage fund
+        // so validator gets another 10 MANGO.
+        let reward_amt = 15 * MANGO_PER_MGO;
+        let validator_reward_amt = 10 * MANGO_PER_MGO;
 
         // Make sure stake withdrawal happens
         test_scenario::next_tx(scenario, STAKER_ADDR_1);
@@ -308,7 +308,7 @@ module mgo_system::stake_tests {
             let system_state_mut_ref = &mut system_state;
 
             let staked_mgo = test_scenario::take_from_sender<StakedMgo>(scenario);
-            assert_eq(staking_pool::staked_mgo_amount(&staked_mgo), 100 * MIST_PER_MGO);
+            assert_eq(staking_pool::staked_mgo_amount(&staked_mgo), 100 * MANGO_PER_MGO);
 
             // Unstake from VALIDATOR_ADDR_1
             assert_eq(total_mgo_balance(STAKER_ADDR_1, scenario), 0);
@@ -316,7 +316,7 @@ module mgo_system::stake_tests {
             mgo_system::request_withdraw_stake(system_state_mut_ref, staked_mgo, ctx);
 
             // Make sure they have all of their stake.
-            assert_eq(total_mgo_balance(STAKER_ADDR_1, scenario), 100 * MIST_PER_MGO + reward_amt);
+            assert_eq(total_mgo_balance(STAKER_ADDR_1, scenario), 100 * MANGO_PER_MGO + reward_amt);
 
             test_scenario::return_shared(system_state);
         };
@@ -327,7 +327,7 @@ module mgo_system::stake_tests {
         unstake(VALIDATOR_ADDR_1, 0, scenario);
 
         // Make sure have all of their stake. NB there is no epoch change. This is immediate.
-        assert_eq(total_mgo_balance(VALIDATOR_ADDR_1, scenario), 100 * MIST_PER_MGO + reward_amt + validator_reward_amt);
+        assert_eq(total_mgo_balance(VALIDATOR_ADDR_1, scenario), 100 * MANGO_PER_MGO + reward_amt + validator_reward_amt);
 
         test_scenario::end(scenario_val);
     }
@@ -375,7 +375,7 @@ module mgo_system::stake_tests {
 
         governance_test_utils::add_validator_candidate(NEW_VALIDATOR_ADDR, b"name5", b"/ip4/127.0.0.1/udp/85", NEW_VALIDATOR_PUBKEY, NEW_VALIDATOR_POP, scenario);
 
-        // Delegate 100 MIST to the preactive validator
+        // Delegate 100 MANGO to the preactive validator
         governance_test_utils::stake_with(STAKER_ADDR_1, NEW_VALIDATOR_ADDR, 100, scenario);
 
         // Advance epoch twice with some rewards
@@ -384,7 +384,7 @@ module mgo_system::stake_tests {
 
         // Unstake from the preactive validator. There should be no rewards earned.
         governance_test_utils::unstake(STAKER_ADDR_1, 0, scenario);
-        assert_eq(total_mgo_balance(STAKER_ADDR_1, scenario), 100 * MIST_PER_MGO);
+        assert_eq(total_mgo_balance(STAKER_ADDR_1, scenario), 100 * MANGO_PER_MGO);
 
         test_scenario::end(scenario_val);
     }
@@ -489,7 +489,7 @@ module mgo_system::stake_tests {
 
         add_validator_candidate(NEW_VALIDATOR_ADDR, b"name2", b"/ip4/127.0.0.1/udp/82", NEW_VALIDATOR_PUBKEY, NEW_VALIDATOR_POP, scenario);
 
-        // Delegate 100 MIST to the preactive validator
+        // Delegate 100 MANGO to the preactive validator
         stake_with(STAKER_ADDR_1, NEW_VALIDATOR_ADDR, 100, scenario);
 
         // Advance epoch and give out some rewards. The candidate should get nothing, of course.
@@ -505,7 +505,7 @@ module mgo_system::stake_tests {
 
         // Unstake now and the staker should get no rewards.
         unstake(STAKER_ADDR_1, 0, scenario);
-        assert_eq(total_mgo_balance(STAKER_ADDR_1, scenario), 100 * MIST_PER_MGO);
+        assert_eq(total_mgo_balance(STAKER_ADDR_1, scenario), 100 * MANGO_PER_MGO);
 
         test_scenario::end(scenario_val);
     }
@@ -537,8 +537,8 @@ module mgo_system::stake_tests {
         rates: &Table<u64, PoolTokenExchangeRate>, epoch: u64, mgo_amount: u64, pool_token_amount: u64
     ) {
         let rate = table::borrow(rates, epoch);
-        assert_eq(staking_pool::mgo_amount(rate), mgo_amount * MIST_PER_MGO);
-        assert_eq(staking_pool::pool_token_amount(rate), pool_token_amount * MIST_PER_MGO);
+        assert_eq(staking_pool::mgo_amount(rate), mgo_amount * MANGO_PER_MGO);
+        assert_eq(staking_pool::pool_token_amount(rate), pool_token_amount * MANGO_PER_MGO);
     }
 
     fun set_up_mgo_system_state() {

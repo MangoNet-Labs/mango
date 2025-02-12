@@ -26,13 +26,13 @@ module test::test_module {
         decimals: u8,
     }
 
-    public fun simple_fx_ptb(single_data: Option<Data<DecimalValue>>, mist_amount: u64, ctx: &mut TxContext) {
+    public fun simple_fx_ptb(single_data: Option<Data<DecimalValue>>, mango_amount: u64, ctx: &mut TxContext) {
         let single_data = option::destroy_some(single_data);
         let value = data::value(&single_data);
         let decimals = decimal_value::decimal(value);
         let value = decimal_value::value(value);
 
-        let amount = mist_amount * value;
+        let amount = mango_amount * value;
         let usd = MockUSD {
             id: object::new(ctx),
             amount,
@@ -41,14 +41,14 @@ module test::test_module {
         transfer::transfer(usd, tx_context::sender(ctx));
     }
 
-    public fun simple_fx(oracle: &SimpleOracle, mist_amount: u64, ctx: &mut TxContext) {
+    public fun simple_fx(oracle: &SimpleOracle, mango_amount: u64, ctx: &mut TxContext) {
         let single_data = simple_oracle::get_latest_data<DecimalValue>(oracle, string::utf8(b"MGOUSD"));
         let single_data = option::destroy_some(single_data);
         let value = data::value(&single_data);
         let decimals = decimal_value::decimal(value);
         let value = decimal_value::value(value);
 
-        let amount = mist_amount * value;
+        let amount = mango_amount * value;
         let usd = MockUSD {
             id: object::new(ctx),
             amount,
@@ -61,7 +61,7 @@ module test::test_module {
         oracle1: &SimpleOracle,
         oracle2: &SimpleOracle,
         oracle3: &SimpleOracle,
-        mist_amount: u64,
+        mango_amount: u64,
         ctx: &mut TxContext
     ) {
         let meta_oracle = meta_oracle::new<DecimalValue>(3, 60000, string::utf8(b"MGOUSD"));
@@ -74,7 +74,7 @@ module test::test_module {
         let decimals = decimal_value::decimal(value);
         let value = decimal_value::value(value);
 
-        let amount = mist_amount * value;
+        let amount = mango_amount * value;
         let usd = MockUSD {
             id: object::new(ctx),
             amount,

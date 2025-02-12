@@ -7,15 +7,15 @@ use crate::workloads::{Gas, GasCoinConfig};
 use crate::ValidatorProxy;
 use async_trait::async_trait;
 use std::sync::Arc;
-use mgo_types::gas_coin::MIST_PER_MGO;
+use mgo_types::gas_coin::MANGO_PER_MGO;
 
 // This is the maximum gas we will transfer from primary coin into any gas coin
 // for running the benchmark
-pub const MAX_GAS_FOR_TESTING: u64 = 1_000 * MIST_PER_MGO;
+pub const MAX_GAS_FOR_TESTING: u64 = 1_000 * MANGO_PER_MGO;
 
 // TODO: get this information from protocol config
 // This is the maximum budget that can be set for a transaction. 50 MGO.
-pub const MAX_BUDGET: u64 = 50 * MIST_PER_MGO;
+pub const MAX_BUDGET: u64 = 50 * MANGO_PER_MGO;
 // (COIN_BYTES_SIZE * STORAGE_PRICE * STORAGE_UNITS_PER_BYTE)
 pub const STORAGE_COST_PER_COIN: u64 = 130 * 76 * 100;
 // (COUNTER_BYTES_SIZE * STORAGE_PRICE * STORAGE_UNITS_PER_BYTE)

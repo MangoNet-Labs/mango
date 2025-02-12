@@ -17,7 +17,7 @@ use mgo_types::base_types::MgoAddress;
 use mgo_types::effects::TransactionEffectsAPI;
 use mgo_types::error::MgoError;
 use mgo_types::gas::GasCostSummary;
-use mgo_types::governance::MIN_VALIDATOR_JOINING_STAKE_MIST;
+use mgo_types::governance::MIN_VALIDATOR_JOINING_STAKE_MANGO;
 use mgo_types::message_envelope::Message;
 use mgo_types::mgo_system_state::{
     get_validator_from_table, mgo_system_state_summary::get_validator_by_pool_id,
@@ -797,7 +797,7 @@ async fn execute_add_validator_transactions(
         .wallet
         .gas_for_owner_budget(
             address,
-            MIN_VALIDATOR_JOINING_STAKE_MIST,
+            MIN_VALIDATOR_JOINING_STAKE_MANGO,
             Default::default(),
         )
         .await

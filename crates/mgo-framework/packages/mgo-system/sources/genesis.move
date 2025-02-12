@@ -59,13 +59,13 @@ module mgo_system::genesis {
     }
 
     struct TokenDistributionSchedule {
-        stake_subsidy_fund_mist: u64,
+        stake_subsidy_fund_mango: u64,
         allocations: vector<TokenAllocation>,
     }
 
     struct TokenAllocation {
         recipient_address: address,
-        amount_mist: u64,
+        amount_mango: u64,
 
         /// Indicates if this allocation should be staked at genesis and with which validator
         staked_with_validator: Option<address>,
@@ -93,13 +93,13 @@ module mgo_system::genesis {
         assert!(tx_context::epoch(ctx) == 0, ENotCalledAtGenesis);
 
         let TokenDistributionSchedule {
-            stake_subsidy_fund_mist,
+            stake_subsidy_fund_mango,
             allocations,
         } = token_distribution_schedule;
 
         let subsidy_fund = balance::split(
             &mut mgo_supply,
-            stake_subsidy_fund_mist,
+            stake_subsidy_fund_mango,
         );
         let storage_fund = balance::zero();
 
@@ -211,11 +211,11 @@ module mgo_system::genesis {
         while (!vector::is_empty(&allocations)) {
             let TokenAllocation {
                 recipient_address,
-                amount_mist,
+                amount_mango,
                 staked_with_validator,
             } = vector::pop_back(&mut allocations);
 
-            let allocation_balance = balance::split(&mut mgo_supply, amount_mist);
+            let allocation_balance = balance::split(&mut mgo_supply, amount_mango);
 
             if (option::is_some(&staked_with_validator)) {
                 let validator_address = option::destroy_some(staked_with_validator);

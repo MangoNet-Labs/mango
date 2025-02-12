@@ -18,7 +18,7 @@ use mgo_types::crypto::get_key_pair;
 use mgo_types::crypto::AccountKeyPair;
 use mgo_types::digests::TransactionDigest;
 use mgo_types::object::{MoveObject, Object, Owner, OBJECT_START_VERSION};
-use mgo_types::{gas_coin::TOTAL_SUPPLY_MIST, transaction::GasData};
+use mgo_types::{gas_coin::TOTAL_SUPPLY_MANGO, transaction::GasData};
 
 use proptest::prelude::*;
 use rand::{rngs::StdRng, SeedableRng};
@@ -43,7 +43,7 @@ fn generate_random_gas_data(
     let mut gas_objects = vec![];
     let mut object_refs = vec![];
 
-    let max_gas_balance = TOTAL_SUPPLY_MIST;
+    let max_gas_balance = TOTAL_SUPPLY_MANGO;
 
     let total_gas_balance = rng.gen_range(0..=max_gas_balance);
     let mut remaining_gas_balance = total_gas_balance;

@@ -32,7 +32,7 @@ use mgo_types::{
     committee::Committee,
     effects::TransactionEffects,
     error::ExecutionError,
-    gas_coin::MIST_PER_MGO,
+    gas_coin::MANGO_PER_MGO,
     inner_temporary_store::InnerTemporaryStore,
     messages_checkpoint::{EndOfEpochData, VerifiedCheckpoint},
     signature::VerifyParams,
@@ -308,17 +308,17 @@ impl<R, S: store::SimulatorStore> Simulacrum<R, S> {
         self.epoch_state.reference_gas_price()
     }
 
-    /// Request that `amount` Mist be sent to `address` from a faucet account.
+    /// Request that `amount` Mango be sent to `address` from a faucet account.
     ///
     /// ```
     /// use simulacrum::Simulacrum;
     /// use mgo_types::base_types::MgoAddress;
-    /// use mgo_types::gas_coin::MIST_PER_MGO;
+    /// use mgo_types::gas_coin::MANGO_PER_MGO;
     ///
     /// # fn main() {
     /// let mut simulacrum = Simulacrum::new();
     /// let address = MgoAddress::generate(simulacrum.rng());
-    /// simulacrum.request_gas(address, MIST_PER_MGO).unwrap();
+    /// simulacrum.request_gas(address, MANGO_PER_MGO).unwrap();
     ///
     /// // `account` now has a Coin<MGO> object with single MGO in it.
     /// // ...
@@ -332,17 +332,17 @@ impl<R, S: store::SimulatorStore> Simulacrum<R, S> {
             .store()
             .owned_objects(*sender)
             .find(|object| {
-                object.is_gas_coin() && object.get_coin_value_unsafe() > amount + MIST_PER_MGO
+                object.is_gas_coin() && object.get_coin_value_unsafe() > amount + MANGO_PER_MGO
             })
             .ok_or_else(|| {
-                anyhow!("unable to find a coin with enough to satisfy request for {amount} Mist")
+                anyhow!("unable to find a coin with enough to satisfy request for {amount} Mango")
             })?;
 
         let gas_data = mgo_types::transaction::GasData {
             payment: vec![object.compute_object_reference()],
             owner: *sender,
             price: self.reference_gas_price(),
-            budget: MIST_PER_MGO,
+            budget: MANGO_PER_MGO,
         };
 
         let pt = {

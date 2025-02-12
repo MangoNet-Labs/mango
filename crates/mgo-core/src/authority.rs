@@ -1531,9 +1531,9 @@ impl AuthorityState {
         let ((gas_status, checked_input_objects), mock_gas) = if transaction.gas().is_empty() {
             let sender = transaction.sender();
             // use a 1B mgo coin
-            const MIST_TO_MGO: u64 = 1_000_000_000;
+            const MANGO_TO_MGO: u64 = 1_000_000_000;
             const DRY_RUN_MGO: u64 = 1_000_000_000;
-            let max_coin_value = MIST_TO_MGO * DRY_RUN_MGO;
+            let max_coin_value = MANGO_TO_MGO * DRY_RUN_MGO;
             let gas_object_id = ObjectID::random();
             let gas_object = Object::new_move(
                 MoveObject::new_gas_coin(OBJECT_START_VERSION, gas_object_id, max_coin_value),

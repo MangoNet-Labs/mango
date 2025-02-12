@@ -36,7 +36,7 @@ use tracing::info;
 // Default max number of concurrent requests served
 pub const DEFAULT_GRPC_CONCURRENCY_LIMIT: usize = 20000000000;
 
-/// Default gas price of 100 Mist
+/// Default gas price of 100 Mango
 pub const DEFAULT_VALIDATOR_GAS_PRICE: u64 = mgo_types::transaction::DEFAULT_VALIDATOR_GAS_PRICE;
 
 /// Default commission rate of 2%

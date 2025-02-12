@@ -90,7 +90,7 @@ module mgo_system::validator {
     const MAX_VALIDATOR_METADATA_LENGTH: u64 = 256;
 
     // TODO: Move this to onchain config when we have a good way to do it.
-    /// Max gas price a validator can set is 100K MIST.
+    /// Max gas price a validator can set is 100K MANGO.
     const MAX_VALIDATOR_GAS_PRICE: u64 = 100_000;
 
     struct ValidatorMetadata has store {

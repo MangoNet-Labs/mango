@@ -108,7 +108,7 @@ module mgo::royalty_policy_tests {
         // 1% royalty
         royalty_policy::set(&mut policy, &cap, 100);
 
-        // Requires 1_000 MIST, coin has only 999
+        // Requires 1_000 MANGO, coin has only 999
         let request = policy::new_request(test::fresh_id(ctx), 100_000, test::fresh_id(ctx));
         let payment = coin::mint_for_testing<MGO>(999, ctx);
 

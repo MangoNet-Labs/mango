@@ -44,7 +44,7 @@ use mgo_types::crypto::KeypairTraits;
 use mgo_types::crypto::MgoKeyPair;
 use mgo_types::effects::{TransactionEffects, TransactionEvents};
 use mgo_types::error::MgoResult;
-use mgo_types::governance::MIN_VALIDATOR_JOINING_STAKE_MIST;
+use mgo_types::governance::MIN_VALIDATOR_JOINING_STAKE_MANGO;
 use mgo_types::message_envelope::Message;
 use mgo_types::object::Object;
 use mgo_types::mgo_system_state::epoch_start_mgo_system_state::EpochStartSystemStateTrait;
@@ -863,7 +863,7 @@ impl TestClusterBuilder {
             .accounts
             .extend(addresses.into_iter().map(|address| AccountConfig {
                 address: Some(address),
-                gas_amounts: vec![DEFAULT_GAS_AMOUNT, MIN_VALIDATOR_JOINING_STAKE_MIST],
+                gas_amounts: vec![DEFAULT_GAS_AMOUNT, MIN_VALIDATOR_JOINING_STAKE_MANGO],
             }));
         self
     }

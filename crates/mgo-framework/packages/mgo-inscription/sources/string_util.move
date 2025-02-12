@@ -3,15 +3,18 @@ module mgo_inscription::string_util {
     use std::string::String;
     use std::vector;
 
-    public fun is_empty_str(input: &String): bool {
+    friend mgo_inscription::coinscription;
+    friend mgo_inscription::singlescription;
+
+    public(friend) fun is_empty_str(input: &String): bool {
         is_empty(string::bytes(input))
     }
 
-    public fun is_empty(input: &vector<u8>): bool {
+    public(friend) fun is_empty(input: &vector<u8>): bool {
         vector::is_empty(input)
     }
 
-    public fun is_tick_valid(input: &String): bool {
+    public(friend) fun is_tick_valid(input: &String): bool {
         let bytes = string::bytes(input);
         let len = vector::length(bytes);
         let i = 0;
@@ -27,7 +30,7 @@ module mgo_inscription::string_util {
         res
     }
 
-    public fun to_uppercase(input: &mut vector<u8>) {
+    public(friend) fun to_uppercase(input: &mut vector<u8>) {
         let length = vector::length(input);
         let i = 0;
         while (i < length) {
@@ -39,7 +42,7 @@ module mgo_inscription::string_util {
         }
     }
 
-    public fun to_lowercase(input: &mut vector<u8>) {
+    public(friend) fun to_lowercase(input: &mut vector<u8>) {
         let length = vector::length(input);
         let i = 0;
         while (i < length) {
@@ -51,19 +54,19 @@ module mgo_inscription::string_util {
         }
     }
 
-    public fun is_number(letter: u8): bool {
+    public(friend) fun is_number(letter: u8): bool {
         letter >= 48 && letter <= 57
     }
 
-    public fun is_lowercase(letter: u8): bool {
+    public(friend) fun is_lowercase(letter: u8): bool {
         letter >= 97 && letter <= 122
     }
 
-    public fun is_uppercase(letter: u8): bool {
+    public(friend) fun is_uppercase(letter: u8): bool {
         letter >= 65 && letter <= 90
     }
 
-    public fun starts_with(input: &vector<u8>, prefix: &vector<u8>): bool {
+    public(friend) fun starts_with(input: &vector<u8>, prefix: &vector<u8>): bool {
         let input_length = vector::length(input);
         let prefix_length = vector::length(prefix);
         if (input_length < prefix_length) {
@@ -80,11 +83,14 @@ module mgo_inscription::string_util {
     }
 
     /// Returns if the input contains the search string and the index of the first match
-    public fun index_of(input: &vector<u8>, search: &vector<u8>): (bool, u64) {
+    public(friend) fun index_of(input: &vector<u8>, search: &vector<u8>): (bool, u64) {
         let input_length = vector::length(input);
         let search_length = vector::length(search);
         if (input_length < search_length) {
             return (false, 0)
+        };
+        if (input_length == 0 && input_length == search_length) {
+            return (true, 0)
         };
         let i = 0;
         while (i < input_length) {
@@ -108,11 +114,14 @@ module mgo_inscription::string_util {
     }
 
     /// Returns if the input contains the search string and the index of the last match
-    public fun last_index_of(input: &vector<u8>, search: &vector<u8>): (bool, u64) {
+    public(friend) fun last_index_of(input: &vector<u8>, search: &vector<u8>): (bool, u64) {
         let input_length = vector::length(input);
         let search_length = vector::length(search);
         if (input_length < search_length) {
             return (false, 0)
+        };
+        if (input_length == 0 && input_length == search_length) {
+            return (true, 0)
         };
         let i = input_length - search_length;
         while (i >= 0) {
@@ -138,7 +147,7 @@ module mgo_inscription::string_util {
         (false, 0)
     }
 
-    public fun substring(input: &vector<u8>, start: u64, end: u64): vector<u8> {
+    public(friend) fun substring(input: &vector<u8>, start: u64, end: u64): vector<u8> {
         let length = vector::length(input);
         if (start >= length) {
             return vector::empty()
@@ -158,9 +167,12 @@ module mgo_inscription::string_util {
     }
 
     /// Returns if the input contains any of the chars
-    public fun contains_any(input: &vector<u8>, chars: &vector<u8>): bool {
+    public(friend) fun contains_any(input: &vector<u8>, chars: &vector<u8>): bool {
         let length = vector::length(input);
         let chars_length = vector::length(chars);
+        if (length == 0 && length == chars_length) {
+            return true
+        };
         let i = 0;
         while (i < length) {
             let j = 0;

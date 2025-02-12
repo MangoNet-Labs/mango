@@ -25,7 +25,7 @@ use mgo_types::{
 };
 
 /// TODO: This should be the amount that is being transferred instead of MAX_GAS.
-/// Number of mist sent to each address on each batch transfer
+/// Number of mango sent to each address on each batch transfer
 const _TRANSFER_AMOUNT: u64 = 1;
 
 #[derive(Debug)]

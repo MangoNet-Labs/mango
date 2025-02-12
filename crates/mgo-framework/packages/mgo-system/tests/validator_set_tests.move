@@ -16,7 +16,7 @@ module mgo_system::validator_set_tests {
     use mgo::test_utils::{Self, assert_eq};
     use mgo::transfer;
 
-    const MIST_PER_MGO: u64 = 1_000_000_000; // used internally for stakes.
+    const MANGO_PER_MGO: u64 = 1_000_000_000; // used internally for stakes.
 
     #[test]
     fun test_validator_set_flow() {
@@ -31,7 +31,7 @@ module mgo_system::validator_set_tests {
 
         // Create a validator set with only the first validator in it.
         let validator_set = validator_set::new(vector[validator1], ctx);
-        assert!(validator_set::total_stake(&validator_set) == 100 * MIST_PER_MGO, 0);
+        assert!(validator_set::total_stake(&validator_set) == 100 * MANGO_PER_MGO, 0);
 
         // Add the other 3 validators one by one.
         add_and_activate_validator(
@@ -40,7 +40,7 @@ module mgo_system::validator_set_tests {
             scenario
         );
         // Adding validator during the epoch should not affect stake and quorum threshold.
-        assert!(validator_set::total_stake(&validator_set) == 100 * MIST_PER_MGO, 0);
+        assert!(validator_set::total_stake(&validator_set) == 100 * MANGO_PER_MGO, 0);
 
         add_and_activate_validator(
             &mut validator_set,
@@ -56,13 +56,13 @@ module mgo_system::validator_set_tests {
             let stake = validator_set::request_add_stake(
                 &mut validator_set,
                 @0x1,
-                coin::into_balance(coin::mint_for_testing(500 * MIST_PER_MGO, ctx1)),
+                coin::into_balance(coin::mint_for_testing(500 * MANGO_PER_MGO, ctx1)),
                 ctx1,
             );
             transfer::public_transfer(stake, @0x1);
             // Adding stake to existing active validator during the epoch
             // should not change total stake.
-            assert!(validator_set::total_stake(&validator_set) == 100 * MIST_PER_MGO, 0);
+            assert!(validator_set::total_stake(&validator_set) == 100 * MANGO_PER_MGO, 0);
         };
 
         add_and_activate_validator(
@@ -73,7 +73,7 @@ module mgo_system::validator_set_tests {
 
         advance_epoch_with_dummy_rewards(&mut validator_set, scenario);
         // Total stake for these should be the starting stake + the 500 staked with validator 1 in addition to the starting stake.
-        assert!(validator_set::total_stake(&validator_set) == 1500 * MIST_PER_MGO, 0);
+        assert!(validator_set::total_stake(&validator_set) == 1500 * MANGO_PER_MGO, 0);
 
         test_scenario::next_tx(scenario, @0x1);
         {
@@ -86,10 +86,10 @@ module mgo_system::validator_set_tests {
         };
 
         // Total validator candidate count changes, but total stake remains during epoch.
-        assert!(validator_set::total_stake(&validator_set) == 1500 * MIST_PER_MGO, 0);
+        assert!(validator_set::total_stake(&validator_set) == 1500 * MANGO_PER_MGO, 0);
         advance_epoch_with_dummy_rewards(&mut validator_set, scenario);
         // Validator1 is gone. This removes its stake (100) + the 500 staked with it.
-        assert!(validator_set::total_stake(&validator_set) == 900 * MIST_PER_MGO, 0);
+        assert!(validator_set::total_stake(&validator_set) == 900 * MANGO_PER_MGO, 0);
 
         test_utils::destroy(validator_set);
         test_scenario::end(scenario_val);
@@ -156,7 +156,7 @@ module mgo_system::validator_set_tests {
 
         let validator1 = create_validator(@0x1, 1, 1, true, ctx);
         let validator_set = validator_set::new(vector[validator1], ctx);
-        assert_eq(validator_set::total_stake(&validator_set), 100 * MIST_PER_MGO);
+        assert_eq(validator_set::total_stake(&validator_set), 100 * MANGO_PER_MGO);
         test_scenario::end(scenario_val);
 
         let scenario_val = test_scenario::begin(@0x1);
@@ -166,7 +166,7 @@ module mgo_system::validator_set_tests {
         let stake = validator_set::request_add_stake(
             &mut validator_set,
             @0x1,
-            balance::create_for_testing(MIST_PER_MGO - 1), // 1 MIST lower than the threshold
+            balance::create_for_testing(MANGO_PER_MGO - 1), // 1 MANGO lower than the threshold
             ctx1,
         );
         transfer::public_transfer(stake, @0x1);
@@ -182,7 +182,7 @@ module mgo_system::validator_set_tests {
 
         let validator1 = create_validator(@0x1, 1, 1, true, ctx);
         let validator_set = validator_set::new(vector[validator1], ctx);
-        assert_eq(validator_set::total_stake(&validator_set), 100 * MIST_PER_MGO);
+        assert_eq(validator_set::total_stake(&validator_set), 100 * MANGO_PER_MGO);
         test_scenario::end(scenario_val);
 
         let scenario_val = test_scenario::begin(@0x1);
@@ -191,13 +191,13 @@ module mgo_system::validator_set_tests {
         let stake = validator_set::request_add_stake(
             &mut validator_set,
             @0x1,
-            balance::create_for_testing(MIST_PER_MGO), // min possible stake
+            balance::create_for_testing(MANGO_PER_MGO), // min possible stake
             ctx1,
         );
         transfer::public_transfer(stake, @0x1);
 
         advance_epoch_with_dummy_rewards(&mut validator_set, scenario);
-        assert!(validator_set::total_stake(&validator_set) == 101 * MIST_PER_MGO, 0);
+        assert!(validator_set::total_stake(&validator_set) == 101 * MANGO_PER_MGO, 0);
 
         test_utils::destroy(validator_set);
         test_scenario::end(scenario_val);
@@ -216,7 +216,7 @@ module mgo_system::validator_set_tests {
 
         // Create a validator set with only the first validator in it.
         let validator_set = validator_set::new(vector[validator1], ctx);
-        assert_eq(validator_set::total_stake(&validator_set), 100 * MIST_PER_MGO);
+        assert_eq(validator_set::total_stake(&validator_set), 100 * MANGO_PER_MGO);
         test_scenario::end(scenario_val);
 
         let scenario_val = test_scenario::begin(@0x1);
@@ -230,17 +230,17 @@ module mgo_system::validator_set_tests {
             let stake = validator_set::request_add_stake(
                 &mut validator_set,
                 @0x2,
-                balance::create_for_testing(500 * MIST_PER_MGO),
+                balance::create_for_testing(500 * MANGO_PER_MGO),
                 ctx,
             );
             transfer::public_transfer(stake, @0x42);
             // Adding stake to a preactive validator should not change total stake.
-            assert_eq(validator_set::total_stake(&validator_set), 100 * MIST_PER_MGO);
+            assert_eq(validator_set::total_stake(&validator_set), 100 * MANGO_PER_MGO);
         };
 
         test_scenario::next_tx(scenario, @0x2);
         // Validator 2 now has 700 MGO in stake but that's not enough because we need 701.
-        validator_set::request_add_validator(&mut validator_set, 701 * MIST_PER_MGO, test_scenario::ctx(scenario));
+        validator_set::request_add_validator(&mut validator_set, 701 * MANGO_PER_MGO, test_scenario::ctx(scenario));
 
         test_utils::destroy(validator_set);
         test_scenario::end(scenario_val);
@@ -258,7 +258,7 @@ module mgo_system::validator_set_tests {
 
         // Create a validator set with only the first validator in it.
         let validator_set = validator_set::new(vector[validator1], ctx);
-        assert_eq(validator_set::total_stake(&validator_set), 100 * MIST_PER_MGO);
+        assert_eq(validator_set::total_stake(&validator_set), 100 * MANGO_PER_MGO);
         test_scenario::end(scenario_val);
 
         let scenario_val = test_scenario::begin(@0x1);
@@ -272,17 +272,17 @@ module mgo_system::validator_set_tests {
             let stake = validator_set::request_add_stake(
                 &mut validator_set,
                 @0x2,
-                balance::create_for_testing(500 * MIST_PER_MGO),
+                balance::create_for_testing(500 * MANGO_PER_MGO),
                 ctx,
             );
             transfer::public_transfer(stake, @0x42);
             // Adding stake to a preactive validator should not change total stake.
-            assert_eq(validator_set::total_stake(&validator_set), 100 * MIST_PER_MGO);
+            assert_eq(validator_set::total_stake(&validator_set), 100 * MANGO_PER_MGO);
         };
 
         test_scenario::next_tx(scenario, @0x2);
         // Validator 2 now has 700 MGO in stake and that's just enough.
-        validator_set::request_add_validator(&mut validator_set, 700 * MIST_PER_MGO, test_scenario::ctx(scenario));
+        validator_set::request_add_validator(&mut validator_set, 700 * MANGO_PER_MGO, test_scenario::ctx(scenario));
 
         test_utils::destroy(validator_set);
         test_scenario::end(scenario_val);
@@ -302,7 +302,7 @@ module mgo_system::validator_set_tests {
 
         // Create a validator set with only the first validator in it.
         let validator_set = validator_set::new(vector[validator1], ctx);
-        assert_eq(validator_set::total_stake(&validator_set), 100 * MIST_PER_MGO);
+        assert_eq(validator_set::total_stake(&validator_set), 100 * MANGO_PER_MGO);
         test_scenario::end(scenario_val);
 
         let scenario_val = test_scenario::begin(@0x1);
@@ -365,7 +365,7 @@ module mgo_system::validator_set_tests {
             let stake = validator_set::request_add_stake(
                 &mut validator_set,
                 @0x4,
-                balance::create_for_testing(500 * MIST_PER_MGO),
+                balance::create_for_testing(500 * MANGO_PER_MGO),
                 ctx,
             );
             transfer::public_transfer(stake, @0x42);
@@ -413,7 +413,7 @@ module mgo_system::validator_set_tests {
     }
 
     fun create_validator(addr: address, hint: u8, gas_price: u64, is_initial_validator: bool, ctx: &mut TxContext): Validator {
-        let stake_value = (hint as u64) * 100 * MIST_PER_MGO;
+        let stake_value = (hint as u64) * 100 * MANGO_PER_MGO;
         let name = hint_to_ascii(hint);
         let validator = validator::new_for_testing(
             addr,
@@ -480,8 +480,8 @@ module mgo_system::validator_set_tests {
             &mut dummy_storage_fund_reward,
             &mut vec_map::empty(),
             0, // reward_slashing_rate
-            low_stake_threshold * MIST_PER_MGO,
-            very_low_stake_threshold * MIST_PER_MGO,
+            low_stake_threshold * MANGO_PER_MGO,
+            very_low_stake_threshold * MANGO_PER_MGO,
             low_stake_grace_period,
             test_scenario::ctx(scenario)
         );

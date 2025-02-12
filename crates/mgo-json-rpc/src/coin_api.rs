@@ -25,7 +25,7 @@ use mgo_types::balance::Supply;
 use mgo_types::base_types::{ObjectID, MgoAddress};
 use mgo_types::coin::{CoinMetadata, TreasuryCap};
 use mgo_types::effects::TransactionEffectsAPI;
-use mgo_types::gas_coin::{GAS, TOTAL_SUPPLY_MIST};
+use mgo_types::gas_coin::{GAS, TOTAL_SUPPLY_MANGO};
 use mgo_types::object::Object;
 use mgo_types::parse_mgo_struct_tag;
 
@@ -220,7 +220,7 @@ impl CoinReadApiServer for CoinReadApi {
             let coin_struct = parse_to_struct_tag(&coin_type)?;
             Ok(if GAS::is_gas(&coin_struct) {
                 Supply {
-                    value: TOTAL_SUPPLY_MIST,
+                    value: TOTAL_SUPPLY_MANGO,
                 }
             } else {
                 let treasury_cap_object = self

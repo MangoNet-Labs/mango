@@ -21,15 +21,15 @@ use crate::{
     MGO_FRAMEWORK_ADDRESS,
 };
 
-/// The number of Mist per Mgo token
-pub const MIST_PER_MGO: u64 = 1_000_000_000;
+/// The number of Mango per Mgo token
+pub const MANGO_PER_MGO: u64 = 1_000_000_000;
 
 /// Total supply denominated in Mgo
 pub const TOTAL_SUPPLY_MGO: u64 = 10_000_000_000;
 
 // Note: cannot use checked arithmetic here since `const unwrap` is still unstable.
-/// Total supply denominated in Mist
-pub const TOTAL_SUPPLY_MIST: u64 = TOTAL_SUPPLY_MGO * MIST_PER_MGO;
+/// Total supply denominated in Mango
+pub const TOTAL_SUPPLY_MANGO: u64 = TOTAL_SUPPLY_MGO * MANGO_PER_MGO;
 
 pub const GAS_MODULE_NAME: &IdentStr = ident_str!("mgo");
 pub const GAS_STRUCT_NAME: &IdentStr = ident_str!("MGO");
