@@ -34,4 +34,4 @@ Our vision is to onboard 1 billion users into Web3. We achieve this by using the
 
 Use the following links to learn more about Mango and the Mango ecosystem:
 
- * Learn more about working with Mango in the [Mango Documentation]().
+ * Learn more about working with Mango in the [Mango Documentation](https://docs.mangonet.io/).
