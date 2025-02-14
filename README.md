@@ -4,7 +4,7 @@
 
 # Welcome to Mango Network
 
-Mango Network is a Layer 1 blockchain based on the DPoS consensus mechanism and supported by Move to build a transaction-based infrastructure network.
+Mango Network is a Layer 1 blockchain based on the DPoS consensus mechanism and supported by Move to build a transaction-based omni-chain facility infrastructure network.
 
 ## Mango Highlights
 
