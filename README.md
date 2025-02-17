@@ -34,5 +34,5 @@ Our vision is to enable 1 billion users to join the Web3 network. We achieve thi
 
 Use the following links to learn more about Mango and the Mango ecosystem:
 
- * Learn more about working with Mango in the [Mango Documentation]().
+ * Learn more about working with Mango in the [Mango Documentation](https://docs.mangonet.io/).
 
