@@ -6530,7 +6530,7 @@ dependencies = [
 
 [[package]]
 name = "mgo"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anemo",
  "anyhow",
@@ -6719,7 +6719,7 @@ dependencies = [
 
 [[package]]
 name = "mgo-analytics-indexer"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anyhow",
  "arrow",
@@ -6773,7 +6773,7 @@ dependencies = [
 
 [[package]]
 name = "mgo-analytics-indexer-derive"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "proc-macro2 1.0.66",
  "quote 1.0.33",
@@ -7302,7 +7302,7 @@ dependencies = [
 
 [[package]]
 name = "mgo-faucet"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -7513,7 +7513,7 @@ dependencies = [
 
 [[package]]
 name = "mgo-indexer"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -7803,7 +7803,7 @@ dependencies = [
 
 [[package]]
 name = "mgo-move"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -7845,7 +7845,7 @@ dependencies = [
 
 [[package]]
 name = "mgo-move-build"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anyhow",
  "datatest-stable",
@@ -7987,7 +7987,7 @@ dependencies = [
 
 [[package]]
 name = "mgo-node"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anemo",
  "anemo-tower",
@@ -8038,7 +8038,7 @@ dependencies = [
 
 [[package]]
 name = "mgo-open-rpc"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anyhow",
  "bcs",
@@ -8076,7 +8076,7 @@ dependencies = [
 
 [[package]]
 name = "mgo-oracle"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anyhow",
  "bcs",
@@ -8313,7 +8313,7 @@ dependencies = [
 
 [[package]]
 name = "mgo-rpc-loadgen"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -8343,7 +8343,7 @@ dependencies = [
 
 [[package]]
 name = "mgo-sdk"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -8465,7 +8465,7 @@ dependencies = [
 
 [[package]]
 name = "mgo-source-validation"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anyhow",
  "colored",
@@ -8594,7 +8594,7 @@ dependencies = [
 
 [[package]]
 name = "mgo-surfer"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "async-trait",
  "bcs",
@@ -8742,7 +8742,7 @@ dependencies = [
 
 [[package]]
 name = "mgo-tool"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anemo",
  "anemo-cli",
