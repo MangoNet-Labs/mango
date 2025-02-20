@@ -1,0 +1,10 @@
+[package]
+name = "vesting"
+version = "0.0.1"
+
+
+[dependencies]
+Mgo = { git = "https://github.com/MangoNetworkOs/Mango.git", subdir = "crates/mgo-framework/packages/mgo-framework", rev = "framework/devnet" }
+
+[addresses]
+vesting = "0x0"
