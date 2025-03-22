@@ -274,7 +274,7 @@ It is recommended and often required that the `mgo` binary release/version match
 
 ### Updating On-chain Metadata
 
-You can leverage [Validator Tool](validator_tool.md) to perform majority of the following tasks.
+You can leverage [Validator Tool](validator.md) to perform majority of the following tasks.
 
 An active/pending validator can update its on-chain metadata by submitting a transaction. Some metadata changes take effect immediately, including:
 
