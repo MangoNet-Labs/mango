@@ -791,7 +791,7 @@ fn test_mgo_call_arg_string_type() {
 }
 
 #[test]
-fn test_mgo_call_arg_string_type() {
+fn test_mgo_call_arg_string_vector_type() {
     let arg1 = bcs::to_bytes(&Some("Some String")).unwrap();
 
     let string_layout = MoveTypeLayout::Struct(MoveStructLayout {
