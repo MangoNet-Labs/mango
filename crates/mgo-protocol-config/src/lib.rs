@@ -2,17 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use clap::*;
+use mgo_protocol_config_macros::{ProtocolConfigAccessors, ProtocolConfigFeatureFlagsGetters};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use std::cell::RefCell;
 use std::collections::BTreeSet;
 use std::sync::atomic::{AtomicBool, Ordering};
-use mgo_protocol_config_macros::{ProtocolConfigAccessors, ProtocolConfigFeatureFlagsGetters};
 use tracing::{info, warn};
 
 /// The minimum and maximum protocol versions supported by this build.
 const MIN_PROTOCOL_VERSION: u64 = 1;
-const MAX_PROTOCOL_VERSION: u64 = 4;
+const MAX_PROTOCOL_VERSION: u64 = 3;
 
 // Record history of protocol version allocations here:
 //
@@ -1505,20 +1505,16 @@ impl ProtocolConfig {
                     cfg.feature_flags.ban_entry_init = true;
                     cfg.feature_flags.package_digest_hash_module = true;
 
-
                     cfg.feature_flags
                         .disallow_change_struct_type_params_on_upgrade = true;
-
 
                     cfg.max_move_identifier_len = Some(128);
                     cfg.feature_flags.no_extraneous_module_bytes = true;
                     cfg.feature_flags
                         .advance_to_highest_supported_protocol_version = true;
 
-
                     cfg.max_verifier_meter_ticks_per_function = Some(16_000_000);
                     cfg.max_meter_ticks_per_module = Some(16_000_000);
-
 
                     cfg.max_move_value_depth = Some(128);
 
@@ -1526,35 +1522,28 @@ impl ProtocolConfig {
 
                     cfg.gas_rounding_step = Some(1_000);
 
-
                     cfg.feature_flags.consensus_transaction_ordering =
                         ConsensusTransactionOrdering::ByGasPrice;
 
-
                     cfg.feature_flags.simplified_unwrap_then_delete = true;
-
 
                     cfg.feature_flags.upgraded_multisig_supported = true;
 
                     cfg.feature_flags.txn_base_cost_as_multiplier = true;
                     cfg.base_tx_cost_fixed = Some(1_000);
 
-
                     cfg.max_num_event_emit = Some(1024);
                     cfg.max_event_emit_size_total = Some(
                         256 /* former event count limit */ * 250 * 1024, /* size limit per event */
                     );
 
-
                     cfg.feature_flags.commit_root_state_digest = true;
 
                     cfg.feature_flags.loaded_child_object_format = true;
 
-
                     cfg.feature_flags.loaded_child_object_format_type = true;
                     cfg.feature_flags.narwhal_new_leader_election_schedule = true;
                     cfg.consensus_bad_nodes_stake_threshold = Some(20);
-
 
                     cfg.feature_flags.simple_conservation_checks = true;
                     cfg.max_publish_or_upgrade_per_ptb = Some(5);
@@ -1566,9 +1555,7 @@ impl ProtocolConfig {
                     cfg.max_jwk_votes_per_validator_per_epoch = Some(240);
                     cfg.max_age_of_jwk_in_epochs = Some(1);
 
-
                     cfg.gas_model_version = Some(8);
-
 
                     cfg.check_zklogin_id_cost_base = Some(200);
                     cfg.check_zklogin_issuer_cost_base = Some(200);
@@ -1579,22 +1566,17 @@ impl ProtocolConfig {
                     cfg.feature_flags.zklogin_supported_providers = BTreeSet::default();
                     cfg.feature_flags.recompute_has_public_transfer_in_execution = true;
 
-
                     cfg.execution_version = Some(2);
 
-
-                    if chain != Chain::Mainnet {
+                    if chain != Chain::Mainnet && chain != Chain::Testnet {
                         cfg.feature_flags.accept_zklogin_in_multisig = true;
                     }
-                    if chain != Chain::Mainnet && chain != Chain::Testnet {
-                        cfg.feature_flags.narwhal_header_v2 = true;
-                        cfg.feature_flags.random_beacon = true;
-                    }
-                    if chain != Chain::Testnet && chain != Chain::Mainnet {
-                        cfg.feature_flags.include_consensus_digest_in_prologue = true;
-                    }
-                    cfg.feature_flags.narwhal_certificate_v2 = true;
 
+                    cfg.feature_flags.narwhal_header_v2 = true;
+                    cfg.feature_flags.random_beacon = true;
+
+                    cfg.feature_flags.include_consensus_digest_in_prologue = true;
+                    cfg.feature_flags.narwhal_certificate_v2 = true;
 
                     cfg.feature_flags.hardened_otw_check = true;
                     cfg.feature_flags.allow_receiving_object_id = true;
@@ -1602,14 +1584,12 @@ impl ProtocolConfig {
                     cfg.feature_flags.receive_objects = true;
                     cfg.feature_flags.enable_effects_v2 = true;
 
-
                     if chain != Chain::Mainnet && chain != Chain::Testnet {
                         cfg.feature_flags.enable_poseidon = true;
                         cfg.poseidon_bn254_cost_base = Some(260);
                         cfg.poseidon_bn254_cost_per_block = Some(10);
                     }
                     cfg.feature_flags.enable_coin_deny_list = true;
-
 
                     if chain != Chain::Mainnet && chain != Chain::Testnet {
                         cfg.feature_flags.enable_group_ops_native_functions = true;
@@ -1649,12 +1629,7 @@ impl ProtocolConfig {
                     cfg.consensus_max_transaction_size_bytes = Some(256 * 1024); // 256KB
                     cfg.consensus_max_transactions_in_block_bytes = Some(6 * 1_024 * 1024);
                 }
-                3 => {
-
-                }
-                4 => {
-
-                }
+                3 => {}
                 _ => panic!("unsupported version {:?}", version),
             }
         }

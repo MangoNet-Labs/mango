@@ -189,7 +189,7 @@ members = [
 
 [workspace.package]
 # This version string will be inherited by mgo-core, mgo-faucet, mgo-node, mgo-tools, mgo-sdk, mgo-move-build, and mgo crates.
-version = "1.0.1"
+version = "1.0.3"
 
 [profile.release]
 # debug = 1 means line charts only, which is minimum needed for good stack traces
