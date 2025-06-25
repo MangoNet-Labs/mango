@@ -133,7 +133,7 @@ $mgo validator update-metadata --help
 ```
 
 #### Operation Cap
-Operation Cap allows a validator to authorizer another account to perform certain actions on behalf of this validator. Read about [Operation Cap here](mgo_for_node_operators.md#operation-cap).
+Operation Cap allows a validator to authorizer another account to perform certain actions on behalf of this validator. Read about [Operation Cap here](node.md).
 
 The Operation Cap holder (either the valdiator itself or the delegatee) updates its Gas Price and reports validator peers with the Operation Cap.
 
@@ -180,7 +180,7 @@ $mgo validator make-validator-info <name> <description> <image-url> <project-url
 ```
 
 This will generate a `validator.info` file and key pair files. The output of this command includes:
-  1. Four key pair files (Read [more here](mgo_for_node_operators.md#key-management)). ==Set their permissions with the minimal visibility (chmod 600, for example) and store them securely==. They are needed when running the validator node as covered below.
+  1. Four key pair files (Read [more here](node.md)). ==Set their permissions with the minimal visibility (chmod 600, for example) and store them securely==. They are needed when running the validator node as covered below.
     a. If you follow this guide thoroughly, this key pair is actually copied from your `mgo.keystore` file.
   2. `validator.info` file that contains your validator info. **Double check all information is correct**.
 
