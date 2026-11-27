@@ -1,0 +1,839 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mango:local-entitlement:schemas:1.0.0-local-candidate",
+  "title": "Mango local fixture entitlement contract; not runtime evidence",
+  "$defs": {
+    "BusinessPayload": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "issue_test_entitlement"
+        },
+        "campaign_id": {
+          "type": "string",
+          "pattern": "^[\\x21-\\x7e]{1,64}(?![\\s\\S])"
+        },
+        "entitlement_code": {
+          "type": "string",
+          "pattern": "^[\\x21-\\x7e]{1,64}(?![\\s\\S])"
+        },
+        "recipient_mango": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+        }
+      },
+      "required": [
+        "action",
+        "campaign_id",
+        "entitlement_code",
+        "recipient_mango"
+      ],
+      "additionalProperties": false
+    },
+    "SourceObservation": {
+      "type": "object",
+      "properties": {
+        "source_genesis_hash": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "source_contract": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{40}(?![\\s\\S])"
+        },
+        "business_event_id": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "source_transaction_hash": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "source_block_hash": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "source_height": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "source_log_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "observed_at_unix_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "is_simulated": {
+          "const": true
+        },
+        "evidence_label": {
+          "const": "LOCAL_FIXTURE"
+        },
+        "emitted_payload_digest": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+        }
+      },
+      "required": [
+        "source_genesis_hash",
+        "source_contract",
+        "business_event_id",
+        "source_transaction_hash",
+        "source_block_hash",
+        "source_height",
+        "source_log_index",
+        "observed_at_unix_ms",
+        "is_simulated",
+        "evidence_label",
+        "emitted_payload_digest"
+      ],
+      "additionalProperties": false
+    },
+    "FixtureAuthorization": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "const": "FIXTURE_ONLY_NO_SIGNATURE"
+        },
+        "policy_version": {
+          "const": 1
+        },
+        "authorization_expires_at_unix_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "authorization_digest": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+        }
+      },
+      "required": [
+        "mode",
+        "policy_version",
+        "authorization_expires_at_unix_s",
+        "authorization_digest"
+      ],
+      "additionalProperties": false
+    },
+    "IngestRequest": {
+      "type": "object",
+      "properties": {
+        "stable_route_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}(?![\\s\\S])"
+        },
+        "requested_route_revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "source": {
+          "$ref": "#/$defs/SourceObservation"
+        },
+        "payload": {
+          "$ref": "#/$defs/BusinessPayload"
+        },
+        "fixture_authorization": {
+          "$ref": "#/$defs/FixtureAuthorization"
+        }
+      },
+      "required": [
+        "stable_route_id",
+        "requested_route_revision",
+        "source",
+        "payload",
+        "fixture_authorization"
+      ],
+      "additionalProperties": false
+    },
+    "EvidenceItem": {
+      "type": "object",
+      "properties": {
+        "evidence_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}(?![\\s\\S])"
+        },
+        "label": {
+          "enum": [
+            "LOCAL_FIXTURE",
+            "TRUSTED_RPC_OBSERVATION",
+            "AUTHORIZED_WITNESS",
+            "TARGET_CONFIRMED_EFFECT"
+          ]
+        },
+        "is_simulated": {
+          "type": "boolean"
+        },
+        "observed_at_unix_ms": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "network_identity": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reference": {
+          "type": "object",
+          "properties": {
+            "source_event_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "source_transaction_hash": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "source_block_hash": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "source_height": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "target_transaction_digest": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "target_checkpoint": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "target_package_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "task_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "effect_status": {
+              "enum": [
+                "SUCCESS",
+                "FAILURE",
+                "UNKNOWN",
+                null
+              ]
+            },
+            "business_payload_digest": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "target_package_digest": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "source_event_id",
+            "source_transaction_hash",
+            "source_block_hash",
+            "source_height",
+            "target_transaction_digest",
+            "target_checkpoint",
+            "target_package_id",
+            "task_id",
+            "effect_status",
+            "business_payload_digest",
+            "target_package_digest"
+          ],
+          "additionalProperties": false
+        },
+        "evidence_role": {
+          "enum": [
+            "SOURCE",
+            "AUTHORIZATION",
+            "TARGET"
+          ],
+          "description": "Roles are checked against receipt reference lists, the evidence label and the corresponding locators by the semantic validator."
+        }
+      },
+      "required": [
+        "evidence_id",
+        "label",
+        "is_simulated",
+        "observed_at_unix_ms",
+        "network_identity",
+        "reference",
+        "evidence_role"
+      ],
+      "additionalProperties": false
+    },
+    "Task": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "task_revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "stable_route_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}(?![\\s\\S])"
+        },
+        "route_revision_snapshot": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "business_payload_digest": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "state": {
+          "enum": [
+            "OBSERVED",
+            "WAITING_SOURCE",
+            "SOURCE_CONFIRMED",
+            "AUTHENTICATED",
+            "READY",
+            "TARGET_SUBMITTED",
+            "TARGET_OUTCOME_UNKNOWN",
+            "RETRY_WAIT",
+            "SUCCEEDED",
+            "SOURCE_INVALIDATED",
+            "REJECTED",
+            "MANUAL_REVIEW"
+          ]
+        },
+        "attempt_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "target_transaction_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "review_required": {
+          "type": "boolean"
+        },
+        "incident_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "uniqueItems": true
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Z][A-Z0-9_]{0,63}(?![\\s\\S])"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "next_action": {
+          "enum": [
+            "WAIT_SOURCE",
+            "AUTHORIZE_FIXTURE",
+            "VALIDATE_RECIPIENT",
+            "SUBMIT_IF_ACTIVE",
+            "RECONCILE",
+            "WAIT_RETRY",
+            "OPERATOR_REVIEW",
+            "NONE"
+          ]
+        },
+        "created_at_unix_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "updated_at_unix_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "source_last_successful_poll_unix_ms": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_last_successful_poll_unix_ms": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "task_id",
+        "task_revision",
+        "stable_route_id",
+        "route_revision_snapshot",
+        "business_payload_digest",
+        "state",
+        "attempt_count",
+        "target_transaction_digest",
+        "review_required",
+        "incident_refs",
+        "reason_code",
+        "next_action",
+        "created_at_unix_ms",
+        "updated_at_unix_ms",
+        "source_last_successful_poll_unix_ms",
+        "target_last_successful_poll_unix_ms"
+      ],
+      "additionalProperties": false
+    },
+    "Receipt": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "business_payload_digest": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "route_revision_snapshot": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "state": {
+          "const": "SUCCEEDED"
+        },
+        "evidence_class": {
+          "enum": [
+            "LOCAL_FIXTURE_SOURCE_REAL_TARGET",
+            "REAL_SOURCE_AND_TARGET_OBSERVED"
+          ]
+        },
+        "source_evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "authorization_evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "target_evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EvidenceItem"
+          },
+          "minItems": 1
+        },
+        "review_required": {
+          "type": "boolean"
+        },
+        "incident_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "task_id",
+        "business_payload_digest",
+        "route_revision_snapshot",
+        "state",
+        "evidence_class",
+        "source_evidence_ids",
+        "authorization_evidence_ids",
+        "target_evidence_ids",
+        "evidence",
+        "review_required",
+        "incident_refs"
+      ],
+      "additionalProperties": false
+    },
+    "PendingReceipt": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "status": {
+          "const": "PENDING"
+        },
+        "state": {
+          "enum": [
+            "OBSERVED",
+            "WAITING_SOURCE",
+            "SOURCE_CONFIRMED",
+            "AUTHENTICATED",
+            "READY",
+            "TARGET_SUBMITTED",
+            "TARGET_OUTCOME_UNKNOWN",
+            "RETRY_WAIT",
+            "MANUAL_REVIEW"
+          ]
+        },
+        "reason_code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{0,63}(?![\\s\\S])"
+        },
+        "retry_after_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60
+        },
+        "review_required": {
+          "type": "boolean"
+        },
+        "incident_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "task_id",
+        "status",
+        "state",
+        "reason_code",
+        "retry_after_seconds",
+        "review_required",
+        "incident_refs"
+      ],
+      "additionalProperties": false
+    },
+    "RetryRequest": {
+      "type": "object",
+      "properties": {
+        "action_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}(?![\\s\\S])"
+        },
+        "expected_task_revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "action_id",
+        "expected_task_revision"
+      ],
+      "additionalProperties": false
+    },
+    "OperatorActionAck": {
+      "type": "object",
+      "properties": {
+        "action_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}(?![\\s\\S])"
+        },
+        "task_id": {
+          "type": "string",
+          "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "accepted_task_revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "action": {
+          "enum": [
+            "RECONCILE_ONLY",
+            "RESUME_PHASE",
+            "RETRY_CONFIRMED_FAILURE"
+          ]
+        },
+        "task_identity_unchanged": {
+          "const": true
+        },
+        "creates_target_attempt_now": {
+          "const": false
+        }
+      },
+      "required": [
+        "action_id",
+        "task_id",
+        "accepted_task_revision",
+        "action",
+        "task_identity_unchanged",
+        "creates_target_attempt_now"
+      ],
+      "additionalProperties": false
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "enum": [
+            "INVALID_REQUEST",
+            "UNAUTHORIZED",
+            "FORBIDDEN",
+            "TASK_NOT_FOUND",
+            "UNKNOWN_ROUTE",
+            "UNSUPPORTED_VERSION",
+            "PAYLOAD_CONFLICT",
+            "ACTION_ID_CONFLICT",
+            "TASK_REVISION_CONFLICT",
+            "RETRY_NOT_PERMITTED",
+            "RECEIPT_UNAVAILABLE",
+            "FIXTURE_POLICY_REJECTED",
+            "DEPENDENCY_UNAVAILABLE",
+            "RATE_LIMITED",
+            "INTERNAL_ERROR"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "task_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^0x[0-9a-f]{64}(?![\\s\\S])"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "task_id",
+        "retryable"
+      ],
+      "additionalProperties": false
+    },
+    "Readiness": {
+      "type": "object",
+      "properties": {
+        "ready": {
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0.0-local-candidate"
+        },
+        "dependency_health": {
+          "type": "object",
+          "properties": {
+            "database": {
+              "enum": [
+                "UP",
+                "DOWN",
+                "UNKNOWN"
+              ]
+            },
+            "source_fixture": {
+              "enum": [
+                "UP",
+                "DOWN",
+                "UNKNOWN"
+              ]
+            },
+            "mango_localnet": {
+              "enum": [
+                "UP",
+                "DOWN",
+                "UNKNOWN"
+              ]
+            }
+          },
+          "required": [
+            "database",
+            "source_fixture",
+            "mango_localnet"
+          ],
+          "additionalProperties": false
+        },
+        "target_submission_enabled": {
+          "type": "boolean"
+        },
+        "unready_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        }
+      },
+      "required": [
+        "ready",
+        "schema_version",
+        "dependency_health",
+        "target_submission_enabled",
+        "unready_reasons"
+      ],
+      "additionalProperties": false
+    },
+    "Liveness": {
+      "type": "object",
+      "properties": {
+        "alive": {
+          "const": true
+        },
+        "contract_version": {
+          "const": "1.0.1-local"
+        }
+      },
+      "required": [
+        "alive",
+        "contract_version"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mango Local Task Console</title>
+  <link rel="stylesheet" href="/ui/style.css">
+  <script defer src="/ui/app.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <span class="brand">MANGO / LOCAL</span>
+      <h1>Tasks and Receipts</h1>
+    </header>
+    <form id="lookup">
+      <label for="token">Local access token</label>
+      <input id="token" type="password" autocomplete="off" required>
+      <label for="task-id">Task ID</label>
+      <div class="lookup-line">
+        <input id="task-id" type="text" spellcheck="false" autocapitalize="off" required>
+        <button type="submit">Look up task</button>
+      </div>
+    </form>
+    <p id="notice" role="status" aria-live="polite"></p>
+    <section id="record" hidden aria-label="Task details">
+      <div class="stage" data-state="" id="state"></div>
+      <dl>
+        <dt>Next action</dt><dd id="reason"></dd>
+        <dt>Task revision</dt><dd id="revision"></dd>
+        <dt>Target transaction</dt><dd id="digest"></dd>
+        <dt>Last source check</dt><dd id="source-poll"></dd>
+        <dt>Incident history</dt><dd id="incidents"></dd>
+      </dl>
+      <h2>Receipt</h2>
+      <pre id="receipt"></pre>
+      <form id="operator">
+        <label for="action-id">Action ID</label>
+        <div class="lookup-line">
+          <input id="action-id" type="text" spellcheck="false" autocomplete="off" required>
+          <button type="submit" id="action">Request reconciliation</button>
+        </div>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

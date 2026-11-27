@@ -1,0 +1,36 @@
+:root {
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #182425;
+  background: #f0f4f3;
+  --ink: #182425;
+  --muted: #455d5e;
+  --line: #b9cecc;
+  --paper: #ffffff;
+  --accent: #07515a;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; }
+main { width: min(48rem, 100% - 2rem); margin: clamp(2rem, 8vw, 6rem) auto; }
+header { padding-bottom: 1rem; border-bottom: 2px solid var(--ink); }
+.brand { color: var(--muted); letter-spacing: .11em; font: 700 .8rem ui-monospace, monospace; }
+h1 { font-size: clamp(2.2rem, 7vw, 3.9rem); line-height: 1.08; margin: .5rem 0 0; }
+h2 { font-size: 1.15rem; }
+form { margin-top: 1.25rem; }
+label { display: block; font-size: .9rem; font-weight: 700; margin: .85rem 0 .35rem; }
+.lookup-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; }
+input, button { min-height: 2.75rem; padding: .45rem .65rem; border: 1px solid var(--line); border-radius: .3rem; font: inherit; }
+input { width: 100%; min-width: 0; color: var(--ink); background: var(--paper); font-family: ui-monospace, monospace; }
+button { color: white; background: var(--accent); border-color: var(--accent); cursor: pointer; white-space: nowrap; }
+button:disabled { opacity: .55; cursor: default; }
+:focus-visible { outline: 3px solid #087c8b; outline-offset: 2px; }
+#notice { color: var(--muted); min-height: 1.5rem; }
+#record { padding: clamp(1rem, 5vw, 1.75rem); background: var(--paper); border: 1px solid var(--line); }
+.stage { padding: .75rem 1rem; border-inline-start: .35rem solid #527679; background: #eaf4f3; font-size: 1.45rem; font-weight: 750; }
+.stage[data-state="SUCCEEDED"] { border-color: #147050; background: #e3f4e9; }
+.stage[data-state="TARGET_OUTCOME_UNKNOWN"] { border-color: #976516; background: #fff4d7; }
+.stage[data-state="REJECTED"], .stage[data-state="SOURCE_INVALIDATED"] { border-color: #ad433b; background: #fae7e4; }
+dl { display: grid; grid-template-columns: minmax(5rem, 9rem) minmax(0, 1fr); gap: .65rem .5rem; font-size: .93rem; }
+dt { color: var(--muted); }
+dd { margin: 0; overflow-wrap: anywhere; }
+pre { min-height: 2.8rem; padding: .75rem; white-space: pre-wrap; overflow-wrap: anywhere; background: #edf4f3; }
