@@ -1,6 +1,7 @@
 """Process an authorized entitlement against the isolated local Mango fixture."""
 
 import json
+import logging
 import re
 from subprocess import SubprocessError
 from time import monotonic, sleep
@@ -80,6 +81,7 @@ def _read_success(db, row):
 def _read_intent(db, row, *, confirmed_failure=False):
     data = db.query(f"""
         SELECT jsonb_build_object('digest', transaction_digest, 'outcome', outcome,
+            'can_dispatch', recoverable_before_dispatch AND outcome = 'INTENT_PERSISTED',
             'matches', route_snapshot = {_sql_json(row['route_snapshot'])}
                 AND target_genesis_digest = route_snapshot ->> 'target_genesis_digest'
                 AND target_package_id = route_snapshot ->> 'target_package_id'
@@ -92,7 +94,14 @@ def _read_intent(db, row, *, confirmed_failure=False):
     outcomes = {"CONFIRMED_FAILURE"} if confirmed_failure else {"INTENT_PERSISTED", "SUBMITTED", "BROADCAST_UNKNOWN"}
     _require(intent["matches"] and intent["outcome"] in outcomes,
              "The existing intent cannot be reconciled by this local workflow")
-    return intent["digest"]
+    return intent["digest"], intent["can_dispatch"]
+
+
+def _begin_dispatch(db, row, digest):
+    data = db.query(f"SELECT begin_submission_dispatch({','.join(_fence(row))}, {_sql_string(digest)});")
+    intent = json.loads(data) if data else None
+    _require(isinstance(intent, dict) and intent["digest"] == digest, "The stored dispatch could not be started")
+    return bytes.fromhex(intent["signed_hex"])
 
 
 def _lookup_transaction(target, digest):
@@ -143,7 +152,7 @@ def _failure_proof(target, task_id, transaction):
 
 
 def _read_failure(db, row):
-    digest = _read_intent(db, row, confirmed_failure=True)
+    digest, _ = _read_intent(db, row, confirmed_failure=True)
     stored = db.query(f"""
         SELECT confirmed_effect FROM target_effects
         WHERE task_id = {_sql_string(row['task_id'])} AND attempt_number = {row['attempt_count']}
@@ -183,7 +192,7 @@ def _record_intent(db, row, domain, digest, signed, signed_sha, *, retry):
     values = [_sql_string(domain["target_genesis_digest"]), _sql_string(domain["target_package_id"]),
               _sql_string(digest), f"decode('{signed.hex()}', 'hex')", _sql_string(signed_sha)]
     if not retry:
-        return db.row("record_submission_intent", [*_fence(row), *values])
+        return db.row("record_recoverable_submission_intent", [*_fence(row), *values])
     _require(re.fullmatch(r"[1-9A-HJ-NP-Za-km-z]{30,60}", digest) and re.fullmatch(r"[a-f0-9]{64}", signed_sha),
              "The retry did not produce a valid local transaction digest and byte hash")
     # If either fenced procedure returns no row, the incomplete retry is rolled back.
@@ -193,7 +202,7 @@ def _record_intent(db, row, domain, digest, signed, signed_sha, *, retry):
         DECLARE resumed tasks; recorded tasks;
         BEGIN
             SELECT * INTO STRICT resumed FROM advance_task({','.join(_fence(row))}, 'READY');
-            SELECT * INTO STRICT recorded FROM record_submission_intent(
+            SELECT * INTO STRICT recorded FROM record_recoverable_submission_intent(
                 resumed.task_id, resumed.lease_owner, resumed.lease_fencing_token, resumed.task_revision,
                 {','.join(values)});
         END;
@@ -232,8 +241,9 @@ def process_local_task(db, target, binding, source, payload, *, verify_issue, bu
                        gas_budget, lease_seconds=240, retry_action_id=None):
     """Use the scanner's persistent task and an already validated fixture binding.
 
-    The database owns task state and lease fencing. A later call can reconcile a
-    committed attempt by digest, including when its submission response was lost.
+    The database owns task state and lease fencing. A replacement worker may send
+    the stored signed bytes if dispatch has never started. After the durable
+    dispatch marker, the original digest is reconciled by lookup.
     Exactly one retry can be authorized by an operator after finalized failure.
     """
     _require(type(lease_seconds) is int and 1 <= lease_seconds <= 2_147_483_647, "Invalid task lease duration")
@@ -310,8 +320,14 @@ def process_local_task(db, target, binding, source, payload, *, verify_issue, bu
             digest, signed, signed_sha = target.prepare_issue(binding, gas_budget)
             _require(not retry or digest != failed_digest, "The retry attempted to reuse the original failed digest")
             row = _record_intent(db, row, domain, digest, signed, signed_sha, retry=retry)
-            _require(_read_intent(db, row) == digest, "The committed intent differs from the prepared digest")
+            _require(_read_intent(db, row) == (digest, True), "The committed intent differs from the prepared digest")
+            can_dispatch = True
+        else:
+            digest, can_dispatch = _read_intent(db, row)
+
+        if can_dispatch:
             _check_lease_and_source(db, row, source)
+            signed = _begin_dispatch(db, row, digest)
             try:
                 response = target.send_once(signed).get("result")
             except (OSError, SubprocessError, RuntimeError, ValueError):
@@ -320,10 +336,8 @@ def process_local_task(db, target, binding, source, payload, *, verify_issue, bu
                 row = db.transition(row, "TARGET_SUBMITTED")
             else:
                 row = db.transition(row, "TARGET_OUTCOME_UNKNOWN", "RESPONSE_UNKNOWN")
-        else:
-            digest = _read_intent(db, row)
-            if row["state"] == "READY":
-                row = db.transition(row, "TARGET_OUTCOME_UNKNOWN", "PERSISTED_INTENT_RECOVERY")
+        elif row["state"] == "READY":
+            row = db.transition(row, "TARGET_OUTCOME_UNKNOWN", "PERSISTED_INTENT_RECOVERY")
 
         _require(row["state"] in {"TARGET_SUBMITTED", "TARGET_OUTCOME_UNKNOWN"},
                  "The task cannot reconcile its existing attempt")
@@ -372,9 +386,9 @@ def process_local_task(db, target, binding, source, payload, *, verify_issue, bu
         row = db.row("complete_task", [*_fence(row), str(row["attempt_count"]), _sql_string(digest),
                                        _sql_json(effect), _sql_json(receipt)])
         return _result(row, digest, receipt, effect, replayed=False, send_requests=target.send_count - send_count)
-    except Exception as error:
+    except Exception:
         try:
             db.query(f"SELECT 1 FROM release_task({','.join(_fence(row))});")
         except (OSError, SubprocessError, RuntimeError, ValueError) as release_error:
-            error.add_note(f"The fenced lease could not be released: {release_error}")
+            logging.getLogger(__name__).warning("The fenced lease could not be released: %s", release_error)
         raise

@@ -12,9 +12,10 @@ The results below apply to the historical candidates used in each check. For the
 
 - Built the HTTP service with Rust 1.96.0 and the committed Cargo lockfile.
 - Passed the smoke test on PostgreSQL 16.14. The English browser page returned HTTP 200, the synthetic receipt was pending, and repeating a `RECONCILE_ONLY` request preserved the original target digest and one target attempt.
+- Passed the worker restart regression with Python 3.10 and PostgreSQL 16.14. After the first lease expired, the replacement worker dispatched the original signed bytes once through a synthetic target. Both legacy intents and attempts with a dispatch marker used digest lookup.
 - Passed three Move tests for same-task replay and conflicting digest or recipient, and six witness verification tests.
 - Ran the loopback EVM fixture with the previously installed locked dependencies. The first call emitted one event and replaying it emitted zero new events.
-- Read both published testnet receipts again and confirmed their finalized BNB blocks and Mango checkpoints.
+- Rechecked both published testnet receipt pairs, including the finalized BNB blocks, Mango checkpoints, expected contracts and event types, and matching payload digest and task ID.
 
 ## Local acceptance
 

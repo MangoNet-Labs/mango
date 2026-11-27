@@ -9,6 +9,7 @@ Use Docker, Python 3.10 or newer, and the Rust stable toolchain. Run these comma
 ```sh
 cargo +stable build --locked --bin mango-local-task-kit
 python3 examples/smoke.py --binary target/debug/mango-local-task-kit
+python3 examples/check_worker_recovery.py
 ```
 
 The smoke test starts temporary PostgreSQL 16 and applies the migrations before opening the HTTP service on loopback. It checks the browser page, synthetic task admission, reader and operator permissions, and replay of a reconciliation request. It prints the results and cleans up the temporary services. The `--postgres-image` option accepts an alternative PostgreSQL 16 image already available to Docker.
@@ -22,13 +23,19 @@ python3 -m unittest witness.test_auth
 
 ## Read the testnet receipts
 
-The testnet reference run used BNB Smart Chain Testnet, chain ID `97`, and Mango Testnet2, chain identifier `88b02231`. The command below reads the two existing source transactions and their corresponding Mango receipts via public RPC.
+The testnet reference run used BNB Smart Chain Testnet, chain ID `97`, and Mango Testnet2, chain identifier `88b02231`. The command below checks the two published receipt pairs through public RPC. It verifies inclusion and finality, the expected source contract and Mango package, and the matching event payload and task ID.
 
 ```sh
 python3 examples/check_testnet_receipts.py
 ```
 
 [Verification report](VERIFICATION.md) records the original testnet receipts and checkpoints, the database restore exercise, and what was covered by the historical candidate. The local smoke test above covers this source checkout. A new end-to-end testnet run uses approved source and issuer accounts, a registered witness, and a testnet deployment configured for the pilot.
+
+## Worker restart and recovery
+
+Apply migrations in order through `0004_submission_dispatch.sql` before using the local worker. The worker durably records dispatch before calling the target. A replacement worker with a valid lease can submit the original signed bytes when the intent was recorded by the updated worker and dispatch has yet to start. It uses digest lookup for legacy intents and attempts that have already crossed the dispatch boundary.
+
+The recovery check uses disposable PostgreSQL and a synthetic target. It expires the first worker's lease, checks that the replacement worker keeps the same signed bytes and attempt count, and exercises the lookup path for both legacy and marked intents.
 
 ## Review the implementation
 
