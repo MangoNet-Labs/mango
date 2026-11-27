@@ -35,6 +35,8 @@ python3 examples/check_testnet_receipts.py
 
 Apply migrations in order through `0004_submission_dispatch.sql` before using the local worker. The worker durably records dispatch before calling the target. A replacement worker with a valid lease can submit the original signed bytes when the intent was recorded by the updated worker and dispatch has yet to start. It uses digest lookup for legacy intents and attempts that have already crossed the dispatch boundary.
 
+If the worker stops after recording the dispatch marker but before the RPC request reaches Mango, the task may remain pending indefinitely. On restart, the worker looks up the original transaction digest but does not automatically rebroadcast the signed transaction.
+
 The recovery check uses disposable PostgreSQL and a synthetic target. It expires the first worker's lease, checks that the replacement worker keeps the same signed bytes and attempt count, and exercises the lookup path for both legacy and marked intents.
 
 ## Review the implementation
