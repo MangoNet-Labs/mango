@@ -1,0 +1,41 @@
+name: Mango CI
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: '25 3 * * *'
+permissions:
+  contents: read
+jobs:
+  quick:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Check repository changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || (github.event.before != '0000000000000000000000000000000000000000' && github.event.before) || '' }}
+        run: bash ci/check.sh quick "$BASE_SHA"
+  rpc-regressions:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Build pinned toolchain image
+        run: docker build --tag mango-ci-toolchain ci
+      - name: Run locked RPC regressions
+        run: |
+          docker run --rm --memory=12g --memory-swap=12g --cpus=4 \
+            --mount "type=bind,source=$GITHUB_WORKSPACE,target=/workspace" \
+            --workdir /workspace \
+            --env CARGO_PROFILE_DEV_DEBUG=0 --env CARGO_PROFILE_TEST_DEBUG=0 \
+            --env CARGO_INCREMENTAL=0 \
+            --env 'RUSTFLAGS=-C link-arg=-Wl,--no-keep-memory' \
+            mango-ci-toolchain bash -ec 'bash ci/check.sh rpc-regressions && bash ci/check.sh rpc-config'

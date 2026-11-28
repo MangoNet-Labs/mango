@@ -42,3 +42,10 @@ If you find a bug or have a feature request:
 Join the discussion on **[Discord](https://discord.com/invite/mangonetwork)** or reach out via **[Telegram](https://t.me/MangoOS_Network)** for any questions. 
 
 By contributing, you agree to follow the **[Code of Conduct](CODE_OF_CONDUCT.md)**. We appreciate your support in making Mango better.
+
+## Repository checks
+
+- Run `bash ci/check.sh quick` before requesting review. Pass a base commit to check whitespace across a committed branch.
+- Run `bash ci/check.sh rpc-regressions` for cursor and startup logging changes. Run `bash ci/check.sh rpc-config` for configuration changes. Use the Rust 1.75.0 environment in `ci/Dockerfile` and the checked-in `Cargo.lock`.
+- GitHub Actions runs the quick check on push and pull requests. The ARM64 RPC regression job is scheduled and can also be dispatched manually. It uses one Cargo job and a Docker memory cap of 12 GiB.
+- Report security findings privately using [SECURITY.md](SECURITY.md).

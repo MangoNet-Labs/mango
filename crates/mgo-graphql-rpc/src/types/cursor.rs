@@ -224,8 +224,20 @@ impl Page<JsonCursor<ConsistentIndexCursor>> {
         let cursor_viewed_at = self.validate_cursor_consistency()?;
         let checkpoint_viewed_at = cursor_viewed_at.unwrap_or(checkpoint_viewed_at);
 
-        let mut lo = self.after().map_or(0, |a| a.ix + 1);
-        let mut hi = self.before().map_or(total, |b| b.ix);
+        let bounds_error =
+            || Error::Client("The provided cursor is outside the current collection.".into());
+        let mut lo = match self.after() {
+            Some(after) => after
+                .ix
+                .checked_add(1)
+                .filter(|lo| *lo <= total)
+                .ok_or_else(bounds_error)?,
+            None => 0,
+        };
+        let mut hi = self.before().map_or(total, |before| before.ix);
+        if hi > total {
+            return Err(bounds_error());
+        }
 
         if hi <= lo {
             return Ok(None);
@@ -589,6 +601,44 @@ impl<C: Eq> Eq for BcsCursor<C> {}
 mod tests {
     use super::*;
     use expect_test::expect;
+
+    #[test]
+    fn test_index_pages_preserve_forward_backward_and_empty_ranges() {
+        let config = ServiceConfig::default();
+        let cursor = |ix| JsonCursor::new(ConsistentIndexCursor { ix, c: 7 });
+        let front =
+            Page::from_params(&config, Some(2), Some(cursor(1)), None, Some(cursor(5))).unwrap();
+        let (has_previous, has_next, checkpoint, entries) =
+            front.paginate_consistent_indices(5, 9).unwrap().unwrap();
+        assert!(has_previous && has_next);
+        assert_eq!(checkpoint, 7);
+        assert_eq!(entries.map(|item| item.ix).collect::<Vec<_>>(), vec![2, 3]);
+
+        let back = Page::from_params(&config, None, None, Some(2), Some(cursor(5))).unwrap();
+        let (has_previous, has_next, _, entries) =
+            back.paginate_consistent_indices(5, 9).unwrap().unwrap();
+        assert!(has_previous && !has_next);
+        assert_eq!(entries.map(|item| item.ix).collect::<Vec<_>>(), vec![3, 4]);
+
+        let end = Page::from_params(&config, Some(2), Some(cursor(4)), None, None).unwrap();
+        assert!(end.paginate_consistent_indices(5, 9).unwrap().is_none());
+    }
+
+    #[test]
+    fn test_index_pages_reject_stale_bounds_after_collection_shrinks() {
+        let config = ServiceConfig::default();
+        let stale = || JsonCursor::new(ConsistentIndexCursor { ix: 4, c: 7 });
+        let after = Page::from_params(&config, Some(2), Some(stale()), None, None).unwrap();
+        let before = Page::from_params(&config, None, None, Some(2), Some(stale())).unwrap();
+        assert!(matches!(
+            after.paginate_consistent_indices(2, 9),
+            Err(Error::Client(_))
+        ));
+        assert!(matches!(
+            before.paginate_consistent_indices(2, 9),
+            Err(Error::Client(_))
+        ));
+    }
 
     #[test]
     fn test_default_page() {

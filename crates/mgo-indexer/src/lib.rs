@@ -4,7 +4,7 @@
 
 use std::env;
 use std::net::SocketAddr;
-use std::{collections::HashMap, time::Duration};
+use std::{collections::HashMap, fmt, time::Duration};
 
 use anyhow::{anyhow, Result};
 use axum::{extract::Extension, http::StatusCode, routing::get, Router};
@@ -25,11 +25,11 @@ use apis::{
 };
 use errors::IndexerError;
 use mango_metrics::{spawn_monitored_task, RegistryService};
-use processors::processor_orchestrator::ProcessorOrchestrator;
-use store::IndexerStore;
 use mgo_json_rpc::{JsonRpcServerBuilder, ServerHandle, ServerType};
 use mgo_json_rpc_api::CLIENT_SDK_TYPE_HEADER;
 use mgo_sdk::{MgoClient, MgoClientBuilder};
+use processors::processor_orchestrator::ProcessorOrchestrator;
+use store::IndexerStore;
 
 use crate::apis::MoveUtilsApi;
 use crate::framework::IndexerBuilder;
@@ -75,7 +75,7 @@ const IMPLEMENTED_METHODS: [&str; 9] = [
     "query_transaction_blocks",
 ];
 
-#[derive(Parser, Clone, Debug)]
+#[derive(Parser, Clone)]
 #[clap(
     name = "Mgo indexer",
     about = "An off-fullnode service serving data from Mgo protocol",
@@ -119,6 +119,22 @@ pub struct IndexerConfig {
     pub skip_db_commit: bool,
     #[clap(long)]
     pub use_v2: bool,
+}
+
+impl fmt::Debug for IndexerConfig {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // Allowlist scalar settings. Future connection fields are omitted by default.
+        formatter
+            .debug_struct("IndexerConfig")
+            .field("client_metric_port", &self.client_metric_port)
+            .field("rpc_server_port", &self.rpc_server_port)
+            .field("reset_db", &self.reset_db)
+            .field("fullnode_sync_worker", &self.fullnode_sync_worker)
+            .field("rpc_server_worker", &self.rpc_server_worker)
+            .field("analytical_worker", &self.analytical_worker)
+            .field("use_v2", &self.use_v2)
+            .finish_non_exhaustive()
+    }
 }
 
 impl IndexerConfig {
