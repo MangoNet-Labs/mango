@@ -9,6 +9,7 @@ permissions:
   contents: read
 jobs:
   quick:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
@@ -21,7 +22,7 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha || (github.event.before != '0000000000000000000000000000000000000000' && github.event.before) || '' }}
         run: bash ci/check.sh quick "$BASE_SHA"
   rpc-regressions:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && vars.MANGO_RPC_NIGHTLY == 'true')
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 65
     steps:

@@ -18,6 +18,7 @@ case "${1:-}" in
   rpc-regressions)
     cargo test --locked --jobs 1 -p mgo-graphql-rpc --lib types::cursor::tests:: -- --nocapture
     cargo test --locked --jobs 1 -p mgo-graphql-rpc --lib functional_group::tests::test_groups_match_schema -- --exact
+    cargo test --locked --jobs 1 -p mgo-indexer --lib metrics_label_tests::
     cargo test --locked --jobs 1 -p mgo-indexer --bin mgo-indexer tests::test_indexer_config_debug_does_not_expose_connection_values -- --exact
     ;;
   rpc-config)

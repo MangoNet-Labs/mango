@@ -434,25 +434,47 @@ pub async fn build_json_rpc_server<S: IndexerStore + Sync + Send + 'static + Clo
 }
 
 fn convert_url(url_str: &str) -> Option<String> {
+    let endpoint = Url::parse(url_str).ok()?;
+    if !matches!(endpoint.scheme(), "http" | "https") {
+        return None;
+    }
     // NOTE: unwrap here is safe because the regex is a constant.
-    let re = Regex::new(r"https?://([a-z0-9-]+\.[a-z0-9-]+\.[a-z]+)").unwrap();
-    let captures = re.captures(url_str)?;
+    let re = Regex::new(r"^[a-z0-9-]+\.[a-z0-9-]+\.[a-z]+").unwrap();
+    re.find(endpoint.host_str()?)
+        .map(|m| m.as_str().to_string())
+}
 
-    captures.get(1).map(|m| m.as_str().to_string())
+#[cfg(test)]
+mod metrics_label_tests {
+    use super::convert_url;
+
+    #[test]
+    fn preserves_short_host_labels() {
+        assert_eq!(
+            convert_url("https://rpc.testnet.example.org:8443/api").as_deref(),
+            Some("rpc.testnet.example")
+        );
+    }
+
+    #[test]
+    fn uses_only_the_parsed_host() {
+        assert_eq!(
+            convert_url("https://example-user@example.test.org/api").as_deref(),
+            Some("example.test.org")
+        );
+        assert_eq!(convert_url("http://127.0.0.1:9000"), None);
+        assert_eq!(convert_url("http://localhost:9000"), None);
+    }
 }
 
 pub fn start_prometheus_server(
     addr: SocketAddr,
     fn_url: &str,
 ) -> Result<(RegistryService, Registry), anyhow::Error> {
-    let converted_fn_url = convert_url(fn_url);
-    if converted_fn_url.is_none() {
-        warn!(
-            "Failed to convert full node url {} to a shorter version",
-            fn_url
-        );
-    }
-    let fn_url_str = converted_fn_url.unwrap_or_else(|| "unknown_url".to_string());
+    let fn_url_str = convert_url(fn_url).unwrap_or_else(|| {
+        warn!("Could not derive a full-node hostname label for indexer metrics");
+        "unknown_url".to_string()
+    });
 
     let labels = HashMap::from([("indexer_fullnode".to_string(), fn_url_str)]);
     info!("Starting prometheus server with labels: {:?}", labels);
