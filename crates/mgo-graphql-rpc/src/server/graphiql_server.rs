@@ -17,7 +17,6 @@ async fn graphiql(ide_title: axum::Extension<Option<String>>) -> impl axum::resp
 }
 
 pub async fn start_graphiql_server(server_config: &ServerConfig) -> Result<(), Error> {
-    info!("Starting server with config: {:?}", server_config);
     start_graphiql_server_impl(
         ServerBuilder::from_config(server_config).await?,
         server_config.ide.ide_title.clone(),

@@ -23,7 +23,7 @@ use crate::{
         timeout::Timeout,
     },
     server::version::{check_version_middleware, set_version_middleware},
-    types::query::{Query, MgoGraphQLSchema},
+    types::query::{MgoGraphQLSchema, Query},
 };
 use async_graphql::extensions::ApolloTracing;
 use async_graphql::extensions::Tracing;
@@ -41,11 +41,11 @@ use http::Request;
 use hyper::server::conn::AddrIncoming as HyperAddrIncoming;
 use hyper::Body;
 use hyper::Server as HyperServer;
+use mgo_package_resolver::{PackageStoreWithLruCache, Resolver};
+use mgo_sdk::MgoClientBuilder;
 use std::convert::Infallible;
 use std::net::TcpStream;
 use std::{any::Any, net::SocketAddr, time::Instant};
-use mgo_package_resolver::{PackageStoreWithLruCache, Resolver};
-use mgo_sdk::MgoClientBuilder;
 use tokio::sync::OnceCell;
 use tower::{Layer, Service};
 use tracing::{info, warn};
@@ -221,7 +221,9 @@ impl ServerBuilder {
             config.connection.db_url.clone(),
             config.connection.db_pool_size,
         )
-        .map_err(|e| Error::Internal(format!("Failed to create pg connection pool: {}", e)))?;
+        .map_err(|_| {
+            Error::Internal("Failed to create GraphQL PostgreSQL connection pool".into())
+        })?;
 
         // DB
         let db = Db::new(reader.clone(), config.service.limits, metrics.clone());

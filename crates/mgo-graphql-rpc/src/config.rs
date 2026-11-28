@@ -3,9 +3,9 @@
 
 use crate::{error::Error as MgoGraphQLError, types::big_int::BigInt};
 use async_graphql::*;
+use mgo_json_rpc::name_service::NameServiceConfig;
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeSet, path::PathBuf, time::Duration};
-use mgo_json_rpc::name_service::NameServiceConfig;
 
 use crate::functional_group::FunctionalGroup;
 
@@ -64,31 +64,19 @@ pub struct ServiceConfig {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, Copy)]
-#[serde(rename_all = "kebab-case")]
+#[serde(default, rename_all = "kebab-case")]
 pub struct Limits {
-    #[serde(default)]
     pub max_query_depth: u32,
-    #[serde(default)]
     pub max_query_nodes: u32,
-    #[serde(default)]
     pub max_output_nodes: u64,
-    #[serde(default)]
     pub max_query_payload_size: u32,
-    #[serde(default)]
     pub max_db_query_cost: u64,
-    #[serde(default)]
     pub default_page_size: u64,
-    #[serde(default)]
     pub max_page_size: u64,
-    #[serde(default)]
     pub request_timeout_ms: u64,
-    #[serde(default)]
     pub max_type_argument_depth: u32,
-    #[serde(default)]
     pub max_type_argument_width: u32,
-    #[serde(default)]
     pub max_type_nodes: u32,
-    #[serde(default)]
     pub max_move_value_depth: u32,
 }
 
@@ -331,22 +319,15 @@ impl Default for Limits {
 }
 
 #[derive(Serialize, Clone, Deserialize, Debug, Eq, PartialEq)]
+#[serde(default)]
 pub struct InternalFeatureConfig {
-    #[serde(default)]
     pub(crate) query_limits_checker: bool,
-    #[serde(default)]
     pub(crate) feature_gate: bool,
-    #[serde(default)]
     pub(crate) logger: bool,
-    #[serde(default)]
     pub(crate) query_timeout: bool,
-    #[serde(default)]
     pub(crate) metrics: bool,
-    #[serde(default)]
     pub(crate) tracing: bool,
-    #[serde(default)]
     pub(crate) apollo_tracing: bool,
-    #[serde(default)]
     pub(crate) open_telemetry: bool,
 }
 
@@ -401,7 +382,11 @@ impl ServerConfig {
                 path, e
             ))
         })?;
-        serde_yaml::from_str::<Self>(&contents).map_err(|e| {
+        Self::read_yaml(&contents)
+    }
+
+    pub fn read_yaml(contents: &str) -> Result<Self, MgoGraphQLError> {
+        serde_yaml::from_str(contents).map_err(|e| {
             MgoGraphQLError::Internal(format!(
                 "Failed to deserialize service cfg from yaml: {}",
                 e
@@ -426,6 +411,158 @@ impl ServerConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn default_limit_values() -> serde_json::Map<String, serde_json::Value> {
+        serde_json::to_value(Limits::default())
+            .unwrap()
+            .as_object()
+            .unwrap()
+            .clone()
+    }
+
+    fn default_internal_feature_values() -> serde_json::Map<String, serde_json::Value> {
+        serde_json::to_value(InternalFeatureConfig::default())
+            .unwrap()
+            .as_object()
+            .unwrap()
+            .clone()
+    }
+
+    #[test]
+    fn test_read_empty_limits_section_uses_business_defaults() {
+        let actual = ServiceConfig::read("[limits]\n").unwrap();
+        assert_eq!(actual, ServiceConfig::default());
+    }
+
+    #[test]
+    fn test_read_missing_and_empty_server_sections_use_business_defaults() {
+        for contents in [
+            "{}",
+            "service:\n  limits: {}\n",
+            "internal_features: {}\n",
+            "service:\n  limits: {}\ninternal_features: {}\n",
+        ] {
+            let actual: ServerConfig = serde_yaml::from_str(contents).unwrap();
+            assert_eq!(actual.service.limits, Limits::default());
+            assert_eq!(actual.internal_features, InternalFeatureConfig::default());
+        }
+    }
+
+    #[test]
+    fn test_read_each_limit_override_preserves_other_defaults() {
+        let defaults = default_limit_values();
+        for (field, default_value) in &defaults {
+            // Exercise every field, including an explicit zero without adding validation policy.
+            for value in [0, default_value.as_u64().unwrap() + 1] {
+                let mut expected = defaults.clone();
+                expected.insert(field.clone(), serde_json::json!(value));
+                let expected = serde_json::Value::Object(expected);
+
+                let toml = format!("[limits]\n{field} = {value}\n");
+                let actual = ServiceConfig::read(&toml).unwrap();
+                assert_eq!(serde_json::to_value(actual.limits).unwrap(), expected);
+
+                let yaml = format!("service:\n  limits:\n    {field}: {value}\n");
+                let actual: ServerConfig = serde_yaml::from_str(&yaml).unwrap();
+                assert_eq!(
+                    serde_json::to_value(actual.service.limits).unwrap(),
+                    expected
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_read_each_internal_feature_override_preserves_other_defaults() {
+        let defaults = default_internal_feature_values();
+        for field in defaults.keys() {
+            // Both explicit values must survive, including false for normally enabled features.
+            for value in [false, true] {
+                let mut expected = defaults.clone();
+                expected.insert(field.clone(), serde_json::json!(value));
+                let expected = serde_json::Value::Object(expected);
+
+                let toml = format!("{field} = {value}\n");
+                let actual: InternalFeatureConfig = toml::from_str(&toml).unwrap();
+                assert_eq!(serde_json::to_value(actual).unwrap(), expected);
+
+                let yaml = format!("internal_features:\n  {field}: {value}\n");
+                let actual: ServerConfig = serde_yaml::from_str(&yaml).unwrap();
+                assert_eq!(
+                    serde_json::to_value(actual.internal_features).unwrap(),
+                    expected
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_custom_config_serde_roundtrip() {
+        let mut limits = default_limit_values();
+        for value in limits.values_mut() {
+            *value = serde_json::json!(value.as_u64().unwrap() + 1);
+        }
+        let mut features = default_internal_feature_values();
+        for value in features.values_mut() {
+            *value = serde_json::json!(!value.as_bool().unwrap());
+        }
+        let expected = ServerConfig {
+            service: ServiceConfig {
+                limits: serde_json::from_value(serde_json::Value::Object(limits)).unwrap(),
+                ..Default::default()
+            },
+            internal_features: serde_json::from_value(serde_json::Value::Object(features)).unwrap(),
+            ..Default::default()
+        };
+
+        let service_toml = toml::to_string(&expected.service).unwrap();
+        assert_eq!(
+            ServiceConfig::read(&service_toml).unwrap(),
+            expected.service
+        );
+
+        let yaml = expected.to_yaml().unwrap();
+        let actual: ServerConfig = serde_yaml::from_str(&yaml).unwrap();
+        assert_eq!(
+            serde_json::to_value(actual).unwrap(),
+            serde_json::to_value(expected).unwrap()
+        );
+    }
+
+    #[test]
+    fn test_read_limits_rejects_invalid_types() {
+        for field in default_limit_values().keys() {
+            for invalid in ["\"not-a-number\"", "false", "[]", "-1"] {
+                let toml = format!("[limits]\n{field} = {invalid}\n");
+                assert!(ServiceConfig::read(&toml).is_err(), "{field}: {invalid}");
+
+                let yaml = format!("service:\n  limits:\n    {field}: {invalid}\n");
+                assert!(
+                    serde_yaml::from_str::<ServerConfig>(&yaml).is_err(),
+                    "{field}: {invalid}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_read_internal_features_rejects_invalid_types() {
+        for field in default_internal_feature_values().keys() {
+            for invalid in ["\"not-a-boolean\"", "0", "[]"] {
+                let toml = format!("{field} = {invalid}\n");
+                assert!(
+                    toml::from_str::<InternalFeatureConfig>(&toml).is_err(),
+                    "{field}: {invalid}"
+                );
+
+                let yaml = format!("internal_features:\n  {field}: {invalid}\n");
+                assert!(
+                    serde_yaml::from_str::<ServerConfig>(&yaml).is_err(),
+                    "{field}: {invalid}"
+                );
+            }
+        }
+    }
 
     #[test]
     fn test_read_empty_service_config() {

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use clap::Parser;
-use tracing::{error, info};
+use tracing::info;
 
 use mgo_indexer::errors::IndexerError;
 use mgo_indexer::indexer_v2::IndexerV2;
@@ -24,34 +24,22 @@ async fn main() -> Result<(), IndexerError> {
     let indexer_config = IndexerConfig::parse();
     info!("Parsed indexer config: {:#?}", indexer_config);
 
-    let db_url = indexer_config.get_db_url().map_err(|e| {
-        IndexerError::PgPoolConnectionError(format!(
-            "Failed parsing database url with error {:?}",
-            e
-        ))
+    let db_url = indexer_config.get_db_url().map_err(|_| {
+        IndexerError::PgPoolConnectionError("Incomplete indexer database configuration".into())
     })?;
-    let blocking_cp = new_pg_connection_pool(&db_url).map_err(|e| {
-        error!(
-            "Failed creating Postgres connection pool with error {:?}",
-            e
-        );
-        e
+    let blocking_cp = new_pg_connection_pool(&db_url).map_err(|_| {
+        IndexerError::PgPoolConnectionError(
+            "Failed to open indexer PostgreSQL connection pool".into(),
+        )
     })?;
     if indexer_config.reset_db {
-        let mut conn = get_pg_pool_connection(&blocking_cp).map_err(|e| {
-            error!(
-                "Failed getting Postgres connection from connection pool with error {:?}",
-                e
-            );
-            e
+        let mut conn = get_pg_pool_connection(&blocking_cp).map_err(|_| {
+            IndexerError::PgPoolConnectionError(
+                "Failed to obtain indexer PostgreSQL connection".into(),
+            )
         })?;
-        reset_database(&mut conn, /* drop_all */ true, indexer_config.use_v2).map_err(|e| {
-            let db_err_msg = format!(
-                "Failed resetting database with url: {:?} and error: {:?}",
-                db_url, e
-            );
-            error!("{}", db_err_msg);
-            IndexerError::PostgresResetError(db_err_msg)
+        reset_database(&mut conn, /* drop_all */ true, indexer_config.use_v2).map_err(|_| {
+            IndexerError::PostgresResetError("Failed to reset indexer database".into())
         })?;
     }
 
@@ -104,4 +92,33 @@ async fn main() -> Result<(), IndexerError> {
 
     let store = PgIndexerStore::new(blocking_cp, indexer_metrics.clone());
     Indexer::start(&indexer_config, &registry, store, indexer_metrics, None).await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_indexer_config_debug_does_not_expose_connection_values() {
+        let config = IndexerConfig::parse_from([
+            "mgo-indexer",
+            "--db-url",
+            "postgres://test-user:test-dsn-marker@localhost/test",
+            "--db-password",
+            "test-password-marker",
+            "--rpc-client-url",
+            "http://localhost/test-rpc-marker",
+            "--use-v2",
+        ]);
+        let debug = format!("{config:#?}");
+        for value in [
+            "test-user",
+            "test-dsn-marker",
+            "test-password-marker",
+            "test-rpc-marker",
+        ] {
+            assert!(!debug.contains(value));
+        }
+        assert!(debug.contains("use_v2: true"));
+    }
 }

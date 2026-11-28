@@ -42,3 +42,11 @@ If you find a bug or have a feature request:
 Join the discussion on **[Discord](https://discord.com/invite/mangonetwork)** or reach out via **[Telegram](https://t.me/MangoOS_Network)** for any questions. 
 
 By contributing, you agree to follow the **[Code of Conduct](CODE_OF_CONDUCT.md)**. We appreciate your support in making Mango better.
+
+## Repository checks
+
+- Run `bash ci/check.sh quick` before requesting review. Pass a base commit to check whitespace across a committed branch.
+- Run `bash ci/check.sh rpc-regressions` for cursor behavior, schema feature groups, and startup logging. Run `bash ci/check.sh rpc-config` for configuration defaults and the offline configuration CLI. Use the Rust 1.75.0 environment in `ci/Dockerfile` and the checked-in `Cargo.lock`.
+- See the [GraphQL configuration examples](crates/mgo-graphql-rpc/README.md#validating-configuration) for the two supported configuration formats.
+- GitHub Actions runs the quick check on push and pull requests. The ARM64 RPC regression job can be dispatched manually. Set the repository variable `MANGO_RPC_NIGHTLY` to `true` to enable the scheduled run. The job uses one Cargo job and a Docker memory cap of 12 GiB.
+- Report security findings privately using [SECURITY.md](SECURITY.md).

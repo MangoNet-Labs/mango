@@ -4,7 +4,7 @@
 
 use std::env;
 use std::net::SocketAddr;
-use std::{collections::HashMap, time::Duration};
+use std::{collections::HashMap, fmt, time::Duration};
 
 use anyhow::{anyhow, Result};
 use axum::{extract::Extension, http::StatusCode, routing::get, Router};
@@ -25,11 +25,11 @@ use apis::{
 };
 use errors::IndexerError;
 use mango_metrics::{spawn_monitored_task, RegistryService};
-use processors::processor_orchestrator::ProcessorOrchestrator;
-use store::IndexerStore;
 use mgo_json_rpc::{JsonRpcServerBuilder, ServerHandle, ServerType};
 use mgo_json_rpc_api::CLIENT_SDK_TYPE_HEADER;
 use mgo_sdk::{MgoClient, MgoClientBuilder};
+use processors::processor_orchestrator::ProcessorOrchestrator;
+use store::IndexerStore;
 
 use crate::apis::MoveUtilsApi;
 use crate::framework::IndexerBuilder;
@@ -75,7 +75,7 @@ const IMPLEMENTED_METHODS: [&str; 9] = [
     "query_transaction_blocks",
 ];
 
-#[derive(Parser, Clone, Debug)]
+#[derive(Parser, Clone)]
 #[clap(
     name = "Mgo indexer",
     about = "An off-fullnode service serving data from Mgo protocol",
@@ -119,6 +119,22 @@ pub struct IndexerConfig {
     pub skip_db_commit: bool,
     #[clap(long)]
     pub use_v2: bool,
+}
+
+impl fmt::Debug for IndexerConfig {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // Allowlist scalar settings. Future connection fields are omitted by default.
+        formatter
+            .debug_struct("IndexerConfig")
+            .field("client_metric_port", &self.client_metric_port)
+            .field("rpc_server_port", &self.rpc_server_port)
+            .field("reset_db", &self.reset_db)
+            .field("fullnode_sync_worker", &self.fullnode_sync_worker)
+            .field("rpc_server_worker", &self.rpc_server_worker)
+            .field("analytical_worker", &self.analytical_worker)
+            .field("use_v2", &self.use_v2)
+            .finish_non_exhaustive()
+    }
 }
 
 impl IndexerConfig {
@@ -418,25 +434,47 @@ pub async fn build_json_rpc_server<S: IndexerStore + Sync + Send + 'static + Clo
 }
 
 fn convert_url(url_str: &str) -> Option<String> {
+    let endpoint = Url::parse(url_str).ok()?;
+    if !matches!(endpoint.scheme(), "http" | "https") {
+        return None;
+    }
     // NOTE: unwrap here is safe because the regex is a constant.
-    let re = Regex::new(r"https?://([a-z0-9-]+\.[a-z0-9-]+\.[a-z]+)").unwrap();
-    let captures = re.captures(url_str)?;
+    let re = Regex::new(r"^[a-z0-9-]+\.[a-z0-9-]+\.[a-z]+").unwrap();
+    re.find(endpoint.host_str()?)
+        .map(|m| m.as_str().to_string())
+}
 
-    captures.get(1).map(|m| m.as_str().to_string())
+#[cfg(test)]
+mod metrics_label_tests {
+    use super::convert_url;
+
+    #[test]
+    fn preserves_short_host_labels() {
+        assert_eq!(
+            convert_url("https://rpc.testnet.example.org:8443/api").as_deref(),
+            Some("rpc.testnet.example")
+        );
+    }
+
+    #[test]
+    fn uses_only_the_parsed_host() {
+        assert_eq!(
+            convert_url("https://example-user@example.test.org/api").as_deref(),
+            Some("example.test.org")
+        );
+        assert_eq!(convert_url("http://127.0.0.1:9000"), None);
+        assert_eq!(convert_url("http://localhost:9000"), None);
+    }
 }
 
 pub fn start_prometheus_server(
     addr: SocketAddr,
     fn_url: &str,
 ) -> Result<(RegistryService, Registry), anyhow::Error> {
-    let converted_fn_url = convert_url(fn_url);
-    if converted_fn_url.is_none() {
-        warn!(
-            "Failed to convert full node url {} to a shorter version",
-            fn_url
-        );
-    }
-    let fn_url_str = converted_fn_url.unwrap_or_else(|| "unknown_url".to_string());
+    let fn_url_str = convert_url(fn_url).unwrap_or_else(|| {
+        warn!("Could not derive a full-node hostname label for indexer metrics");
+        "unknown_url".to_string()
+    });
 
     let labels = HashMap::from([("indexer_fullnode".to_string(), fn_url_str)]);
     info!("Starting prometheus server with labels: {:?}", labels);

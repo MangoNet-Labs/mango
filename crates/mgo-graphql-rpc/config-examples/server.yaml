@@ -1,0 +1,5 @@
+service:
+  limits:
+    default-page-size: 25
+internal_features:
+  logger: false
