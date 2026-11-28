@@ -18,6 +18,13 @@ pub enum Command {
         #[clap(short, long)]
         path: Option<PathBuf>,
     },
+    /// Parse a configuration file without starting the server.
+    CheckConfig {
+        #[clap(long, value_enum)]
+        format: ConfigFormat,
+        #[clap(short, long)]
+        path: PathBuf,
+    },
     GenerateDocsExamples,
     GenerateSchema {
         /// Path to output GraphQL schema to, in SDL format.
@@ -30,7 +37,7 @@ pub enum Command {
         file: Option<PathBuf>,
     },
     FromConfig {
-        /// Path to TOML file containing configuration for server.
+        /// Path to the YAML file containing the server configuration.
         #[clap(short, long)]
         path: PathBuf,
     },
@@ -62,4 +69,12 @@ pub enum Command {
         #[clap(long)]
         node_rpc_url: Option<String>,
     },
+}
+
+#[derive(Clone, Copy, ValueEnum)]
+pub enum ConfigFormat {
+    /// Service options used by start-server --config.
+    ServiceToml,
+    /// Server configuration used by from-config --path.
+    ServerYaml,
 }

@@ -3,9 +3,10 @@
 
 use std::fs;
 use std::path::PathBuf;
+use std::process::ExitCode;
 
 use clap::Parser;
-use mgo_graphql_rpc::commands::Command;
+use mgo_graphql_rpc::commands::{Command, ConfigFormat};
 use mgo_graphql_rpc::config::{ConnectionConfig, ServerConfig, ServiceConfig};
 use mgo_graphql_rpc::config::{Ide, TxExecFullNodeConfig};
 use mgo_graphql_rpc::server::builder::export_schema;
@@ -15,7 +16,7 @@ use mgo_graphql_rpc::server::graphiql_server::{
 use tracing::error;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> ExitCode {
     let cmd: Command = Command::parse();
     match cmd {
         Command::GenerateConfig { path } => {
@@ -31,6 +32,7 @@ async fn main() {
                 );
             }
         }
+        Command::CheckConfig { format, path } => return check_config(format, path),
         Command::GenerateDocsExamples => {
             let mut buf: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
             // we are looking to put examples content in
@@ -102,6 +104,29 @@ async fn main() {
                 .unwrap();
         }
     }
+    ExitCode::SUCCESS
+}
+
+fn check_config(format: ConfigFormat, path: PathBuf) -> ExitCode {
+    let contents = match fs::read_to_string(path) {
+        Ok(contents) => contents,
+        Err(error) => {
+            eprintln!("Could not read the configuration file: {}.", error.kind());
+            return ExitCode::FAILURE;
+        }
+    };
+
+    let valid = match format {
+        ConfigFormat::ServiceToml => ServiceConfig::read(&contents).is_ok(),
+        ConfigFormat::ServerYaml => ServerConfig::read_yaml(&contents).is_ok(),
+    };
+    if !valid {
+        eprintln!("Invalid configuration. Check the selected format and value types.");
+        return ExitCode::FAILURE;
+    }
+
+    println!("Configuration parsed successfully.");
+    ExitCode::SUCCESS
 }
 
 fn service_config(path: Option<PathBuf>) -> ServiceConfig {

@@ -382,7 +382,11 @@ impl ServerConfig {
                 path, e
             ))
         })?;
-        serde_yaml::from_str::<Self>(&contents).map_err(|e| {
+        Self::read_yaml(&contents)
+    }
+
+    pub fn read_yaml(contents: &str) -> Result<Self, MgoGraphQLError> {
+        serde_yaml::from_str(contents).map_err(|e| {
             MgoGraphQLError::Internal(format!(
                 "Failed to deserialize service cfg from yaml: {}",
                 e

@@ -46,6 +46,7 @@ By contributing, you agree to follow the **[Code of Conduct](CODE_OF_CONDUCT.md)
 ## Repository checks
 
 - Run `bash ci/check.sh quick` before requesting review. Pass a base commit to check whitespace across a committed branch.
-- Run `bash ci/check.sh rpc-regressions` for cursor and startup logging changes. Run `bash ci/check.sh rpc-config` for configuration changes. Use the Rust 1.75.0 environment in `ci/Dockerfile` and the checked-in `Cargo.lock`.
+- Run `bash ci/check.sh rpc-regressions` for cursor behavior, schema feature groups, and startup logging. Run `bash ci/check.sh rpc-config` for configuration defaults and the offline configuration CLI. Use the Rust 1.75.0 environment in `ci/Dockerfile` and the checked-in `Cargo.lock`.
+- See the [GraphQL configuration examples](crates/mgo-graphql-rpc/README.md#validating-configuration) for the two supported configuration formats.
 - GitHub Actions runs the quick check on push and pull requests. The ARM64 RPC regression job is scheduled and can also be dispatched manually. It uses one Cargo job and a Docker memory cap of 12 GiB.
 - Report security findings privately using [SECURITY.md](SECURITY.md).

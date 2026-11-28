@@ -35,10 +35,44 @@ diesel setup --database-url="<DATABASE_URL>" --migration-dir=migrations_v2
 diesel migration run --database-url="<DATABASE_URL>" --migration-dir=migrations_v2
 ```
 
+### Validating configuration
+
+From the repository root, build the binary and check either the [TOML service
+configuration](config-examples/service.toml) or the [YAML server
+configuration](config-examples/server.yaml).
+
+```sh
+cargo run --locked -p mgo-graphql-rpc --bin mgo-graphql-rpc -- \
+  check-config --format service-toml --path crates/mgo-graphql-rpc/config-examples/service.toml
+cargo run --locked -p mgo-graphql-rpc --bin mgo-graphql-rpc -- \
+  check-config --format server-yaml --path crates/mgo-graphql-rpc/config-examples/server.yaml
+```
+
+`check-config` uses the corresponding startup parser without opening database
+or RPC connections. It exits with status 0 on success and status 1 for unreadable
+files or parse errors. Diagnostics omit the file contents. The command checks
+syntax and value types and follows the startup parser's handling of unknown keys.
+
+Within `limits` and `internal_features`, omitted fields use their built-in
+defaults. Explicit values override those defaults, including `false` for the
+YAML example's `logger` flag.
+
 ### Launching the server
 
+`start-server --config` accepts a TOML service configuration. Use flags such as
+`--db-url`, `--host`, `--port`, and `--node-rpc-url` for connection settings.
+
+```sh
+cargo run --locked -p mgo-graphql-rpc --bin mgo-graphql-rpc -- \
+  start-server --config crates/mgo-graphql-rpc/config-examples/service.toml
 ```
-cargo run --bin mgo-graphql-rpc start-server [--rpc-url] [--db-url] [--port] [--host] [--config]
+
+`from-config --path` accepts a YAML server configuration. It supports server
+settings such as `connection` and `internal_features` alongside `service`.
+
+```sh
+cargo run --locked -p mgo-graphql-rpc --bin mgo-graphql-rpc -- \
+  from-config --path crates/mgo-graphql-rpc/config-examples/server.yaml
 ```
 
 This will build mgo-graphql-rpc and start an IDE:

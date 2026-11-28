@@ -17,10 +17,12 @@ case "${1:-}" in
     ;;
   rpc-regressions)
     cargo test --locked --jobs 1 -p mgo-graphql-rpc --lib types::cursor::tests:: -- --nocapture
+    cargo test --locked --jobs 1 -p mgo-graphql-rpc --lib functional_group::tests::test_groups_match_schema -- --exact
     cargo test --locked --jobs 1 -p mgo-indexer --bin mgo-indexer tests::test_indexer_config_debug_does_not_expose_connection_values -- --exact
     ;;
   rpc-config)
     cargo test --locked --jobs 1 -p mgo-graphql-rpc --lib config::tests:: -- --nocapture
+    cargo test --locked --jobs 1 -p mgo-graphql-rpc --test config_cli
     ;;
   *)
     printf 'Usage: %s {quick [base-sha]|rpc-regressions|rpc-config}\n' "$0" >&2
